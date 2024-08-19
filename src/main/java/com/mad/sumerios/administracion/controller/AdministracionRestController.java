@@ -60,9 +60,9 @@ public class AdministracionRestController {
     @DeleteMapping(value = "delete/{id}", headers = "Accept=application/json")
     public ResponseEntity<String> deleteAdministracion(@PathVariable Long id) {
         try {
-            Administracion adm = admService.deleteAdministracion(id);
+            admService.deleteAdministracion(id);
             return ResponseEntity.status(HttpStatus.OK).body(
-                    "Administración: " + adm.getNombre() + " eliminada exitosamente"
+                    "Administración eliminada exitosamente"
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

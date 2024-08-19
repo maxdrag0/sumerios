@@ -52,11 +52,10 @@ public class ConsorcioService {
     }
 
     //  ELIMINAR CONSORCIO
-    public Consorcio deleteConsorcio(Long id) throws Exception{
+    public void deleteConsorcio(Long id) throws Exception{
         Consorcio consorcio = consorcioRepository.findById(id)
                 .orElseThrow(() -> new Exception("Consorcio no encontrado"));
 
         consorcioRepository.delete(consorcio);
-        return consorcio;
     }
 }

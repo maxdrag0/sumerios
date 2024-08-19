@@ -1,8 +1,9 @@
-package com.mad.sumerios.movimientoegreso.model;
+package com.mad.sumerios.egreso.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mad.sumerios.consorcio.model.Consorcio;
-import com.mad.sumerios.enums.TipoMovimiento;
+import com.mad.sumerios.enums.TipoEgreso;
+import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +16,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "tbl_movimiento_egreso")
-public class MovimientoEgreso {
+public class Egreso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,16 +29,34 @@ public class MovimientoEgreso {
     @JsonBackReference
     private Consorcio consorcio;
 
+//  DATOS DEL GASTO
     @NotNull
     @Temporal(TemporalType.DATE)
     private Date fecha;
+
     @NotBlank
     private String titulo;
-    private String descripcion;
+
     @NotNull
-    private double valor;
-    private TipoMovimiento tipoMovimiento;
+    private TipoEgreso tipoEgreso;
 
+    private String descripcion;
 
+    @NotNull
+    private Double totalA;
+    @NotNull
+    private Double totalB;
+    @NotNull
+    private Double totalC;
+    @NotNull
+    private Double totalD;
+    @NotNull
+    private Double totalE;
 
+//  GASTO PARTICULAR
+    private Double gastoParticular;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_uf")
+    private UnidadFuncional unidadFuncional;
 }

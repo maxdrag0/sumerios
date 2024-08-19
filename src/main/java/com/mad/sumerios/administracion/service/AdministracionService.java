@@ -60,12 +60,11 @@ public class AdministracionService {
     }
 
     //  ELIMINAR ADMINISTRACION
-    public Administracion deleteAdministracion(Long id) throws Exception{
+    public void deleteAdministracion(Long id) throws Exception{
         Administracion adm = administracionRepository.findById(id)
                 .orElseThrow(() -> new Exception("Administración no encontrada"));
 
         administracionRepository.delete(adm);
-        return adm;
     }
 
     // BUSQUEDA

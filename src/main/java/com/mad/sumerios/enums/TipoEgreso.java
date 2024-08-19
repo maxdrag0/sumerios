@@ -4,7 +4,7 @@ package com.mad.sumerios.enums;
 import lombok.Getter;
 
 @Getter
-public enum TipoMovimiento {
+public enum TipoEgreso {
 
     ABONOS_SERVICIOS("Abonos de servicios"),
     CARGAS_SOCIALES("Cargas sociales"),
@@ -13,14 +13,13 @@ public enum TipoMovimiento {
     GASTOS_BANCARIOS("Gastos bancarios"),
     GASTOS_PARTICULARES("Gastos particulares"),
     MANTENIMIENTO("Mantenimiento de partes comunes"),
-//    PAGO_EXPENSAS("Pago de expensas"),
     SEGURO("Pago de seguro"),
     SERVICIOS_PUBLICOS("Servicios públicos"),
     OTROS("Otros");
 
     private final String descripcion;
 
-    TipoMovimiento(String descripcion) {
+    TipoEgreso(String descripcion) {
         this.descripcion = descripcion;
     }
 

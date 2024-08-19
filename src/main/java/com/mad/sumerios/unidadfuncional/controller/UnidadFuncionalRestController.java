@@ -75,7 +75,7 @@ public class UnidadFuncionalRestController {
     @DeleteMapping (value = "delete/{id}", headers = "Accept=application/json")
     public ResponseEntity<String> deleteUnidadFuncional(@PathVariable Long id){
         try{
-            UnidadFuncional uf = unidadFuncionalService.deleteUnidadFuncional(id);
+            unidadFuncionalService.deleteUnidadFuncional(id);
             return ResponseEntity.status(HttpStatus.OK).body(
                     "Unidad Funcional eliminada exitosamente"
                     );

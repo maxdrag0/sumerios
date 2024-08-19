@@ -3,6 +3,7 @@ package com.mad.sumerios.consorcio.controller;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,13 +58,13 @@ public class ConsorcioRestController {
     //  ELIMINAR CONSORCIO
     @DeleteMapping(value = "delete/{id}", headers = "Accept=application/json")
     public ResponseEntity<String> deleteConsorcio(@PathVariable Long id){
-        try{
-            Consorcio consorcio = consorcioService.deleteConsorcio(id);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Consorcio: " + consorcio.getNombre() + " - "+consorcio.getDireccion()+ " eliminado exitosamente"
-            );
+        try {
+            consorcioService.deleteConsorcio(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Consorcio eliminado exitosamente");
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consorcio no encontrado");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al eliminar el consorcio: " + e.getMessage());
         }
     }
 }

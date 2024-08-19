@@ -72,11 +72,10 @@ public class UnidadFuncionalService {
     }
 
     //  ELIMINAR UF
-    public UnidadFuncional deleteUnidadFuncional(Long id) throws Exception{
+    public void deleteUnidadFuncional(Long id) throws Exception{
         UnidadFuncional uf = unidadFuncionalRepository.findById(id)
                 .orElseThrow(() -> new Exception("Unidad Funcional no encontrada"));
 
         unidadFuncionalRepository.delete(uf);
-        return uf;
     }
 }

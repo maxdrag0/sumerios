@@ -3,8 +3,8 @@ package com.mad.sumerios.consorcio.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.administracion.model.Administracion;
-import com.mad.sumerios.movimientoegreso.model.MovimientoEgreso;
-import com.mad.sumerios.movimientoingreso.model.MovimientoIngreso;
+import com.mad.sumerios.egreso.model.Egreso;
+import com.mad.sumerios.ingreso.model.Ingreso;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -58,12 +58,12 @@ public class Consorcio {
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<MovimientoEgreso> movimientosEgresos;
+    private List<Egreso> egresos;
 
     @OneToMany(mappedBy = "consorcio",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<MovimientoIngreso> movimientosIngreso;
+    private List<Ingreso> ingresos;
 }

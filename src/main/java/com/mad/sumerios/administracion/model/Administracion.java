@@ -31,6 +31,9 @@ public class Administracion {
     private String telefono;
 
     @NotBlank
+    private String cuit;
+
+    @NotBlank
     @Email(message = "Debe ser un correo electrónico válido")
     private String mail;
 

@@ -3,7 +3,7 @@ package com.mad.sumerios.unidadfuncional.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.consorcio.model.Consorcio;
-import com.mad.sumerios.ingreso.model.Ingreso;
+import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -37,26 +37,12 @@ public class UnidadFuncional {
     private int unidadFuncional;
 
     @NotBlank
-    @Size(max = 3)
-    private String numeroUnidad;
-
-    @NotBlank
-    @Size(max = 4)
-    private String letraUnidad;
+    @Size(max = 5)
+    private String titulo;
 
     @NotNull
     @Min(0)
     private Double porcentajeUnidad;
-
-    //  ESTADO DE CUENTA Y PAGOS
-    private Double deuda;
-
-    @OneToMany(mappedBy = "unidadFuncional",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Ingreso> ingresos;
 
     //  DATOS PROPIETARIO
     @NotNull
@@ -71,5 +57,16 @@ public class UnidadFuncional {
     private String nombreInquilino;
     private String mailInquilino;
     private String telefonoInquilino;
+
+    //  ESTADO DE CUENTA Y PAGOS
+    @NotNull
+    private Double deuda;
+
+    @OneToMany(mappedBy = "unidadFuncional",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<PagoUF> pagoUFS;
 
 }

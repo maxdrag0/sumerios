@@ -1,8 +1,10 @@
-package com.mad.sumerios.egreso.model;
+package com.mad.sumerios.movimientos.egreso.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mad.sumerios.consorcio.model.Consorcio;
+import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
+import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -25,7 +27,13 @@ public class Egreso {
 
     @NotNull
     @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_exp")
+    @JsonBackReference
+    private Expensa expensa;
+
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "id_consorcio")
+    @NotNull
     @JsonBackReference
     private Consorcio consorcio;
 
@@ -33,15 +41,20 @@ public class Egreso {
     @NotNull
     @Temporal(TemporalType.DATE)
     private Date fecha;
-
     @NotBlank
     private String titulo;
-
     @NotNull
     private TipoEgreso tipoEgreso;
 
+    @NotNull
+    @Column(name = "id_proveedor")
+    private Long idProveedor;
+
+    @NotNull
+    private FormaPago formaPago;
     private String descripcion;
 
+//  EXPENSA
     @NotNull
     private Double totalA;
     @NotNull
@@ -54,9 +67,11 @@ public class Egreso {
     private Double totalE;
 
 //  GASTO PARTICULAR
+    private boolean esParticular;
     private Double gastoParticular;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_uf")
+    @JoinColumn(name = "id_uf",
+                nullable = true)
     private UnidadFuncional unidadFuncional;
 }

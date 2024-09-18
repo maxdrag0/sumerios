@@ -1,7 +1,7 @@
-package com.mad.sumerios.ingreso.service;
+package com.mad.sumerios.movimientos.ingreso.service;
 
-import com.mad.sumerios.ingreso.model.Ingreso;
-import com.mad.sumerios.ingreso.repository.IIngresoRepository;
+import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
+import com.mad.sumerios.movimientos.ingreso.repository.IIngresoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +27,6 @@ public class IngresoService {
     }
 
     //  LISTAR INGRESO
-    //  POR UNIDAD FUNCIONAL
-    public List<Ingreso> getIngresoPorUnidadFuncional(Long uf_id){
-        return ingresoRepository.findByUnidadFuncional_id(uf_id);
-    }
-
     //  POR CONSORCIO Y FECHA
     public List<Ingreso> getIngresoPorConsorcioYFecha(Long consorcio_id, Date fechaInicio, Date fechaFin){
         return ingresoRepository.findByConsorcio_IdConsorcioAndFechaBetween(consorcio_id, fechaInicio, fechaFin);

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConsorcioService {
@@ -18,18 +19,24 @@ public class ConsorcioService {
     }
 
     //  CREAR CONSORCIO
-    public void createConsorcio(Consorcio consorcio) throws Exception {
+    public Consorcio createConsorcio(Consorcio consorcio) throws Exception {
         if(consorcioRepository.findByNombre(consorcio.getNombre()).isPresent()){
             throw new Exception("El consorcio ya está registrado (nombre ya existente)");
         } else if (consorcioRepository.findByDireccion(consorcio.getDireccion()).isPresent()){
             throw new Exception("El consorcio ya está registrado. (Direccion ya existente)");
         }
         consorcioRepository.save(consorcio);
+        return consorcio;
     }
 
     //  LISTAR CONSORCIOS
     public List<Consorcio> getConsorcios(){
         return consorcioRepository.findAll();
+    }
+
+    //  BUSCAR ID
+    public Optional<Consorcio> getConsorcioById(Long id) {
+        return consorcioRepository.findById(id);
     }
 
     //  ACTUALIZAR CONSORCIO

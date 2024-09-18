@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/unidad_funcional/")
+@RequestMapping("/api/consorcios/{idConsorcio}/unidades_funcionales")
 public class UnidadFuncionalRestController {
 
     private final UnidadFuncionalService unidadFuncionalService;
@@ -21,10 +21,11 @@ public class UnidadFuncionalRestController {
     }
 
     //  CREAR uf
-    @PostMapping(value = "create", headers = "Accept=application/json")
-    public ResponseEntity<String> createUnidadFuncional(@RequestBody UnidadFuncional unidadFuncional) {
+    @PostMapping
+    public ResponseEntity<String> createUnidadFuncional(@PathVariable Long idConsorcio,
+                                                        @RequestBody UnidadFuncional unidadFuncional) {
         try{
-            unidadFuncionalService.createUnidadFuncional(unidadFuncional);
+            unidadFuncionalService.createUnidadFuncional(idConsorcio, unidadFuncional);
             return ResponseEntity.status(HttpStatus.CREATED).body("Unidad Funcional creada exitosamente");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -32,23 +33,10 @@ public class UnidadFuncionalRestController {
     }
 
     //  LISTAR UFs
-    @GetMapping(value = "get", headers = "Accept=application/json")
-    public ResponseEntity<List<UnidadFuncional>> getAllUnidadFuncional() {
+    @GetMapping
+    public ResponseEntity<List<UnidadFuncional>> getUnidadesFuncionales(@PathVariable Long idConsorcio) {
         try {
-            List<UnidadFuncional> unidades = unidadFuncionalService.getUnidades();
-            if (unidades.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(unidades);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-
-    @GetMapping(value = "get/{id}", headers = "Accept=application/json")
-    public ResponseEntity<List<UnidadFuncional>> getUnidadFuncionalByIdConsorcio(@PathVariable Long id) {
-        try {
-            List<UnidadFuncional> unidades = unidadFuncionalService.getUnidadesFuncionalesPorConsorcio(id);
+            List<UnidadFuncional> unidades = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
             if (unidades.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -59,23 +47,25 @@ public class UnidadFuncionalRestController {
     }
 
     //  ACTUALIZAR UF
-    @PutMapping (value = "update", headers = "Accept=application/json")
-    public ResponseEntity<String> updateUnidadFuncional(@RequestBody UnidadFuncional unidadFuncional){
-        try{
-            unidadFuncionalService.updateUnidadFuncional(unidadFuncional);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Unidad Funcional modificada exitosamente"
-            );
-        } catch (Exception e){
+    @PutMapping("/{idUnidadFuncional}")
+    public ResponseEntity<String> updateUnidadFuncional(@PathVariable Long idConsorcio,
+                                                        @PathVariable Long idUnidadFuncional,
+                                                        @RequestBody UnidadFuncional unidadFuncional) {
+        try {
+            // Asegúrate de que la unidad funcional a actualizar esté asociada con el consorcio correcto
+            unidadFuncionalService.updateUnidadFuncional(idConsorcio, idUnidadFuncional, unidadFuncional);
+            return ResponseEntity.status(HttpStatus.OK).body("Unidad Funcional modificada exitosamente");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     //  ELIMINAR UF
-    @DeleteMapping (value = "delete/{id}", headers = "Accept=application/json")
-    public ResponseEntity<String> deleteUnidadFuncional(@PathVariable Long id){
+    @DeleteMapping ("/{idUnidadFuncional}")
+    public ResponseEntity<String> deleteUnidadFuncional(@PathVariable Long idConsorcio,
+                                                        @PathVariable Long idUnidadFuncional){
         try{
-            unidadFuncionalService.deleteUnidadFuncional(id);
+            unidadFuncionalService.deleteUnidadFuncional(idConsorcio, idUnidadFuncional);
             return ResponseEntity.status(HttpStatus.OK).body(
                     "Unidad Funcional eliminada exitosamente"
                     );

@@ -23,40 +23,45 @@ public class UnidadFuncionalService {
     }
 
     //  CREAR UNIDAD FUNCIONAL
-    public void createUnidadFuncional(UnidadFuncional unidadFuncional) throws Exception{
-        Optional<UnidadFuncional> existente = unidadFuncionalRepository.findByNumeroYLetraEnConsorcio(
-                unidadFuncional.getConsorcio(),
-                unidadFuncional.getNumeroUnidad(),
-                unidadFuncional.getLetraUnidad());
-        if(existente.isPresent()){
-            throw new Exception(
-                "Unidad funcional "+unidadFuncional.getNumeroUnidad()+unidadFuncional.getLetraUnidad()+" ya existe");
+    public void createUnidadFuncional(Long idConsorcio, UnidadFuncional unidadFuncional) throws Exception {
+        // Verifica si la unidad funcional ya existe en el consorcio especificado
+        Optional<UnidadFuncional> existente = unidadFuncionalRepository.findByTitulo(
+                unidadFuncional.getTitulo());
+        if (existente.isPresent()) {
+            throw new Exception("Unidad funcional " + unidadFuncional.getTitulo() + " ya existe en el consorcio");
         }
 
+        // Obtén el consorcio correspondiente
+        Consorcio consorcio = consorcioRepository.findById(idConsorcio)
+                .orElseThrow(() -> new Exception("Consorcio no encontrado"));
+
+        // Asocia la unidad funcional con el consorcio
+        unidadFuncional.setConsorcio(consorcio);
+
+        // Guarda la unidad funcional
         unidadFuncionalRepository.save(unidadFuncional);
     }
 
     //  LISTAR UF
-    public List<UnidadFuncional> getUnidades(){
-        return unidadFuncionalRepository.findAll();
-    }
-
-    public List<UnidadFuncional> getUnidadesFuncionalesPorConsorcio(Long idConsorcio) throws Exception {
-        Consorcio consorcio = consorcioRepository.findById(idConsorcio)
-                .orElseThrow(() -> new Exception("Consorcio no encontrado"));
-
-        return unidadFuncionalRepository.findByConsorcio(consorcio);
+    public List<UnidadFuncional> getUnidadesPorConsorcio(Long idConsorcio) {
+        return unidadFuncionalRepository.findByConsorcio_IdConsorcio(idConsorcio);
     }
 
     //  ACTUALIZAR UF
-    public void updateUnidadFuncional(UnidadFuncional unidadFuncional) throws Exception{
-        UnidadFuncional uf = unidadFuncionalRepository.findById(unidadFuncional.getIdUf())
+    public void updateUnidadFuncional(Long idConsorcio, Long idUnidadFuncional, UnidadFuncional unidadFuncional) throws Exception{
+        // Verifica si la unidad funcional existe
+        UnidadFuncional uf = unidadFuncionalRepository.findById(idUnidadFuncional)
                 .orElseThrow(() -> new Exception("Unidad Funcional no encontrada"));
 
+        // Verifica que la unidad funcional pertenece al consorcio correcto
+        if (uf.getConsorcio().getIdConsorcio() != idConsorcio) {
+            throw new Exception("La Unidad Funcional no pertenece al Consorcio especificado");
+        }
+
 //      DATOS UF
-        uf.setNumeroUnidad(unidadFuncional.getNumeroUnidad());
-        uf.setLetraUnidad(unidadFuncional.getLetraUnidad());
+        uf.setTitulo(unidadFuncional.getTitulo());
         uf.setPorcentajeUnidad(unidadFuncional.getPorcentajeUnidad());
+        uf.setDeuda(unidadFuncional.getDeuda());
 //      DATOS PROP
         uf.setApellidoPropietario(unidadFuncional.getApellidoPropietario());
         uf.setNombrePropietario(unidadFuncional.getNombrePropietario());
@@ -68,13 +73,19 @@ public class UnidadFuncionalService {
         uf.setMailInquilino(unidadFuncional.getMailInquilino());
         uf.setTelefonoInquilino(unidadFuncional.getTelefonoInquilino());
 
+
         unidadFuncionalRepository.save(uf);
     }
 
     //  ELIMINAR UF
-    public void deleteUnidadFuncional(Long id) throws Exception{
-        UnidadFuncional uf = unidadFuncionalRepository.findById(id)
+    public void deleteUnidadFuncional(Long idConsorcio, Long idUnidadFuncional) throws Exception {
+        UnidadFuncional uf = unidadFuncionalRepository.findById(idUnidadFuncional)
                 .orElseThrow(() -> new Exception("Unidad Funcional no encontrada"));
+
+        // Verifica que la unidad funcional pertenece al consorcio correcto
+        if (uf.getConsorcio().getIdConsorcio() != idConsorcio) {
+            throw new Exception("La Unidad Funcional no pertenece al Consorcio especificado");
+        }
 
         unidadFuncionalRepository.delete(uf);
     }

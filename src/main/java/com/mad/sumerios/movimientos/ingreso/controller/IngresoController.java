@@ -1,8 +1,8 @@
-package com.mad.sumerios.ingreso.controller;
+package com.mad.sumerios.movimientos.ingreso.controller;
 
 
-import com.mad.sumerios.ingreso.model.Ingreso;
-import com.mad.sumerios.ingreso.service.IngresoService;
+import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
+import com.mad.sumerios.movimientos.ingreso.service.IngresoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping(name="/api/ingreso/")
+@RequestMapping("/api/ingreso/")
 public class IngresoController {
 
     private final IngresoService ingresoService;
@@ -33,18 +33,6 @@ public class IngresoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-    }
-
-    //  LISTAR
-    //  POR UF
-    @GetMapping(name="unidadFuncional/{ufId}", headers = "Accept=application/json")
-    public ResponseEntity<List<Ingreso>> getIngresoPorUF (@PathVariable Long ufId){
-        List<Ingreso> ingresos = ingresoService.getIngresoPorUnidadFuncional(ufId);
-        if(ingresos.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(ingresos);
     }
 
     //  LISTAR
@@ -72,7 +60,7 @@ public class IngresoController {
         }
     }
 
-    //  BORRAR EGRESO
+    //  BORRAR INGRESO
     @DeleteMapping(name="delete/{id}" , headers = "Accept=application/json")
     public ResponseEntity<String> deleteIngreso(@PathVariable Long id){
         try{

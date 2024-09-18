@@ -8,64 +8,63 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/administracion/")
+@RequestMapping("/api/administraciones")
 public class AdministracionRestController {
 
-    private final AdministracionService admService;
+    private final AdministracionService administracionService;
 
-    @Autowired
-    public AdministracionRestController(AdministracionService admService) {
-        this.admService = admService;
+    public AdministracionRestController(AdministracionService administracionService) {
+        this.administracionService = administracionService;
     }
 
-    //  CREAR ADMINISTRACION
-    @PostMapping(value = "create", headers = "Accept=application/json")
+    @PostMapping
     public ResponseEntity<String> createAdministracion(@RequestBody Administracion administracion) {
         try {
-            admService.createAdministracion(administracion);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    "Administración creada exitosamente"
-            );
+            administracionService.createAdministracion(administracion);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Administración creada exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    //  LISTAR ADMINISTRACIONES
-    @GetMapping(value = "get", headers = "Accept=application/json")
+    @GetMapping
     public ResponseEntity<List<Administracion>> getAllAdministraciones() {
-        List<Administracion> administraciones = admService.getAdministraciones();
+        List<Administracion> administraciones = administracionService.getAdministraciones();
         if (administraciones.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(administraciones);
     }
 
-    // ACTUALIZAR ADMINISTRACION
-    @PutMapping(value = "update", headers = "Accept=application/json")
-    public ResponseEntity<String> updateAdministracion(@RequestBody Administracion adm){
+    @GetMapping("/{id}")
+    public ResponseEntity<Administracion> getAdministracionById(@PathVariable Long id) {
+        Optional<Administracion> administracion = administracionService.getAdministracionById(id);
+        return administracion.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateAdministracion(@PathVariable Long id, @RequestBody Administracion administracion) {
         try {
-            admService.updateAdministracion(adm);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Administración: " + adm.getNombre() + " modificada exitosamente"
-            );
+            administracion.setIdAdm(id);
+            administracionService.updateAdministracion(administracion);
+            return ResponseEntity.status(HttpStatus.OK).body("Administración actualizada exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    //  ELIMINAR ADMINISTRACION
-    @DeleteMapping(value = "delete/{id}", headers = "Accept=application/json")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAdministracion(@PathVariable Long id) {
         try {
-            admService.deleteAdministracion(id);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Administración eliminada exitosamente"
-            );
+            administracionService.deleteAdministracion(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Administración eliminada exitosamente");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al eliminar la administración: " + e.getMessage());
         }
     }
+
 }

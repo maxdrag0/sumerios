@@ -1,7 +1,8 @@
-package com.mad.sumerios.egreso.controller;
+package com.mad.sumerios.movimientos.egreso.controller;
 
-import com.mad.sumerios.egreso.model.Egreso;
-import com.mad.sumerios.egreso.service.EgresoService;
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
+import com.mad.sumerios.movimientos.egreso.service.EgresoService;
+import com.mad.sumerios.proveedor.model.Proveedor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -40,6 +41,17 @@ public class EgresoController {
                                                                        @RequestBody @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fechaInicio,
                                                                        @RequestBody @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fechaFin){
         List<Egreso> egresos = egresoService.getEgresosPorConsorcioYFechas(consorcioId, fechaInicio, fechaFin);
+
+        if (egresos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(egresos);
+    }
+
+    @GetMapping(value = "proveedor/{idProveedor}", headers = "Accept=application/json")
+    public ResponseEntity<List<Egreso>> getEgresosPorProveedor (@PathVariable Long idProveedor
+                                                                       ){
+        List<Egreso> egresos = egresoService.getEgresosPorProveedor(idProveedor);
 
         if (egresos.isEmpty()) {
             return ResponseEntity.noContent().build();

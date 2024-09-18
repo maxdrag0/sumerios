@@ -1,8 +1,9 @@
-package com.mad.sumerios.ingreso.model;
+package com.mad.sumerios.movimientos.pagouf.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -15,19 +16,25 @@ import java.util.Date;
 @Data
 @RequiredArgsConstructor
 @Entity
-@Table(name = "tbl_movimiento_ingreso")
-public class Ingreso {
+@Table(name = "tbl_pago_uf")
+public class PagoUF {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_movimiento_ingreso")
-    private Long idIngreso;
+    @Column(name = "id_pago_uf")
+    private Long idPagoUF;
 
-    @NotNull
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_consorcio")
-    @JsonBackReference
-    private Consorcio consorcio;
+//    @NotNull
+//    @ManyToOne (fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id_exp")
+//    @JsonBackReference
+//    private Expensa expensa;
+
+//    @ManyToOne (fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id_consorcio")
+//    @NotNull
+//    @JsonBackReference
+//    private Consorcio consorcio;
 
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "id_uf")
@@ -42,10 +49,8 @@ public class Ingreso {
     @NotNull
     private double valor;
 
-    @NotBlank
-    private String descripcion;
-
     @NotNull
     private FormaPago formaPago;
 
+    private String descripcion;
 }

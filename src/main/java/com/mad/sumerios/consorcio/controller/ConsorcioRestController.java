@@ -1,5 +1,6 @@
 package com.mad.sumerios.consorcio.controller;
 
+import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/consorcio/")
+@RequestMapping("/api/consorcios")
 public class ConsorcioRestController {
 
     private final ConsorcioService consorcioService;
@@ -22,18 +26,23 @@ public class ConsorcioRestController {
     }
 
     //  CREAR CONSORCIO
-    @PostMapping(value="create", headers = "Accept=application/json")
-    public ResponseEntity<String> createConsorcio(@RequestBody Consorcio consorcio) {
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createConsorcio(@RequestBody Consorcio consorcio) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            consorcioService.createConsorcio(consorcio);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Consorcio creado exitosamente");
+            Consorcio nuevoConsorcio = consorcioService.createConsorcio(consorcio);
+
+            response.put("id", nuevoConsorcio.getIdConsorcio());
+            response.put("message", "Consorcio creado exitosamente");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     //  LISTAR CONSORCIOS
-    @GetMapping(value = "get", headers = "Accept=application/json")
+    @GetMapping
     public ResponseEntity<List<Consorcio>> getAllConsorcio (){
         List<Consorcio> consorcios = consorcioService.getConsorcios();
         if (consorcios.isEmpty()) {
@@ -42,10 +51,18 @@ public class ConsorcioRestController {
         return ResponseEntity.ok(consorcios);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Consorcio> getConsorcioById(@PathVariable Long id) {
+        Optional<Consorcio> consorcio = consorcioService.getConsorcioById(id);
+        return consorcio.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     //  ACTUALIZAR CONSORCIO
-    @PutMapping(value = "update", headers = "Accept=application/json")
-    public ResponseEntity<String> updateConsorcio(@RequestBody Consorcio consorcio) {
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateConsorcio(@PathVariable Long id,@RequestBody Consorcio consorcio) {
         try{
+            consorcio.setIdConsorcio(id);
             consorcioService.updateConsorcio(consorcio);
             return ResponseEntity.status(HttpStatus.OK).body(
                     "Consorcio: " + consorcio.getNombre() + " - "+consorcio.getDireccion()+" modificado exitosamente"
@@ -56,7 +73,7 @@ public class ConsorcioRestController {
     }
 
     //  ELIMINAR CONSORCIO
-    @DeleteMapping(value = "delete/{id}", headers = "Accept=application/json")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteConsorcio(@PathVariable Long id){
         try {
             consorcioService.deleteConsorcio(id);

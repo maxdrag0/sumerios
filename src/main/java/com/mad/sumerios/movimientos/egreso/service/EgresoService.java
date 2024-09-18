@@ -1,7 +1,8 @@
-package com.mad.sumerios.egreso.service;
+package com.mad.sumerios.movimientos.egreso.service;
 
-import com.mad.sumerios.egreso.model.Egreso;
-import com.mad.sumerios.egreso.repository.IEgresoRepository;
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
+import com.mad.sumerios.movimientos.egreso.repository.IEgresoRepository;
+import com.mad.sumerios.proveedor.model.Proveedor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,10 @@ public class EgresoService {
     //  LISTAR EGRESOS CONSORCIO Y FECHA
     public List<Egreso> getEgresosPorConsorcioYFechas(Long idConsorcio, Date fechaInicio, Date fechaFin) {
         return egresoRepository.findByConsorcio_IdConsorcioAndFechaBetween(idConsorcio, fechaInicio, fechaFin);
+    }
+
+    public List<Egreso> getEgresosPorProveedor(Long idProveedor) {
+        return egresoRepository.findByIdProveedor(idProveedor);
     }
 
     //  ACTUALIZAR CONSORCIO

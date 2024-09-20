@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,15 @@ public class Administracion {
     @NotBlank
     @Email(message = "Debe ser un correo electrónico válido")
     private String mail;
+
+    // INICIO DE SESION
+//    @NotBlank
+//    @Min(8)
+//    private String usuario;
+
+    @NotBlank
+    @Min(8)
+    private String passwordHash;
 
     //    ADMINISTRADOR
     @NotBlank

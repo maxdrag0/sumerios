@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/consorcios/{idConsorcio}/unidades_funcionales")
+@RequestMapping("/api/administraciones/{idAdm}/consorcios/{idConsorcio}/unidades_funcionales")
 public class UnidadFuncionalRestController {
 
     private final UnidadFuncionalService unidadFuncionalService;

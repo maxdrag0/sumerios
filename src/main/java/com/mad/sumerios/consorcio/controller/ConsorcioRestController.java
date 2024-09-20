@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/consorcios")
+@RequestMapping("/api/administraciones/{idAdm}/consorcios")
 public class ConsorcioRestController {
 
     private final ConsorcioService consorcioService;
@@ -27,10 +27,11 @@ public class ConsorcioRestController {
 
     //  CREAR CONSORCIO
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createConsorcio(@RequestBody Consorcio consorcio) {
+    public ResponseEntity<Map<String, Object>> createConsorcio(@PathVariable Long idAdm,
+                                                               @RequestBody Consorcio consorcio) {
         Map<String, Object> response = new HashMap<>();
         try {
-            Consorcio nuevoConsorcio = consorcioService.createConsorcio(consorcio);
+            Consorcio nuevoConsorcio = consorcioService.createConsorcio(idAdm,consorcio);
 
             response.put("id", nuevoConsorcio.getIdConsorcio());
             response.put("message", "Consorcio creado exitosamente");
@@ -43,27 +44,25 @@ public class ConsorcioRestController {
 
     //  LISTAR CONSORCIOS
     @GetMapping
-    public ResponseEntity<List<Consorcio>> getAllConsorcio (){
-        List<Consorcio> consorcios = consorcioService.getConsorcios();
-        if (consorcios.isEmpty()) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<List<Consorcio>> getConsorcios (@PathVariable Long idAdm){
+        try {
+            List<Consorcio> consorcios = consorcioService.getConsorciosPorAdministracion(idAdm);
+            if (consorcios.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(consorcios);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return ResponseEntity.ok(consorcios);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Consorcio> getConsorcioById(@PathVariable Long id) {
-        Optional<Consorcio> consorcio = consorcioService.getConsorcioById(id);
-        return consorcio.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     //  ACTUALIZAR CONSORCIO
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateConsorcio(@PathVariable Long id,@RequestBody Consorcio consorcio) {
+    @PutMapping("/{idConsorcio}")
+    public ResponseEntity<String> updateConsorcio(@PathVariable Long idAdm,
+                                                  @PathVariable Long idConsorcio,
+                                                  @RequestBody Consorcio consorcio) {
         try{
-            consorcio.setIdConsorcio(id);
-            consorcioService.updateConsorcio(consorcio);
+            consorcioService.updateConsorcio(idAdm, idConsorcio, consorcio);
             return ResponseEntity.status(HttpStatus.OK).body(
                     "Consorcio: " + consorcio.getNombre() + " - "+consorcio.getDireccion()+" modificado exitosamente"
             );
@@ -73,10 +72,11 @@ public class ConsorcioRestController {
     }
 
     //  ELIMINAR CONSORCIO
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteConsorcio(@PathVariable Long id){
+    @DeleteMapping("/{idConsorcio}")
+    public ResponseEntity<String> deleteConsorcio(@PathVariable Long idAdm,
+                                                  @PathVariable Long idConsorcio){
         try {
-            consorcioService.deleteConsorcio(id);
+            consorcioService.deleteConsorcio(idAdm, idConsorcio);
             return ResponseEntity.status(HttpStatus.OK).body("Consorcio eliminado exitosamente");
         } catch (EmptyResultDataAccessException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consorcio no encontrado");

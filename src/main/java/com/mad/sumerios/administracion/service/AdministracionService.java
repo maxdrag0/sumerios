@@ -2,6 +2,7 @@ package com.mad.sumerios.administracion.service;
 
 import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.administracion.repository.IAdministracionRepository;
+import com.mad.sumerios.login.service.PasswordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,17 +12,36 @@ import java.util.Optional;
 @Service
 public class AdministracionService {
     private final IAdministracionRepository administracionRepository;
+    private final PasswordService passwordService;
 
     @Autowired
-    public AdministracionService(IAdministracionRepository administracionRepository) {
+    public AdministracionService(IAdministracionRepository administracionRepository, PasswordService passwordService) {
         this.administracionRepository = administracionRepository;
+        this.passwordService = passwordService;
     }
 
+//  CREACIÓN DE ADMINISTRACION
     public void createAdministracion(Administracion administracion) throws Exception {
         validateAdministracion(administracion);
+        String hashedPassword = passwordService.hashPassword(administracion.getPasswordHash());
+        administracion.setPasswordHash(hashedPassword);
         administracionRepository.save(administracion);
     }
 
+//  LOGIN
+    public Administracion login(String mail, String password) {
+        Optional<Administracion> adminOpt = administracionRepository.findByMail(mail);
+
+        if (adminOpt.isPresent()) {
+            Administracion administracion = adminOpt.get();
+            if (passwordService.checkPassword(password, administracion.getPasswordHash())) {
+                return administracion;  // Devuelve el usuario si las credenciales son correctas
+            }
+        }
+        throw new RuntimeException("Credenciales incorrectas");
+    }
+
+//  LISTA DE ADMINISTRACIONES
     public List<Administracion> getAdministraciones() {
         return administracionRepository.findAll();
     }

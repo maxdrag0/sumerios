@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface IUnidadFuncionalRepository extends JpaRepository<UnidadFuncional, Long> {
-    Optional<UnidadFuncional> findByTitulo(String titulo);
     List<UnidadFuncional> findByConsorcio_IdConsorcio(Long idConsorcio);
+    Optional<UnidadFuncional> findByTituloAndConsorcio_IdConsorcio(String titulo, Long consorcioId);
+    Optional<UnidadFuncional> findByUnidadFuncionalAndConsorcio_IdConsorcio(int unidadFuncional, Long consorcioId);
 }

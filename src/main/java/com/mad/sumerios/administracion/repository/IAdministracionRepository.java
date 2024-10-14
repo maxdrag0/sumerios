@@ -8,8 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface IAdministracionRepository extends JpaRepository<Administracion, Long> {
-    Optional<Administracion> findByNombre(String nombre);
     Optional<Administracion> findByMail(String mail);
-    Optional<Administracion> findByNombreAdministrador(String nombre);
-    Optional<Administracion> findByMatriculaAdministrador(String matricula);
+    Optional<Administracion> findByIdAdm(Long idAdm); // Busca por idAdm
 }

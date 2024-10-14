@@ -63,6 +63,15 @@ public class ConsorcioService {
         // Actualizar los datos del consorcio
         cons.setNombre(consorcio.getNombre());
         cons.setDireccion(consorcio.getDireccion());
+        cons.setCiudad(consorcio.getCiudad());
+        cons.setCuit(consorcio.getCuit());
+
+        // Actualizar los datos bancarios del consorcio
+        cons.setTitulo(consorcio.getTitulo());
+        cons.setCbu(consorcio.getCbu());
+        cons.setBanco(consorcio.getBanco());
+        cons.setNumCuenta(consorcio.getNumCuenta());
+        cons.setAlias(consorcio.getAlias());
 
         // Guardar los cambios
         consorcioRepository.save(cons);

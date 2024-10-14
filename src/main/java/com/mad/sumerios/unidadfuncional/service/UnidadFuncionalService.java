@@ -24,19 +24,15 @@ public class UnidadFuncionalService {
 
     //  CREAR UNIDAD FUNCIONAL
     public void createUnidadFuncional(Long idConsorcio, UnidadFuncional unidadFuncional) throws Exception {
-        // Verifica si la unidad funcional ya existe en el consorcio especificado
-        Optional<UnidadFuncional> existente = unidadFuncionalRepository.findByTitulo(
-                unidadFuncional.getTitulo());
-        if (existente.isPresent()) {
-            throw new Exception("Unidad funcional " + unidadFuncional.getTitulo() + " ya existe en el consorcio");
-        }
-
         // Obtén el consorcio correspondiente
         Consorcio consorcio = consorcioRepository.findById(idConsorcio)
                 .orElseThrow(() -> new Exception("Consorcio no encontrado"));
 
-        // Asocia la unidad funcional con el consorcio
-        unidadFuncional.setConsorcio(consorcio);
+        // Verifica si el titulo ya existe en el consorcio
+        verificarTituloUnico(unidadFuncional.getTitulo(), idConsorcio);
+
+        // Verifica si la unidad funcional ya existe en el consorcio
+        verificarNumeroUnidadUnico(unidadFuncional.getUnidadFuncional(),idConsorcio);
 
         // Guarda la unidad funcional
         unidadFuncionalRepository.save(unidadFuncional);
@@ -59,6 +55,7 @@ public class UnidadFuncionalService {
         }
 
 //      DATOS UF
+        uf.setUnidadFuncional(unidadFuncional.getUnidadFuncional());
         uf.setTitulo(unidadFuncional.getTitulo());
         uf.setPorcentajeUnidad(unidadFuncional.getPorcentajeUnidad());
         uf.setDeuda(unidadFuncional.getDeuda());
@@ -88,5 +85,22 @@ public class UnidadFuncionalService {
         }
 
         unidadFuncionalRepository.delete(uf);
+    }
+
+    //  VALIDACIONES
+    private void verificarTituloUnico(String titulo, Long idConsorcio) throws Exception {
+        Optional<UnidadFuncional> existenteTitulo =
+                unidadFuncionalRepository.findByTituloAndConsorcio_IdConsorcio(titulo, idConsorcio);
+        if (existenteTitulo.isPresent()) {
+            throw new Exception("Unidad funcional " + titulo + " ya existe en el consorcio");
+        }
+    }
+
+    private void verificarNumeroUnidadUnico(int unidadFuncional, Long idConsorcio) throws Exception {
+        Optional<UnidadFuncional> existenteUF =
+                unidadFuncionalRepository.findByUnidadFuncionalAndConsorcio_IdConsorcio(unidadFuncional, idConsorcio);
+        if (existenteUF.isPresent()) {
+            throw new Exception("Unidad funcional N°" + unidadFuncional + " ya existe en el consorcio");
+        }
     }
 }

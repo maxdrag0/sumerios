@@ -32,6 +32,20 @@ public class UnidadFuncionalRestController {
         }
     }
 
+//    // CREAR múltiples unidades funcionales
+//    @PostMapping("/group")
+//    public ResponseEntity<String> createMultipleUnidadesFuncionales(@PathVariable Long idConsorcio,
+//                                                                    @RequestBody List<UnidadFuncional> unidadesFuncionales) {
+//        try {
+//            for (UnidadFuncional unidadFuncional : unidadesFuncionales) {
+//                unidadFuncionalService.createUnidadFuncional(idConsorcio, unidadFuncional);
+//            }
+//            return ResponseEntity.status(HttpStatus.CREATED).body("Unidades Funcionales creadas exitosamente");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear las unidades funcionales: " + e.getMessage());
+//        }
+//    }
+
     //  LISTAR UFs
     @GetMapping
     public ResponseEntity<List<UnidadFuncional>> getUnidadesFuncionales(@PathVariable Long idConsorcio) {

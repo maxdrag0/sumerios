@@ -2,8 +2,9 @@ package com.mad.sumerios.unidadfuncional.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.mad.sumerios.appuser.model.AppUser;
 import com.mad.sumerios.consorcio.model.Consorcio;
-import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
+import com.mad.sumerios.pendientes.movimientos.pagouf.model.PagoUF;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -19,14 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Table(name = "tbl_unidad_funcional")
 public class UnidadFuncional {
-
-    //  UNIDAD FUNCIONAL
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_uf")
     private long idUf;
 
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_consorcio")
     @NotNull
     @JsonBackReference
@@ -44,7 +43,6 @@ public class UnidadFuncional {
     @Min(0)
     private Double porcentajeUnidad;
 
-    //  DATOS PROPIETARIO
     @NotNull
     private String apellidoPropietario;
     @NotNull
@@ -52,21 +50,32 @@ public class UnidadFuncional {
     private String mailPropietario;
     private String telefonoPropietario;
 
-    //  DATOS INQUILINO
     private String apellidoInquilino;
     private String nombreInquilino;
     private String mailInquilino;
     private String telefonoInquilino;
 
-    //  ESTADO DE CUENTA Y PAGOS
     @NotNull
     private Double deuda;
 
-    @OneToMany(mappedBy = "unidadFuncional",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<PagoUF> pagoUFS;
+    private Double intereses;
 
+    @NotNull
+    private Double totalA;
+    @NotNull
+    private Double totalB;
+    @NotNull
+    private Double totalC;
+    @NotNull
+    private Double totalD;
+    @NotNull
+    private Double totalE;
+
+//    @OneToMany(mappedBy = "unidadFuncional", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+//    @JsonManagedReference
+//    private List<PagoUF> pagoUFS;
+
+    @ManyToMany(mappedBy = "unidadesFuncionales")
+    @JsonBackReference
+    private List<AppUser> appUsers;
 }

@@ -1,6 +1,5 @@
 package com.mad.sumerios.consorcio.controller;
 
-import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/administraciones/{idAdm}/consorcios")

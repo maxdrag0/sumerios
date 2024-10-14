@@ -1,11 +1,13 @@
 package com.mad.sumerios.administracion.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.mad.sumerios.appuser.model.AppUser;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Table(name = "tbl_administracion")
 public class Administracion {
-    //    ADMINISTRACION
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_adm")
@@ -38,26 +39,13 @@ public class Administracion {
     @Email(message = "Debe ser un correo electrónico válido")
     private String mail;
 
-    // INICIO DE SESION
-//    @NotBlank
-//    @Min(8)
-//    private String usuario;
+    @NotNull
+    @OneToOne
+    @JoinColumn(name = "id_user", referencedColumnName = "id_user")
+    @JsonIgnore
+    private AppUser administrador;
 
-    @NotBlank
-    @Min(8)
-    private String passwordHash;
-
-    //    ADMINISTRADOR
-    @NotBlank
-    private String nombreAdministrador;
-    private String matriculaAdministrador;
-
-
-    //    CONSORCIOS
-    @OneToMany(mappedBy = "administracion",
-               cascade = CascadeType.ALL,
-               orphanRemoval = true,
-               fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "administracion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Consorcio> consorcios;
 }

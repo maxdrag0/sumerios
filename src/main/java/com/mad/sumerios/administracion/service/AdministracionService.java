@@ -4,11 +4,10 @@ import com.mad.sumerios.administracion.dto.AdministracionRegisterDTO;
 import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
 import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.administracion.repository.IAdministracionRepository;
-import com.mad.sumerios.appuser.dto.AppUserDTO;
-import com.mad.sumerios.appuser.model.AppUser;
-import com.mad.sumerios.appuser.repository.IAppUserRepository;
+import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
+import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
+import com.mad.sumerios.appuseradmin.repository.IAppUserAdminRepository;
 import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
-import com.mad.sumerios.enums.RolUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +18,12 @@ import java.util.stream.Collectors;
 public class AdministracionService {
 
     private final IAdministracionRepository administracionRepository;
-    private final IAppUserRepository appUserRepository;
+    private final IAppUserAdminRepository appUserAdminRepository;
 
     @Autowired
-    public AdministracionService(IAdministracionRepository administracionRepository, IAppUserRepository appUserRepository) {
+    public AdministracionService(IAdministracionRepository administracionRepository, IAppUserAdminRepository appUserAdminRepository) {
         this.administracionRepository = administracionRepository;
-        this.appUserRepository = appUserRepository;
+        this.appUserAdminRepository = appUserAdminRepository;
     }
 
     // CREACIÓN DE ADMINISTRACION
@@ -97,11 +96,9 @@ public class AdministracionService {
         administracion.setMail(dto.getMail());
 
         // Buscar el AppUser (administrador)
-        AppUser administrador = appUserRepository.findById(dto.getAdministradorId())
+        AppUserAdmin administrador = appUserAdminRepository.findById(dto.getAdministradorId())
                 .orElseThrow(() -> new IllegalArgumentException("Administrador no encontrado"));
-        if (administrador.getRolUser() != RolUser.ADMINISTRADOR) {
-            throw new IllegalArgumentException("El Rol del usuario debe ser ADMINISTRADOR");
-        } else if (administrador.getAdministracion() != null) {
+        if (administrador.getAdministracion() != null) {
             throw new Exception("El administrador ya está asignado a otra administración");
         }
 
@@ -119,18 +116,18 @@ public class AdministracionService {
         administracionDTO.setTelefono(administracion.getTelefono());
         administracionDTO.setDireccion(administracion.getDireccion());
 
-        // Mapear el administrador usando AppUserDTO
-        AppUser administrador = administracion.getAdministrador();
+        // Mapear el administrador usando AppUserAdminDTO
+        AppUserAdmin administrador = administracion.getAdministrador();
         if (administrador != null) {
-            AppUserDTO appUserDTO = new AppUserDTO();
-            appUserDTO.setIdAppUser(administrador.getIdAppUser());
-            appUserDTO.setNombre(administrador.getNombre());
-            appUserDTO.setApellido(administrador.getApellido());
-            appUserDTO.setUsername(administrador.getUsername());
-            appUserDTO.setMail(administrador.getMail());
-            appUserDTO.setTelefono(administrador.getTelefono());
-            appUserDTO.setMatriculaAdministrador(administrador.getMatriculaAdministrador());
-            administracionDTO.setAdministrador(appUserDTO);
+            AppUserAdminRegisterDTO AdminDto = new AppUserAdminRegisterDTO();
+            AdminDto.setIdAppUser(administrador.getIdAppUser());
+            AdminDto.setNombre(administrador.getNombre());
+            AdminDto.setApellido(administrador.getApellido());
+            AdminDto.setUsername(administrador.getUsername());
+            AdminDto.setMail(administrador.getMail());
+            AdminDto.setTelefono(administrador.getTelefono());
+            AdminDto.setMatriculaAdministrador(administrador.getMatriculaAdministrador());
+            administracionDTO.setAdministrador(AdminDto);
         }
 
         // Mapear la lista de consorcios usando ConsorcioResponseDTO

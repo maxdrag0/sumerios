@@ -1,9 +1,14 @@
-package com.mad.sumerios.appuser.controller;
+package com.mad.sumerios.auth.controller;
 
 import com.mad.sumerios.appuser.dto.AppUserRegisterDTO;
 import com.mad.sumerios.appuser.model.AppUser;
-import com.mad.sumerios.appuser.model.LoginRequest;
-import com.mad.sumerios.appuser.service.AppUserService;
+import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
+import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
+import com.mad.sumerios.appuseradmin.service.AppUserAdminService;
+import com.mad.sumerios.appuservecino.dto.AppUserVecinoRegisterDTO;
+import com.mad.sumerios.appuservecino.service.AppUserVecinoService;
+import com.mad.sumerios.auth.service.LoginRequest;
+import com.mad.sumerios.enums.RolUser;
 import com.mad.sumerios.utils.JwtResponse;
 import com.mad.sumerios.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,31 +26,41 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final AppUserService appUserService;
+    private final AppUserAdminService appUserAdminService;
+    private final AppUserVecinoService appUserVecinoService;
     private final JwtUtil jwtUtil;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
-                          AppUserService appUserService,
-                          JwtUtil jwtUtil){
-        this.authenticationManager=authenticationManager;
-        this.appUserService=appUserService;
-        this.jwtUtil=jwtUtil;
+                          AppUserAdminService appUserAdminService,
+                          AppUserVecinoService appUserVecinoService,
+                          JwtUtil jwtUtil) {
+        this.authenticationManager = authenticationManager;
+        this.appUserAdminService = appUserAdminService;
+        this.appUserVecinoService = appUserVecinoService;
+        this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping(value = "/register", consumes = "application/json")
-    public ResponseEntity<String> registerUser(@RequestBody AppUserRegisterDTO appUserRegisterDTO) {
-        System.out.println("AppUserDTO recibido: " + appUserRegisterDTO);
-        try {
-            AppUser newUser = appUserService.registerUser(appUserRegisterDTO);
-            return ResponseEntity.ok("Usuario registrado con éxito: " + newUser.getUsername());
+    @PostMapping(value = "/registerAdmin", consumes = "application/json")
+    public ResponseEntity<String> createAdmin(@RequestBody AppUserAdminRegisterDTO admin) {
+        try{
+            appUserAdminService.createAdmin(admin);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Admnistrador creado exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
+    @PostMapping(value = "/registerVecino", consumes = "application/json")
+    public ResponseEntity<String> createVecino(@RequestBody AppUserVecinoRegisterDTO admin) {
+        try{
+            appUserVecinoService.createVecino(admin);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Admnistrador creado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
-    // Iniciar sesión
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         // Autenticar al usuario
@@ -68,4 +83,5 @@ public class AuthController {
 
 
 }
+
 

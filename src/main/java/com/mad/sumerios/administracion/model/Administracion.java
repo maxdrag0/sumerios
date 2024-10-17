@@ -3,6 +3,7 @@ package com.mad.sumerios.administracion.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.appuser.model.AppUser;
+import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -43,7 +44,7 @@ public class Administracion {
     @OneToOne
     @JoinColumn(name = "id_user", referencedColumnName = "id_user")
     @JsonIgnore
-    private AppUser administrador;
+    private AppUserAdmin administrador;
 
     @OneToMany(mappedBy = "administracion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

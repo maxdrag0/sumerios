@@ -3,6 +3,7 @@ package com.mad.sumerios.unidadfuncional.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.appuser.model.AppUser;
+import com.mad.sumerios.appuservecino.model.AppUserVecino;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.pendientes.movimientos.pagouf.model.PagoUF;
 import jakarta.persistence.*;
@@ -77,5 +78,5 @@ public class UnidadFuncional {
 
     @ManyToMany(mappedBy = "unidadesFuncionales")
     @JsonBackReference
-    private List<AppUser> appUsers;
+    private List<AppUserVecino> appUsers;
 }

@@ -1,4 +1,4 @@
-package com.mad.sumerios.appuser.model;
+package com.mad.sumerios.auth.service;
 
 import lombok.Data;
 

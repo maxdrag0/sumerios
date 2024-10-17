@@ -2,16 +2,13 @@ package com.mad.sumerios.administracion.controller;
 
 import com.mad.sumerios.administracion.dto.AdministracionRegisterDTO;
 import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
-import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.administracion.service.AdministracionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/administraciones")

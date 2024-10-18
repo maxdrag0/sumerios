@@ -2,6 +2,7 @@ package com.mad.sumerios.administracion.controller;
 
 import com.mad.sumerios.administracion.dto.AdministracionRegisterDTO;
 import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
+import com.mad.sumerios.administracion.dto.AdministracionUpdateDTO;
 import com.mad.sumerios.administracion.service.AdministracionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,7 @@ public class AdministracionRestController {
 
     // Actualizar una administración
     @PutMapping("/{idAdm}")
-    public ResponseEntity<String> updateAdministracion(@PathVariable Long idAdm, @RequestBody AdministracionRegisterDTO dto) {
+    public ResponseEntity<String> updateAdministracion(@PathVariable Long idAdm, @RequestBody AdministracionUpdateDTO dto) {
         try {
             administracionService.updateAdministracion(idAdm, dto);
             return ResponseEntity.ok("Administración actualizada exitosamente");

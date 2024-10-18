@@ -20,6 +20,7 @@ public class AdministracionService {
     private final IAdministracionRepository administracionRepository;
     private final IAppUserAdminRepository appUserAdminRepository;
 
+
     @Autowired
     public AdministracionService(IAdministracionRepository administracionRepository, IAppUserAdminRepository appUserAdminRepository) {
         this.administracionRepository = administracionRepository;

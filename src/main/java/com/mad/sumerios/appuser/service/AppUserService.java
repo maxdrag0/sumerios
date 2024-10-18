@@ -16,12 +16,10 @@ import java.util.Optional;
 public class AppUserService implements UserDetailsService {
 
     private final IAppUserRepository appUserRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public AppUserService(IAppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {
         this.appUserRepository = appUserRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     // Buscar usuario por ID
@@ -34,6 +32,10 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByUsername(username);
     }
 
+    public void deleteUser(Long id) {
+        appUserRepository.deleteById(id);
+    }
+
     // Buscar usuario por mail
     public Optional<AppUser> getAppUserByMail(String mail) {
         return appUserRepository.findByMail(mail);
@@ -43,6 +45,7 @@ public class AppUserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<AppUser> appUser = appUserRepository.findByUsername(username);
+        System.out.println(appUser);
         if (appUser.isEmpty()) {
             throw new UsernameNotFoundException("Usuario no encontrado con el nombre: " + username);
         }

@@ -1,14 +1,10 @@
 package com.mad.sumerios.auth.controller;
 
-import com.mad.sumerios.appuser.dto.AppUserRegisterDTO;
-import com.mad.sumerios.appuser.model.AppUser;
 import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
-import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
 import com.mad.sumerios.appuseradmin.service.AppUserAdminService;
 import com.mad.sumerios.appuservecino.dto.AppUserVecinoRegisterDTO;
 import com.mad.sumerios.appuservecino.service.AppUserVecinoService;
-import com.mad.sumerios.auth.service.LoginRequest;
-import com.mad.sumerios.enums.RolUser;
+import com.mad.sumerios.auth.dto.LoginRequest;
 import com.mad.sumerios.utils.JwtResponse;
 import com.mad.sumerios.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +59,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // Autenticar al usuario
+        System.out.println("AC - INGRESE AL LOGIN");
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -71,13 +67,16 @@ public class AuthController {
                 )
         );
 
-        // Establecer el contexto de seguridad
+        System.out.println("AC - PASE LA AUTHETICATION");
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Generar el token JWT
+        System.out.println("AC - PASE EL CONTEXT HOLDER");
+
         String jwtToken = jwtUtil.generateToken(authentication);
 
-        // Devolver el token JWT como respuesta
+        System.out.println("AC - PASE EL JWT ");
+
         return ResponseEntity.ok(new JwtResponse(jwtToken));
     }
 

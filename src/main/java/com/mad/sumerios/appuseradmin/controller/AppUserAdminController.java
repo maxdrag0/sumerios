@@ -1,8 +1,13 @@
 package com.mad.sumerios.appuseradmin.controller;
 
+import com.mad.sumerios.appuser.model.AppUser;
+import com.mad.sumerios.appuser.service.AppUserService;
+import com.mad.sumerios.appuseradmin.dto.AppUserAdminResponseDTO;
+import com.mad.sumerios.appuseradmin.dto.AppUserAdminUpdateDTO;
 import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
 import com.mad.sumerios.appuseradmin.service.AppUserAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,29 +18,46 @@ import java.util.Optional;
 public class AppUserAdminController {
 
     private final AppUserAdminService appUserAdminService;
+    private final AppUserService appUserService;
 
     @Autowired
-    public AppUserAdminController(AppUserAdminService appUserAdminService) {
+    public AppUserAdminController(AppUserAdminService appUserAdminService,
+                                  AppUserService appUserService) {
         this.appUserAdminService = appUserAdminService;
+        this.appUserService = appUserService;
     }
 
-
+    //    EDITAR ADMIN
     @PutMapping("/{id}")
-    public ResponseEntity<AppUserAdmin> updateAdmin(@PathVariable Long id, @RequestBody AppUserAdmin updatedAdmin) {
-        AppUserAdmin admin = appUserAdminService.updateAdmin(id, updatedAdmin);
-        return ResponseEntity.ok(admin);
+    public ResponseEntity<?> updateAdmin(@PathVariable Long id, @RequestBody AppUserAdminUpdateDTO dto) {
+        try {
+            AppUserAdminResponseDTO response = appUserAdminService.updateAdmin(id, dto);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
     }
 
+    //    DELETE ADMIN
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAdmin(@PathVariable Long id) {
-        appUserAdminService.deleteAdmin(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> deleteAdmin(@PathVariable Long id) {
+        try{
+            appUserService.deleteUser(id);
+            return ResponseEntity.ok("Administrador eliminado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al eliminar el administrador: " + e.getMessage());
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AppUserAdmin> getAdminById(@PathVariable Long id) {
-        Optional<AppUserAdmin> admin = appUserAdminService.getAdminById(id);
-        return admin.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    //    OBTENER ADMIN POR MATRICULA
+    @GetMapping("/{matricula}")
+    public ResponseEntity<?> getAdminMatricula(@PathVariable String matricula) throws Exception {
+        try {
+            AppUserAdminResponseDTO dto = appUserAdminService.getAdminByMatricula(matricula);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
     }
 }
 

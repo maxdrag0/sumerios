@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface IAppUserAdminRepository extends JpaRepository<AppUserAdmin, Long> {
     Optional<AppUserAdmin> findByUsername(String username);
     Optional<AppUserAdmin> findByMail(String mail);
+    Optional<AppUserAdmin> findByMatriculaAdministrador(String matriculaAdministrador);
 }

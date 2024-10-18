@@ -21,13 +21,17 @@ public class JwtUtil {
 
     // Generar token JWT
     public String generateToken(Authentication authentication) {
+        System.out.println("JWT UTIL - ENTRE AL GENERATE");
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        System.out.println("JWT UTIL - PASE EL USER DETAILS AUTHETICATION");
         Map<String, Object> claims = new HashMap<>();
+        System.out.println("JWT UTIL PASE EL HASH");
         return createToken(claims, userDetails.getUsername());
     }
 
     // Crear el token
     private String createToken(Map<String, Object> claims, String subject) {
+        System.out.println("JWT UTIL - ENTRE AL CREATE TOKEN");
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

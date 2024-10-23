@@ -1,5 +1,8 @@
 package com.mad.sumerios.consorcio.controller;
 
+import com.mad.sumerios.consorcio.dto.ConsorcioCreateDTO;
+import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
+import com.mad.sumerios.consorcio.dto.ConsorcioUpdateDTO;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +29,7 @@ public class ConsorcioRestController {
     //  CREAR CONSORCIO
     @PostMapping
     public ResponseEntity<Map<String, Object>> createConsorcio(@PathVariable Long idAdm,
-                                                               @RequestBody Consorcio consorcio) {
+                                                               @RequestBody ConsorcioCreateDTO consorcio) {
         Map<String, Object> response = new HashMap<>();
         try {
             Consorcio nuevoConsorcio = consorcioService.createConsorcio(idAdm,consorcio);
@@ -40,11 +43,12 @@ public class ConsorcioRestController {
         }
     }
 
+
     //  LISTAR CONSORCIOS
     @GetMapping
-    public ResponseEntity<List<Consorcio>> getConsorcios (@PathVariable Long idAdm){
+    public ResponseEntity<List<ConsorcioResponseDTO>> getConsorcios (@PathVariable Long idAdm){
         try {
-            List<Consorcio> consorcios = consorcioService.getConsorciosPorAdministracion(idAdm);
+            List<ConsorcioResponseDTO> consorcios = consorcioService.getConsorciosPorAdministracion(idAdm);
             if (consorcios.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -54,15 +58,27 @@ public class ConsorcioRestController {
         }
     }
 
+    //  GET CONSORCIO BY ID
+    @GetMapping("/{idConsorcio}")
+    public ResponseEntity<?> getConsorcioById(@PathVariable Long idConsorcio){
+        try{
+            ConsorcioResponseDTO dto = consorcioService.getConsorcioById(idConsorcio);
+            return ResponseEntity.ok(dto);
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
+
+
     //  ACTUALIZAR CONSORCIO
     @PutMapping("/{idConsorcio}")
     public ResponseEntity<String> updateConsorcio(@PathVariable Long idAdm,
                                                   @PathVariable Long idConsorcio,
-                                                  @RequestBody Consorcio consorcio) {
+                                                  @RequestBody ConsorcioUpdateDTO dto) {
         try{
-            consorcioService.updateConsorcio(idAdm, idConsorcio, consorcio);
+            consorcioService.updateConsorcio(idAdm, idConsorcio, dto);
             return ResponseEntity.status(HttpStatus.OK).body(
-                    "Consorcio: " + consorcio.getNombre() + " - "+consorcio.getDireccion()+" modificado exitosamente"
+                    "Consorcio: " + dto.getNombre() + " - "+dto.getDireccion()+" modificado exitosamente"
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

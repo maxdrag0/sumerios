@@ -65,6 +65,20 @@ public class AppUserService implements UserDetailsService {
         appUserRepository.deleteById(id);
     }
 
+    // MAPEO DE DTOs
+    private AppUserResponseDTO mapToDTO(AppUser user){
+        AppUserResponseDTO dto = new AppUserResponseDTO();
+
+        dto.setIdAppUser(user.getIdAppUser());
+        dto.setNombre(user.getNombre());
+        dto.setApellido(user.getApellido());
+        dto.setMail(user.getMail());
+        dto.setTelefono(user.getTelefono());
+        dto.setRol(user.getRol());
+
+        return dto;
+    }
+
     // Implementación de UserDetailsService
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -79,20 +93,6 @@ public class AppUserService implements UserDetailsService {
                 appUser.get().getPassword(),
                 new ArrayList<>()
         );
-    }
-
-    // MAPEO DE DTOs
-    private AppUserResponseDTO mapToDTO(AppUser user){
-        AppUserResponseDTO dto = new AppUserResponseDTO();
-
-        dto.setIdAppUser(user.getIdAppUser());
-        dto.setNombre(user.getNombre());
-        dto.setApellido(user.getApellido());
-        dto.setMail(user.getMail());
-        dto.setTelefono(user.getTelefono());
-        dto.setRol(user.getRol());
-
-        return dto;
     }
 
 }

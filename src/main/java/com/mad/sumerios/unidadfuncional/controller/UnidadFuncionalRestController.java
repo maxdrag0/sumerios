@@ -1,13 +1,17 @@
 package com.mad.sumerios.unidadfuncional.controller;
 
-import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalCreateDTO;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalUpdateDTO;
 import com.mad.sumerios.unidadfuncional.service.UnidadFuncionalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/administraciones/{idAdm}/consorcios/{idConsorcio}/unidades_funcionales")
@@ -23,36 +27,25 @@ public class UnidadFuncionalRestController {
     //  CREAR uf
     @PostMapping
     public ResponseEntity<String> createUnidadFuncional(@PathVariable Long idConsorcio,
-                                                        @RequestBody UnidadFuncional unidadFuncional) {
+                                                        @RequestBody UnidadFuncionalCreateDTO dto) {
         try{
-            unidadFuncionalService.createUnidadFuncional(idConsorcio, unidadFuncional);
+            unidadFuncionalService.createUnidadFuncional(idConsorcio, dto);
             return ResponseEntity.status(HttpStatus.CREATED).body("Unidad Funcional creada exitosamente");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-//    // CREAR múltiples unidades funcionales
-//    @PostMapping("/group")
-//    public ResponseEntity<String> createMultipleUnidadesFuncionales(@PathVariable Long idConsorcio,
-//                                                                    @RequestBody List<UnidadFuncional> unidadesFuncionales) {
-//        try {
-//            for (UnidadFuncional unidadFuncional : unidadesFuncionales) {
-//                unidadFuncionalService.createUnidadFuncional(idConsorcio, unidadFuncional);
-//            }
-//            return ResponseEntity.status(HttpStatus.CREATED).body("Unidades Funcionales creadas exitosamente");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear las unidades funcionales: " + e.getMessage());
-//        }
-//    }
-
     //  LISTAR UFs
     @GetMapping
-    public ResponseEntity<List<UnidadFuncional>> getUnidadesFuncionales(@PathVariable Long idConsorcio) {
+    public ResponseEntity<?> getUnidadesFuncionales(@PathVariable Long idConsorcio) {
         try {
-            List<UnidadFuncional> unidades = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
+            List<UnidadFuncionalResponseDTO> unidades = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
             if (unidades.isEmpty()) {
-                return ResponseEntity.noContent().build();
+                // Mensaje personalizado cuando no hay unidades funcionales
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No se encontraron unidades funcionales para este consorcio.");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
             }
             return ResponseEntity.ok(unidades);
         } catch (Exception e) {
@@ -60,14 +53,24 @@ public class UnidadFuncionalRestController {
         }
     }
 
+    // get by id
+    @GetMapping("/{idUnidadFuncional}")
+    public ResponseEntity<?> getUnidadFuncionalById (@PathVariable Long idUf){
+        try{
+            UnidadFuncionalResponseDTO dto = unidadFuncionalService.getUnidadFuncionalById(idUf);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
+
     //  ACTUALIZAR UF
     @PutMapping("/{idUnidadFuncional}")
     public ResponseEntity<String> updateUnidadFuncional(@PathVariable Long idConsorcio,
-                                                        @PathVariable Long idUnidadFuncional,
-                                                        @RequestBody UnidadFuncional unidadFuncional) {
+                                                        @PathVariable Long idUf,
+                                                        @RequestBody UnidadFuncionalUpdateDTO dto) {
         try {
-            // Asegúrate de que la unidad funcional a actualizar esté asociada con el consorcio correcto
-            unidadFuncionalService.updateUnidadFuncional(idConsorcio, idUnidadFuncional, unidadFuncional);
+            unidadFuncionalService.updateUnidadFuncional(idConsorcio, idUf, dto);
             return ResponseEntity.status(HttpStatus.OK).body("Unidad Funcional modificada exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

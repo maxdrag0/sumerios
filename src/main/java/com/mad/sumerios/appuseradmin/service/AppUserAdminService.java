@@ -1,6 +1,5 @@
 package com.mad.sumerios.appuseradmin.service;
 
-import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
 import com.mad.sumerios.appuseradmin.dto.AppUserAdminResponseDTO;
 import com.mad.sumerios.appuseradmin.dto.AppUserAdminUpdateDTO;
@@ -9,13 +8,9 @@ import com.mad.sumerios.appuseradmin.repository.IAppUserAdminRepository;
 import com.mad.sumerios.enums.RolUser;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -37,6 +32,18 @@ public class AppUserAdminService {
         appUserAdminRepository.save(admin);
     }
 
+    public void deleteAdministracion (Long id) throws Exception{
+        Optional<AppUserAdmin> existingAdmin = appUserAdminRepository.findById(id);
+        if(existingAdmin.isPresent()){
+            AppUserAdmin admin = existingAdmin.get();
+
+            admin.setAdministracion(null);
+            appUserAdminRepository.save(admin);
+        } else{
+            throw new Exception("Administrador no encontrado");
+        }
+    }
+
     //    UPDATE ADMINISTRADOR
     public AppUserAdminResponseDTO updateAdmin(Long id, AppUserAdminUpdateDTO dto) throws Exception {
         Optional<AppUserAdmin> existingAdmin = appUserAdminRepository.findById(id);
@@ -50,6 +57,7 @@ public class AppUserAdminService {
             admin.setMail(dto.getMail());
             admin.setTelefono(dto.getTelefono());
             admin.setMatriculaAdministrador(dto.getMatriculaAdministrador());
+
             appUserAdminRepository.save(admin);
 
             return mapToDTO(admin);
@@ -85,7 +93,7 @@ public class AppUserAdminService {
                 .filter(a -> a.getIdAppUser() != idAdmin).isPresent()){
             throw new Exception("El usuario "+admin.getUsername()+" ya se encuentra registrado");
         } else if (admin.getRol() == RolUser.VECINO){
-            throw new Exception("El puedes editar un "+admin.getRol());
+            throw new Exception("No puedes editar un "+admin.getRol());
         }
     }
 
@@ -116,6 +124,10 @@ public class AppUserAdminService {
         dto.setTelefono(admin.getTelefono());
         dto.setRol(admin.getRol());
         dto.setMatriculaAdministrador(admin.getMatriculaAdministrador());
+        if(admin.getAdministracion() != null){
+            dto.setAdministracionId(admin.getAdministracion().getIdAdm());
+        }
+
 
         return dto;
     }

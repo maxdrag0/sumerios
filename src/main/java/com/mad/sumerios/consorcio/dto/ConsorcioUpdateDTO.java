@@ -1,22 +1,22 @@
 package com.mad.sumerios.consorcio.dto;
 
-import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @Data
-@RequiredArgsConstructor
-public class ConsorcioResponseDTO {
+public class ConsorcioUpdateDTO {
+
     private long idConsorcio;
+
     private String nombre;
     private String direccion;
+    private String ciudad;
+    private Long idAdm;
     private String cuit;
     private String titulo;
     private String cbu;
+    private String banco;
     private String numCuenta;
     private String alias;
-    private ConsorcioAdmDTO administracion;
-    private List<ConsorcioUfDTO> unidades;
 }

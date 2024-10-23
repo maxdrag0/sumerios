@@ -26,28 +26,25 @@ public class Consorcio {
     @Column(name = "id_consorcio")
     private long idConsorcio;
 
-    @NotBlank
-    private String nombre;
-
-    @NotBlank
-    private String direccion;
-
-    @NotBlank
-    private String ciudad;
-
-    private String cuit;
-
-    private String titulo;
-    private String cbu;
-    private String banco;
-    private String numCuenta;
-    private String alias;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adm")
     @JsonBackReference
     private Administracion administracion;
+
+    @NotBlank
+    private String nombre;
+    @NotBlank
+    private String direccion;
+    @NotBlank
+    private String ciudad;
+
+    private String cuit;
+    private String titulo;
+    private String cbu;
+    private String banco;
+    private String numCuenta;
+    private String alias;
 
     @OneToMany(mappedBy = "consorcio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

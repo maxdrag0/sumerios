@@ -17,7 +17,7 @@ public class AdministracionResponseDTO {
     private String mail;
     private String telefono;
     private String direccion;
-    private AppUserAdminResponseDTO administrador;
-    private List<ConsorcioResponseDTO> consorcios;
+    private AdministracionAdmDTO administrador;
+    private List<AdministracionConsorcioDTO> consorcios;
 }
 

@@ -44,33 +44,30 @@ public class UnidadFuncional {
     @Min(0)
     private Double porcentajeUnidad;
 
+    // DATOS PERSONAS
+    // PROPIETARIO
     @NotNull
     private String apellidoPropietario;
     @NotNull
     private String nombrePropietario;
     private String mailPropietario;
     private String telefonoPropietario;
-
+    // INQUILINO
     private String apellidoInquilino;
     private String nombreInquilino;
     private String mailInquilino;
     private String telefonoInquilino;
 
-    @NotNull
+    // ESTADO DE CUENTA
     private Double deuda;
-
     private Double intereses;
-
-    @NotNull
     private Double totalA;
-    @NotNull
     private Double totalB;
-    @NotNull
     private Double totalC;
-    @NotNull
     private Double totalD;
-    @NotNull
     private Double totalE;
+    private Double gastoParticular;
+    private Double totalFinal;
 
 //    @OneToMany(mappedBy = "unidadFuncional", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    @JsonManagedReference

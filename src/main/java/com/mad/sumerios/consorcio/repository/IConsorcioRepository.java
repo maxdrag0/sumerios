@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface IConsorcioRepository extends JpaRepository<Consorcio, Long> {
     Optional<Consorcio> findByNombre(String nombre);
     Optional<Consorcio> findByDireccion(String direccion);
+    Optional<Consorcio> findByCuit(String cuit);
     List<Consorcio> findByAdministracion_IdAdm(Long idAdm);
     Optional<Consorcio> findByidConsorcioAndAdministracion_IdAdm(Long idConsorcio, Long idAdm);
 }

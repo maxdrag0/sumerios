@@ -8,8 +8,8 @@ import java.util.Set;
 
 @Getter
 public enum RolUser {
-    ADMINISTRADOR(Set.of(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"))),
-    VECINO(Set.of(new SimpleGrantedAuthority("ROLE_VECINO")));
+    ADMINISTRADOR(Set.of(new SimpleGrantedAuthority("ADMINISTRADOR"))),
+    VECINO(Set.of(new SimpleGrantedAuthority("VECINO")));
 
     private final Set<GrantedAuthority> authorities;
 

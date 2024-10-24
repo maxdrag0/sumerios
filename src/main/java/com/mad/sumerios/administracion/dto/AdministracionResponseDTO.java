@@ -1,8 +1,5 @@
 package com.mad.sumerios.administracion.dto;
 
-import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
-import com.mad.sumerios.appuseradmin.dto.AppUserAdminResponseDTO;
-import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

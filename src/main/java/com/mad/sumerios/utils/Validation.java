@@ -1,8 +1,5 @@
 package com.mad.sumerios.utils;
 
-import com.mad.sumerios.appuseradmin.dto.AppUserAdminRegisterDTO;
-import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
-
 public class Validation {
 
 

@@ -1,10 +1,7 @@
 package com.mad.sumerios.appuser.controller;
 
-import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
 import com.mad.sumerios.appuser.dto.AppUserResponseDTO;
 import com.mad.sumerios.appuser.service.AppUserService;
-import com.mad.sumerios.appuseradmin.dto.AppUserAdminResponseDTO;
-import com.mad.sumerios.appuseradmin.service.AppUserAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

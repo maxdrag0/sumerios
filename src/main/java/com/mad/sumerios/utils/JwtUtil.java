@@ -1,77 +1,63 @@
 package com.mad.sumerios.utils;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.util.Base64;
 
 @Component
 public class JwtUtil {
 
-    private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Clave secreta más segura
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
-    // Generar token JWT
-    public String generateToken(Authentication authentication) {
-        System.out.println("JWT UTIL - ENTRE AL GENERATE");
+    @Value("${jwt.expirationMs}")
+    private int jwtExpirationMs;
+
+    // Método para generar el JWT
+    public String generateJwtToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        System.out.println("JWT UTIL - PASE EL USER DETAILS AUTHETICATION");
-        Map<String, Object> claims = new HashMap<>();
-        System.out.println("JWT UTIL PASE EL HASH");
-        return createToken(claims, userDetails.getUsername());
-    }
 
-    // Crear el token
-    private String createToken(Map<String, Object> claims, String subject) {
-        System.out.println("JWT UTIL - ENTRE AL CREATE TOKEN");
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas de duración
-                .signWith(secretKey) // Firmar usando la clave directamente
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)  // Usar la clave en formato seguro
                 .compact();
     }
 
-    // Extraer el username (subject) del token
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    // Extraer cualquier otra información del token
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    // Validar el token
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    // Verificar si el token ha expirado
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey) // Usar la clave generada
-                .build()
+    // Método para extraer el nombre de usuario del token JWT
+    public String getUsernameFromJwtToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSigningKey())  // Usar la clave en formato seguro
                 .parseClaimsJws(token)
-                .getBody();
+                .getBody()
+                .getSubject();
+    }
+
+    // Método para validar el token JWT
+    public boolean validateJwtToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            System.out.println("Token JWT no válido: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // Método auxiliar para convertir la clave en un formato seguro
+    private Key getSigningKey() {
+        byte[] secretKeyBytes = Base64.getDecoder().decode(jwtSecret);  // Decodificar la clave secreta en Base64
+        return new SecretKeySpec(secretKeyBytes, 0, secretKeyBytes.length, "HmacSHA512");  // Crear una clave segura
     }
 }
+
+

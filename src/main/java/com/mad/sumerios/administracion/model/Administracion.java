@@ -2,8 +2,7 @@ package com.mad.sumerios.administracion.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.mad.sumerios.appuser.model.AppUser;
-import com.mad.sumerios.appuseradmin.model.AppUserAdmin;
+import com.mad.sumerios.appuser.appuseradmin.model.AppUserAdmin;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

@@ -1,8 +1,10 @@
 package com.mad.sumerios.unidadfuncional.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.appuser.appuservecino.model.AppUserVecino;
 import com.mad.sumerios.consorcio.model.Consorcio;
+import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -66,9 +68,11 @@ public class UnidadFuncional {
     private Double gastoParticular;
     private Double totalFinal;
 
-//    @OneToMany(mappedBy = "unidadFuncional", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    @JsonManagedReference
-//    private List<PagoUF> pagoUFS;
+    @OneToMany(mappedBy = "unidadFuncional",
+               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+               fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<PagoUF> pagoUFS;
 
     @ManyToMany(mappedBy = "unidadesFuncionales")
     @JsonBackReference

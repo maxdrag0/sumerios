@@ -1,7 +1,9 @@
 package com.mad.sumerios.proveedor.controller;
 
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.proveedor.dto.ProveedorCreateDTO;
 import com.mad.sumerios.proveedor.dto.ProveedorResponseDTO;
+import com.mad.sumerios.proveedor.dto.ProveedorUpdateDTO;
 import com.mad.sumerios.proveedor.service.ProveedorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +45,15 @@ public class ProveedorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    @GetMapping("/{idProveedor}")
+    public ResponseEntity<?> getEgresosByComprobante (@PathVariable Long idProveedor){
+        try{
+            ProveedorResponseDTO dto = proveedorService.getProvedorById(idProveedor);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
     @DeleteMapping("/{idProveedor}")
     public ResponseEntity<String> deleteProveedor(@PathVariable Long idProveedor){
         try{
@@ -50,6 +61,15 @@ public class ProveedorController {
             return ResponseEntity.ok("Proveedor "+proveedor.getNombre()+" eliminado exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al eliminar el proveedor: " + e.getMessage());
+        }
+    }
+    @PutMapping("/{idProveedor}")
+    public ResponseEntity<?> updateProveedor(@PathVariable Long idProveedor, @RequestBody ProveedorUpdateDTO dto){
+        try {
+            ProveedorResponseDTO responseDTO = proveedorService.updateProveedor(dto);
+            return ResponseEntity.ok(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

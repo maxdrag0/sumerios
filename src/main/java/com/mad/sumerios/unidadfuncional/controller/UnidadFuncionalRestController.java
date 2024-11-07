@@ -65,7 +65,7 @@ public class UnidadFuncionalRestController {
     }
 
     //  ACTUALIZAR UF
-    @PutMapping("/{idUnidadFuncional}")
+    @PutMapping("/{idUf}")
     public ResponseEntity<String> updateUnidadFuncional(@PathVariable Long idConsorcio,
                                                         @PathVariable Long idUf,
                                                         @RequestBody UnidadFuncionalUpdateDTO dto) {

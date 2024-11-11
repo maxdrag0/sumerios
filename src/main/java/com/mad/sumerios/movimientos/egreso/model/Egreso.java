@@ -1,6 +1,6 @@
 package com.mad.sumerios.movimientos.egreso.model;
 
-import com.mad.sumerios.pendientes.expensa.model.Expensa;
+import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
 import jakarta.persistence.*;

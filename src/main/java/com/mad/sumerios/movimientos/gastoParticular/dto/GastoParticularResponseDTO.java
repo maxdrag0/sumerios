@@ -11,6 +11,7 @@ public class GastoParticularResponseDTO {
     private Long idProveedor;
     private Long idUf;
     private Long idConsorcio;
+    private Long idExpensa;
     private Date fecha;
     private String titulo;
     private FormaPago formaPago;

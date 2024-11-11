@@ -16,5 +16,5 @@ public interface IPagoUFRepository extends JpaRepository<PagoUF, Long> {
     List<PagoUF> findByIdConsorcioAndFechaBetween(Long idConsorcio, Date startDate, Date endDate);
     List<PagoUF> findByIdConsorcioAndFormaPago(Long idConsorcio, FormaPago formaPago);
     List<PagoUF> findByFormaPago (FormaPago formaPago);
-
+    List<PagoUF> findByExpensa_idExpensa(Long idExpensa);
 }

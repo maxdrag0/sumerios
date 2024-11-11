@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.gastoParticular.controller;
 
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularCreateDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularUpdateDTO;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 
@@ -60,7 +62,7 @@ public class GastoParticularController {
     // Gets by
     // proveedor
     @GetMapping("/proveedores/{idProveedor}")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByProveedor (@PathVariable Long idProveedor){
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByProveedor (@PathVariable Long idProveedor){
         try{
             List<GastoParticularResponseDTO> gastos = gastoParticularService.findByProveedor(idProveedor);
             if(gastos.isEmpty()){
@@ -73,7 +75,7 @@ public class GastoParticularController {
     }
     // consorcio
     @GetMapping("/consorcios/{idConsorcio}")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByConsorcio (@PathVariable Long idConsorcio){
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByConsorcio (@PathVariable Long idConsorcio){
         try{
             List<GastoParticularResponseDTO> gastos = gastoParticularService.findByConsorcio(idConsorcio);
             if(gastos.isEmpty()){
@@ -86,7 +88,7 @@ public class GastoParticularController {
     }
     // consorcio y fecha
     @GetMapping("/consorcios/{idConsorcio}/dates")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByConsorcioAndDate (@PathVariable Long idConsorcio,
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByConsorcioAndDate (@PathVariable Long idConsorcio,
                                                                                           @RequestParam Date startDate,
                                                                                           @RequestParam Date endDate){
         try{
@@ -101,7 +103,7 @@ public class GastoParticularController {
     }
     // uf
     @GetMapping("/unidadFuncional/{idUf}")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByUf (@PathVariable Long idUf){
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByUf (@PathVariable Long idUf){
         try{
             List<GastoParticularResponseDTO> gastos = gastoParticularService.findByUf(idUf);
             if(gastos.isEmpty()){
@@ -114,7 +116,7 @@ public class GastoParticularController {
     }
     // uf y fecha
     @GetMapping("/unidadFuncional/{idUf}/dates")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByUfAndDate (@PathVariable Long idUf,
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByUfAndDate (@PathVariable Long idUf,
                                                                                           @RequestParam Date startDate,
                                                                                           @RequestParam Date endDate){
         try{
@@ -129,7 +131,7 @@ public class GastoParticularController {
     }
     // total final
     @GetMapping("/total/{totalFinal}")
-    public ResponseEntity<List<GastoParticularResponseDTO>> getEgresosByUf (@PathVariable Double totalFinal){
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByUf (@PathVariable Double totalFinal){
         try{
             List<GastoParticularResponseDTO> gastos = gastoParticularService.findByTotalFinal(totalFinal);
             if(gastos.isEmpty()){
@@ -140,5 +142,28 @@ public class GastoParticularController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    //  por comprobante
+    @GetMapping("/comprobantes/{comprobante}")
+    public ResponseEntity<?> getGastoParticularByComprobante (@PathVariable String comprobante){
+        try{
+            GastoParticularResponseDTO gastos = gastoParticularService.getGastoParticularByComprobante(comprobante);
+            return ResponseEntity.ok(gastos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
+    //  por periodo
+    @GetMapping("/consorcios/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByExpensa(@PathVariable Long idConsorcio,
+                                                                                        @PathVariable YearMonth periodo){
+        try{
+            List<GastoParticularResponseDTO> gastos = gastoParticularService.getGastoParticularByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(gastos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 
 }

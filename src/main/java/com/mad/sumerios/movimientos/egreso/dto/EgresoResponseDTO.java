@@ -10,6 +10,7 @@ public class EgresoResponseDTO {
     private Long idEgreso;
     private Long idConsorcio;
     private Long idProveedor;
+    private Long idExpensa;
     private Date fecha;
     private String titulo;
     private FormaPago formaPago;

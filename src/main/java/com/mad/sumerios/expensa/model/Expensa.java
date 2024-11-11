@@ -1,4 +1,4 @@
-package com.mad.sumerios.pendientes.expensa.model;
+package com.mad.sumerios.expensa.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -60,5 +60,5 @@ public class Expensa {
                fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<GastoParticular> gastosParticulares;
-    
+
 }

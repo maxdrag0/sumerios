@@ -11,12 +11,15 @@ import java.util.Date;
 
 @Data
 public class GastoParticularCreateDTO {
+
     @NotNull
     private Long idConsorcio;
     @NotNull
     private Long idProveedor;
     @NotNull
     private Long idUf;
+    @NotNull
+    private Long idExpensa;
     @NotNull
     @Temporal(TemporalType.DATE)
     private Date fecha;
@@ -29,4 +32,6 @@ public class GastoParticularCreateDTO {
     private String descripcion;
     @NotNull
     private Double totalFinal;
+    @NotNull
+    private boolean pagoConsorcio;
 }

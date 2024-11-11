@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.gastoParticular.repository;
 
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.gastoParticular.model.GastoParticular;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,5 +16,6 @@ public interface IGastoParticularRepository extends JpaRepository<GastoParticula
     List<GastoParticular> findByIdConsorcio(Long idConsorcio);
     List<GastoParticular> findByIdConsorcioAndFechaBetween(Long idConsorcio, Date startDate, Date endDate);
     List<GastoParticular> findByTotalFinal(Double totalFinal);
+    List<GastoParticular> findByExpensa_IdExpensa(Long idExpensa);
     GastoParticular findByComprobante(String comprobante);
 }

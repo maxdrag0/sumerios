@@ -1,6 +1,11 @@
 package com.mad.sumerios.movimientos.egreso.service;
 
+import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.enums.TipoEgreso;
+import com.mad.sumerios.estadocuenta.service.EstadoCuentaService;
+import com.mad.sumerios.expensa.model.Expensa;
+import com.mad.sumerios.expensa.repository.IExpensaRepository;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoCreateDTO;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoUpdateDTO;
@@ -10,8 +15,10 @@ import com.mad.sumerios.proveedor.repository.IProveedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,19 +27,29 @@ public class EgresoService {
     private final IEgresoRepository egresoRepository;
     private final IProveedorRepository proveedorRepository;
     private final IConsorcioRepository consorcioRepository;
+    private final IExpensaRepository expensaRepository;
+    private final EstadoCuentaService estadoCuentaService;
 
     @Autowired
     public EgresoService(IEgresoRepository egresoRepository,
                          IProveedorRepository proveedorRepository,
-                         IConsorcioRepository consorcioRepository) {
+                         IConsorcioRepository consorcioRepository,
+                         IExpensaRepository expensaRepository,
+                         EstadoCuentaService estadoCuentaService) {
         this.egresoRepository = egresoRepository;
         this.proveedorRepository = proveedorRepository;
         this.consorcioRepository = consorcioRepository;
+        this.expensaRepository = expensaRepository;
+        this.estadoCuentaService = estadoCuentaService;
     }
 
     //  CREAR EGRESO
     public void createEgreso(EgresoCreateDTO dto) throws Exception{
         Egreso egreso = mapToEgresoEntity(dto);
+        if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
+            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
+            consorcio.ifPresent(value -> estadoCuentaService.restarEgreso(value.getEstadoCuenta(), egreso));
+        }
         egresoRepository.save(egreso);
     }
 
@@ -66,6 +83,12 @@ public class EgresoService {
     public EgresoResponseDTO getEgresosByComprobante(String comprobante) {
         return mapToEgresoResponse(egresoRepository.findByComprobante(comprobante));
     }
+    // buscar por expensa
+    public List<EgresoResponseDTO> getEgresosByExpensa(Long idConsorcio, YearMonth periodo) {
+        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        List<Egreso> egresos= egresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
+        return egresos.stream().map(this::mapToEgresoResponse).collect(Collectors.toList());
+    }
 
     //  ACTUALIZAR CONSORCIO
     public void updateEgreso (Long idIngreso, EgresoUpdateDTO dto) throws Exception{
@@ -73,6 +96,11 @@ public class EgresoService {
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
 
         Egreso egresoUpdated = mapToEgresoEntityUpdate(dto);
+        if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
+            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
+            consorcio.ifPresent(value -> estadoCuentaService.modificarEgreso(value.getEstadoCuenta(), egreso, egresoUpdated));
+
+        }
 
         egreso.setIdConsorcio(egresoUpdated.getIdConsorcio());
         egreso.setIdProveedor(egreso.getIdProveedor());
@@ -95,7 +123,10 @@ public class EgresoService {
     public void deleteEgreso(Long id) throws Exception{
         Egreso egreso = egresoRepository.findById(id)
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
-
+        if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
+            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
+            consorcio.ifPresent(value -> estadoCuentaService.revertirEgreso(value.getEstadoCuenta(), egreso));
+        }
         egresoRepository.delete(egreso);
     }
 
@@ -125,11 +156,14 @@ public class EgresoService {
                     "El valor del egreso debe ser mayor de $0");
         }
     }
-//    private void validateExpensa(Long idExpensa) throws Exception {
-//        if(expensaRepository.findById(dto.getIdExpensa()).isEmpty()){
-//            throw new Exception("Expensa no encontrado");
-//        }
-//    }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
 
     //  mapeo DTO a Entity
     private Egreso mapToEgresoEntity(EgresoCreateDTO dto) throws Exception{
@@ -142,11 +176,11 @@ public class EgresoService {
                       dto.getTotalC(),
                       dto.getTotalD(),
                       dto.getTotalE());
-//        validateExpensa(dto.getIdExpensa);
+        Expensa exp = validateExpensa(dto.getIdExpensa());
 
         Egreso egreso = new Egreso();
 
-//        egreso.setExpensa(expensaOptional.get());
+        egreso.setExpensa(exp);
         egreso.setIdConsorcio(dto.getIdConsorcio());
         egreso.setIdProveedor(dto.getIdProveedor());
         egreso.setFecha(dto.getFecha());
@@ -174,11 +208,9 @@ public class EgresoService {
                 dto.getTotalC(),
                 dto.getTotalD(),
                 dto.getTotalE());
-//        validateExpensa(dto.getIdExpensa);
 
         Egreso egreso = new Egreso();
 
-//        egreso.setExpensa(expensaOptional.get());
         egreso.setIdConsorcio(dto.getIdConsorcio());
         egreso.setIdProveedor(dto.getIdProveedor());
         egreso.setFecha(dto.getFecha());
@@ -203,6 +235,7 @@ public class EgresoService {
         dto.setIdEgreso(egreso.getIdEgreso());
         dto.setIdConsorcio(egreso.getIdConsorcio());
         dto.setIdProveedor(egreso.getIdProveedor());
+        dto.setIdExpensa(egreso.getExpensa().getIdExpensa());
         dto.setFecha(egreso.getFecha());
         dto.setTitulo(egreso.getTitulo());
         dto.setFormaPago(egreso.getFormaPago());

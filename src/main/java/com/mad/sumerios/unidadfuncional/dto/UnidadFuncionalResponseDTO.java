@@ -9,6 +9,7 @@ public class UnidadFuncionalResponseDTO {
     private String titulo;
     private String apellidoPropietario;
     private String nombrePropietario;
-    private Double deuda;
-    private UfConsorcioDTO consorcioDTO;
+    private Double totalFinal;
+    private Double porcentajeUnidad;
+    private UfConsorcioDTO consorcio;
 }

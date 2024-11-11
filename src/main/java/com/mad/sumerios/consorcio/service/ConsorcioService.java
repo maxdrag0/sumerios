@@ -106,8 +106,10 @@ public class ConsorcioService {
         }
     }
     private void validarCuitUnicoCreate(String cuit) throws Exception {
-        if (consorcioRepository.findByCuit(cuit).isPresent()) {
-            throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
+        if(cuit!=null){
+            if (consorcioRepository.findByCuit(cuit).isPresent()) {
+                throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
+            }
         }
     }
 
@@ -143,6 +145,7 @@ public class ConsorcioService {
             throw new Exception("Administración no encontrada.");
         }
 
+
         consorcio.setAdministracion(adm.get());
         consorcio.setNombre(dto.getNombre());
         consorcio.setDireccion(dto.getDireccion());
@@ -153,8 +156,6 @@ public class ConsorcioService {
         consorcio.setBanco(dto.getBanco());
         consorcio.setNumCuenta(dto.getNumCuenta());
         consorcio.setAlias(dto.getAlias());
-
-
 
         return consorcio;
     }

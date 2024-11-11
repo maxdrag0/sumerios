@@ -16,5 +16,5 @@ public interface IEgresoRepository extends JpaRepository<Egreso, Long> {
     List<Egreso> findByIdProveedorAndIdConsorcio(Long idProveedor, Long idConsorcio);
     List<Egreso> findByTotalFinal(Double totalFinal);
     Egreso findByComprobante(String comprobante);
-    //    List<Egreso> findByExpensa_IdExpensa(Long idExpensa);
+    List<Egreso> findByExpensa_IdExpensa(Long idExpensa);
 }

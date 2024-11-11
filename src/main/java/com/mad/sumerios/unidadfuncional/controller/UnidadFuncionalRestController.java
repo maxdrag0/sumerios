@@ -26,10 +26,9 @@ public class UnidadFuncionalRestController {
 
     //  CREAR uf
     @PostMapping
-    public ResponseEntity<String> createUnidadFuncional(@PathVariable Long idConsorcio,
-                                                        @RequestBody UnidadFuncionalCreateDTO dto) {
+    public ResponseEntity<String> createUnidadFuncional(@RequestBody UnidadFuncionalCreateDTO dto) {
         try{
-            unidadFuncionalService.createUnidadFuncional(idConsorcio, dto);
+            unidadFuncionalService.createUnidadFuncional(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body("Unidad Funcional creada exitosamente");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

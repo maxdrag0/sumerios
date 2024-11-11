@@ -17,6 +17,8 @@ public class EgresoCreateDTO {
     @NotNull
     private Long idProveedor;
     @NotNull
+    private Long idExpensa;
+    @NotNull
     @Temporal(TemporalType.DATE)
     private Date fecha;
     @NotBlank

@@ -2,6 +2,10 @@ package com.mad.sumerios.movimientos.pagouf.service;
 
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.expensa.model.Expensa;
+import com.mad.sumerios.expensa.repository.IExpensaRepository;
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
@@ -12,6 +16,7 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -23,14 +28,17 @@ public class PagoUFService {
     private final IPagoUFRepository pagoUFRepository;
     private final IUnidadFuncionalRepository ufRepository;
     private final IConsorcioRepository consorcioRepository;
+    private final IExpensaRepository expensaRepository;
 
     @Autowired
     public PagoUFService(IPagoUFRepository ingresoRepository,
                          IUnidadFuncionalRepository ufRepository,
-                         IConsorcioRepository consorcioRepository) {
+                         IConsorcioRepository consorcioRepository,
+                         IExpensaRepository expensaRepository) {
         this.pagoUFRepository  = ingresoRepository;
         this.ufRepository = ufRepository;
         this.consorcioRepository = consorcioRepository;
+        this.expensaRepository = expensaRepository;
     }
 
     //  CREAR INGRESO
@@ -75,7 +83,12 @@ public class PagoUFService {
         List<PagoUF> pagos = pagoUFRepository.findByFormaPago(formaPago);
         return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
     }
-
+    // buscar por expensa
+    public List<PagoUFDTO> getPagoUFByExpensa(Long idConsorcio, YearMonth periodo) {
+        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        List<PagoUF> pagos= pagoUFRepository.findByExpensa_idExpensa(exp.getIdExpensa());
+        return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
+    }
 
     //  ACTUALIZAR INGRESO
     public void updatePagoUF(Long idPagoUf, PagoUFUpdateDTO dto) throws Exception{
@@ -125,11 +138,20 @@ public class PagoUFService {
             throw new Exception("El pago debe ser mayor a $0");
         }
     }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
+
     // mapeo DTO a Entity
     private PagoUF mapToPagoUFEntity(PagoUFCreateDTO dto) throws Exception {
         UnidadFuncional uf = validateUf(dto.getIdUf());
         validateConsorcio(dto.getIdConsorcio());
-
+        Expensa exp = validateExpensa(dto.getIdExpensa());
         PagoUF pagoUF = new PagoUF();
 
         pagoUF.setUnidadFuncional(uf);
@@ -138,6 +160,7 @@ public class PagoUFService {
         pagoUF.setValor(dto.getValor());
         pagoUF.setFormaPago(dto.getFormaPago());
         pagoUF.setDescripcion(dto.getDescripcion());
+        pagoUF.setExpensa(exp);
 
         return pagoUF;
     }
@@ -163,6 +186,7 @@ public class PagoUFService {
         dto.setValor(pagoUF.getValor());
         dto.setFormaPago(pagoUF.getFormaPago());
         dto.setDescripcion(pagoUF.getDescripcion());
+        dto.setIdExpensa(pagoUF.getExpensa().getIdExpensa());
 
         return dto;
     }

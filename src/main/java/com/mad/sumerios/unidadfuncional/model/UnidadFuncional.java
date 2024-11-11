@@ -77,4 +77,5 @@ public class UnidadFuncional {
     @ManyToMany(mappedBy = "unidadesFuncionales")
     @JsonBackReference
     private List<AppUserVecino> appUsers;
+
 }

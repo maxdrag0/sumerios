@@ -18,4 +18,5 @@ public class GastoParticularUpdateDTO {
     private String comprobante;
     private String descripcion;
     private Double totalFinal;
+    private boolean pagoConsorcio;
 }

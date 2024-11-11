@@ -1,6 +1,7 @@
 package com.mad.sumerios.movimientos.ingreso.controller;
 
 
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoCreateDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoResponseDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 
@@ -92,6 +94,18 @@ public class IngresoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    //  por periodo
+    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByExpensa(@PathVariable Long idConsorcio,
+                                                                       @PathVariable YearMonth periodo){
+        try{
+            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(ingresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 
     //  ACTUALIZAR INGRESO
     @PutMapping("/{idIngreso}")

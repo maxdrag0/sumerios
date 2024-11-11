@@ -14,6 +14,8 @@ public class PagoUFCreateDTO {
     @NotNull
     private Long idConsorcio;
     @NotNull
+    private Long idExpensa;
+    @NotNull
     @Temporal(TemporalType.DATE)
     private Date fecha;
     @NotNull

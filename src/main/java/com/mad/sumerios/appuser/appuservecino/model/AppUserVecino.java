@@ -31,4 +31,5 @@ public class AppUserVecino extends AppUser {
     @Column(name = "rol")
     @JsonBackReference
     private Map<UnidadFuncional, RolUf> rolEnUnidad;
+
 }

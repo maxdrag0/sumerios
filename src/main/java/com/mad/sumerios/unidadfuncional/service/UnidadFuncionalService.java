@@ -28,14 +28,7 @@ public class UnidadFuncionalService {
     }
 
     //  CREAR UNIDAD FUNCIONAL
-    public void createUnidadFuncional(Long idConsorcio, UnidadFuncionalCreateDTO dto) throws Exception {
-        if(consorcioRepository.findById(idConsorcio).isEmpty()){
-            throw new Exception("Consorcio no encontrado");
-        }
-
-        verificarTituloUnico(dto.getTitulo(), idConsorcio);
-        verificarNumeroUnidadUnico(dto.getUnidadFuncional(),idConsorcio);
-
+    public void createUnidadFuncional(UnidadFuncionalCreateDTO dto) throws Exception {
         unidadFuncionalRepository.save(mapToUnidadFuncionalEntity(dto));
     }
 
@@ -127,6 +120,28 @@ public class UnidadFuncionalService {
             throw new Exception("Unidad funcional N°" + unidadFuncional + " ya existe en el consorcio");
         }
     }
+    private void validateValor(Double deuda,
+                               Double intereses,
+                               Double totalA,
+                               Double totalB,
+                               Double totalC,
+                               Double totalD,
+                               Double totalE,
+                               Double gastoParticular,
+                               Double totalFinal) throws Exception {
+        double suma = deuda+intereses+totalA+totalB+totalC+totalD+totalE+gastoParticular;
+        if(suma != totalFinal) {
+            throw new Exception(
+                    "El reparto valores es de $"+ suma +" mientras que el total es de $"+ totalFinal);
+        }
+    }
+    private Consorcio validateConsorcio(Long idConsorcio) throws Exception {
+        Optional<Consorcio> consorcio = consorcioRepository.findById(idConsorcio);
+        if(consorcio.isEmpty()){
+            throw new Exception("Consorcio no encontrado");
+        }
+        return consorcio.get();
+    }
 
     //  VALIDACIONES UPDATE
     private void verificarTituloUnicoUpdate(Long idUf, String titulo, Long idConsorcio) throws Exception {
@@ -149,14 +164,22 @@ public class UnidadFuncionalService {
 
     //  MAPEO A DTO
     private UnidadFuncional mapToUnidadFuncionalEntity(UnidadFuncionalCreateDTO dto) throws Exception{
+        validateValor(dto.getDeuda(),
+                      dto.getIntereses(),
+                      dto.getTotalA(),
+                      dto.getTotalB(),
+                      dto.getTotalC(),
+                      dto.getTotalD(),
+                      dto.getTotalE(),
+                      dto.getGastoParticular(),
+                      dto.getTotalFinal());
+        verificarTituloUnico(dto.getTitulo(), dto.getIdConsorcio());
+        verificarNumeroUnidadUnico(dto.getUnidadFuncional(),dto.getIdConsorcio());
+        Consorcio consorcio = validateConsorcio(dto.getIdConsorcio());
         UnidadFuncional uf = new UnidadFuncional();
 
-        Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
-        if(consorcio.isEmpty()){
-            throw new Exception("Consorcio no encontrado");
-        }
 
-        uf.setConsorcio(consorcio.get());
+        uf.setConsorcio(consorcio);
         uf.setUnidadFuncional(dto.getUnidadFuncional());
         uf.setTitulo(dto.getTitulo());
         uf.setPorcentajeUnidad(dto.getPorcentajeUnidad());
@@ -191,29 +214,27 @@ public class UnidadFuncionalService {
         dto.setTitulo(uf.getTitulo());
         dto.setApellidoPropietario(uf.getApellidoPropietario());
         dto.setNombrePropietario(uf.getNombrePropietario());
-        dto.setDeuda(uf.getDeuda());
-
+        dto.setTotalFinal(uf.getTotalFinal());
+        dto.setPorcentajeUnidad(uf.getPorcentajeUnidad());
+        
         Consorcio cons = uf.getConsorcio();
         if(cons != null){
             UfConsorcioDTO consDTO = new UfConsorcioDTO();
             consDTO.setIdConsorcio(cons.getIdConsorcio());
             consDTO.setNombre(cons.getNombre());
-            consDTO.setDireccion(consDTO.getDireccion());
+            consDTO.setDireccion(cons.getDireccion());
 
-            dto.setConsorcioDTO(consDTO);
+            dto.setConsorcio(consDTO);
         }
 
         return dto;
     }
     private UnidadFuncional mapToUnidadFuncionalEntityUpdate(UnidadFuncionalUpdateDTO dto)throws Exception{
         UnidadFuncional uf = new UnidadFuncional();
-        Optional<Consorcio> cons = consorcioRepository.findById(dto.getIdConsorcio());
-        if(cons.isEmpty()){
-            throw new Exception("Consorcio no encontrado");
-        }
+        Consorcio cons = validateConsorcio(dto.getIdConsorcio());
 
         uf.setIdUf(dto.getIdUf());
-        uf.setConsorcio(cons.get());
+        uf.setConsorcio(cons);
         uf.setUnidadFuncional(dto.getUnidadFuncional());
         uf.setTitulo(dto.getTitulo());
         uf.setPorcentajeUnidad(dto.getPorcentajeUnidad());

@@ -1,6 +1,12 @@
 package com.mad.sumerios.movimientos.ingreso.service;
 
+import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.estadocuenta.service.EstadoCuentaService;
+import com.mad.sumerios.expensa.model.Expensa;
+import com.mad.sumerios.expensa.repository.IExpensaRepository;
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoCreateDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoResponseDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
@@ -10,8 +16,10 @@ import com.mad.sumerios.proveedor.repository.IProveedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,22 +28,27 @@ public class IngresoService {
     private final IIngresoRepository ingresoRepository;
     private final IConsorcioRepository consorcioRepository;
     private final IProveedorRepository proveedorRepository;
-//    private final IExpensaRepository expensaRepository;
+    private final IExpensaRepository expensaRepository;
+    private final EstadoCuentaService estadoCuentaService;
 
     @Autowired
     public IngresoService(IIngresoRepository ingresoRepository,
                           IConsorcioRepository consorcioRepository,
-                          IProveedorRepository proveedorRepository
-                          ) {
+                          IProveedorRepository proveedorRepository,
+                          IExpensaRepository expensaRepository,
+                          EstadoCuentaService estadoCuentaService) {
         this.ingresoRepository  = ingresoRepository;
         this.consorcioRepository = consorcioRepository;
         this.proveedorRepository = proveedorRepository;
-//        this.expensaRepository = expensaRepository;
+        this.expensaRepository = expensaRepository;
+        this.estadoCuentaService = estadoCuentaService;
     }
 
     //  CREAR INGRESO
     public void createIngreso (IngresoCreateDTO dto) throws Exception{
         Ingreso ingreso = mapToIngresoEntity(dto);
+        Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
+        consorcio.ifPresent(value-> estadoCuentaService.sumarIngreso(value.getEstadoCuenta(), ingreso));
         ingresoRepository.save(ingreso);
     }
 
@@ -60,12 +73,21 @@ public class IngresoService {
         List<Ingreso> ingresos = ingresoRepository.findByIdProveedorAndIdConsorcio(idProveedor, idConsorcio);
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
+    // buscar por expensa
+    public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
+        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
+        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
+    }
 
     //  ACTUALIZAR INGRESO
     public void updateIngreso(Long idIngreso, IngresoUpdateDTO dto) throws Exception{
         Ingreso ingreso = ingresoRepository.findById(idIngreso)
                 .orElseThrow(()-> new Exception("Ingreso no encontrado"));
         Ingreso ingresoUpdated = mapToIngresoUpdate(dto);
+
+        Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
+        consorcio.ifPresent(value-> estadoCuentaService.modificarIngreso(value.getEstadoCuenta(), ingreso, ingresoUpdated));
 
         ingreso.setFecha(ingresoUpdated.getFecha());
         ingreso.setValor(ingresoUpdated.getValor());
@@ -80,7 +102,8 @@ public class IngresoService {
     public void deleteIngreso(Long id) throws Exception{
         Ingreso ingreso = ingresoRepository.findById(id)
                 .orElseThrow(()-> new Exception("Ingreso no encontrado"));
-
+        Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
+        consorcio.ifPresent(value-> estadoCuentaService.revertirIngreso(value.getEstadoCuenta(), ingreso));
         ingresoRepository.delete(ingreso);
     }
 
@@ -105,11 +128,14 @@ public class IngresoService {
             throw new Exception("El ingreso debe tener un valor mayor a $0");
         }
     }
-    //    private void validateExpensa(Long idExpensa) throws Exception {
-    //        if(expensaRepository.findById(dto.getIdExpensa()).isEmpty()){
-    //            throw new Exception("Expensa no encontrado");
-    //        }
-    //    }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
 
     //  mapeo DTO a Entity
     private Ingreso mapToIngresoEntity(IngresoCreateDTO dto) throws Exception {
@@ -117,11 +143,11 @@ public class IngresoService {
         validateConsorcio(dto.getIdConsorcio());
         validateValor(dto.getValor());
         validateProveedor(dto.getIdProveedor());
-//        validateExpensa(dto.getIdExpensa);
+        Expensa exp = validateExpensa(dto.getIdExpensa());
 
         Ingreso ingreso = new Ingreso();
 
-//        ingreso.setExpensa(expensaOptional.get());
+        ingreso.setExpensa(exp);
         ingreso.setIdProveedor(dto.getIdProveedor());
         ingreso.setIdConsorcio(dto.getIdConsorcio());
         ingreso.setFecha(dto.getFecha());

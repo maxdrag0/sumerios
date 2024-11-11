@@ -3,7 +3,8 @@ package com.mad.sumerios.consorcio.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.administracion.model.Administracion;
-import com.mad.sumerios.pendientes.expensa.model.Expensa;
+import com.mad.sumerios.estadocuenta.model.EstadoCuenta;
+import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,10 @@ public class Consorcio {
     @JsonBackReference
     private Administracion administracion;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_estado_cuenta", referencedColumnName = "id_estado_cuenta")
+    private EstadoCuenta estadoCuenta;
+
     @NotBlank
     private String nombre;
     @NotBlank
@@ -52,4 +57,5 @@ public class Consorcio {
             fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Expensa> expensas;
+
 }

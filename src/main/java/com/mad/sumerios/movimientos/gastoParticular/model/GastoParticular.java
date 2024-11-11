@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import com.mad.sumerios.pendientes.expensa.model.Expensa;
+import com.mad.sumerios.expensa.model.Expensa;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Date;
 
@@ -53,6 +53,8 @@ public class GastoParticular {
     //  VALOR
     @NotNull
     private Double totalFinal;
+    @NotNull
+    private boolean pagoConsorcio;
 
 
 }

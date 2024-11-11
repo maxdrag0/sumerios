@@ -48,4 +48,5 @@ public class Administracion {
     @OneToMany(mappedBy = "administracion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Consorcio> consorcios;
+
 }

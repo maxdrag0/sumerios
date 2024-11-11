@@ -10,6 +10,7 @@ import java.util.Date;
 @Data
 public class PagoUFDTO {
     private Long idPagoUF;
+    private Long IdExpensa;
     @Temporal(TemporalType.DATE)
     private Date fecha;
     private double valor;

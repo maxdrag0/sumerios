@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 
@@ -112,6 +113,17 @@ public class EgresoController {
             return ResponseEntity.ok(egreso);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
+    //  por periodo
+    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByExpensa(@PathVariable Long idConsorcio,
+                                                                       @PathVariable YearMonth periodo){
+        try{
+            List<EgresoResponseDTO> egresos = egresoService.getEgresosByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(egresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

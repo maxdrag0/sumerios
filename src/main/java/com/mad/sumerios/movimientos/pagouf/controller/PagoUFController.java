@@ -2,6 +2,7 @@ package com.mad.sumerios.movimientos.pagouf.controller;
 
 
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 
@@ -124,7 +126,17 @@ public class PagoUFController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
+    //  por periodo
+    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<PagoUFDTO>> getPagoUFByExpensa(@PathVariable Long idConsorcio,
+                                                              @PathVariable YearMonth periodo){
+        try{
+            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(pagoUFS);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
     //  ACTUALIZAR PAGO UF
     @PutMapping("/{idPagoUf}")

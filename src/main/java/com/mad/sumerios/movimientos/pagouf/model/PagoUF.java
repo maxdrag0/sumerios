@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import com.mad.sumerios.pendientes.expensa.model.Expensa;
+import com.mad.sumerios.expensa.model.Expensa;
 import java.util.Date;
 
 @Data

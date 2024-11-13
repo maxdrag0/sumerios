@@ -1,10 +1,10 @@
-package com.mad.sumerios.estadocuenta.dto;
+package com.mad.sumerios.estadocuentaconsorcio.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class EstadoCuentaCreateDTO {
+public class EstadoCuentaConsorcioCreateDTO {
 
     @NotNull
     private Long idConsorcio;

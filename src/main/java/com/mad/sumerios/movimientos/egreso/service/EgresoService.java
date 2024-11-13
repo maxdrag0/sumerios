@@ -3,7 +3,7 @@ package com.mad.sumerios.movimientos.egreso.service;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.enums.TipoEgreso;
-import com.mad.sumerios.estadocuenta.service.EstadoCuentaService;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoCreateDTO;
@@ -28,19 +28,19 @@ public class EgresoService {
     private final IProveedorRepository proveedorRepository;
     private final IConsorcioRepository consorcioRepository;
     private final IExpensaRepository expensaRepository;
-    private final EstadoCuentaService estadoCuentaService;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
 
     @Autowired
     public EgresoService(IEgresoRepository egresoRepository,
                          IProveedorRepository proveedorRepository,
                          IConsorcioRepository consorcioRepository,
                          IExpensaRepository expensaRepository,
-                         EstadoCuentaService estadoCuentaService) {
+                         EstadoCuentaConsorcioService estadoCuentaConsorcioService) {
         this.egresoRepository = egresoRepository;
         this.proveedorRepository = proveedorRepository;
         this.consorcioRepository = consorcioRepository;
         this.expensaRepository = expensaRepository;
-        this.estadoCuentaService = estadoCuentaService;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
     }
 
     //  CREAR EGRESO
@@ -48,7 +48,7 @@ public class EgresoService {
         Egreso egreso = mapToEgresoEntity(dto);
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
             Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
-            consorcio.ifPresent(value -> estadoCuentaService.restarEgreso(value.getEstadoCuenta(), egreso));
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.restarEgreso(value.getEstadoCuentaConsorcio(), egreso));
         }
         egresoRepository.save(egreso);
     }
@@ -98,7 +98,7 @@ public class EgresoService {
         Egreso egresoUpdated = mapToEgresoEntityUpdate(dto);
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
             Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
-            consorcio.ifPresent(value -> estadoCuentaService.modificarEgreso(value.getEstadoCuenta(), egreso, egresoUpdated));
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarEgreso(value.getEstadoCuentaConsorcio(), egreso, egresoUpdated));
 
         }
 
@@ -110,11 +110,7 @@ public class EgresoService {
         egreso.setDescripcion(egresoUpdated.getDescripcion());
         egreso.setComprobante(egresoUpdated.getComprobante());
         egreso.setTotalFinal(egresoUpdated.getTotalFinal());
-        egreso.setTotalA(egresoUpdated.getTotalA());
-        egreso.setTotalB(egresoUpdated.getTotalB());
-        egreso.setTotalC(egresoUpdated.getTotalC());
-        egreso.setTotalD(egresoUpdated.getTotalD());
-        egreso.setTotalE(egresoUpdated.getTotalE());
+        egreso.setCategoriaEgreso(egresoUpdated.getCategoriaEgreso());
 
         egresoRepository.save(egreso);
     }
@@ -125,7 +121,7 @@ public class EgresoService {
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
             Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
-            consorcio.ifPresent(value -> estadoCuentaService.revertirEgreso(value.getEstadoCuenta(), egreso));
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.revertirEgreso(value.getEstadoCuentaConsorcio(), egreso));
         }
         egresoRepository.delete(egreso);
     }
@@ -146,12 +142,8 @@ public class EgresoService {
             throw new Exception("El n° de comprobante ya existe");
         }
     }
-    private void validateValor(Double totalFinal, Double totalA, Double totalB, Double totalC, Double totalD, Double totalE) throws Exception {
-        double suma = totalA+totalB+totalC+totalD+totalE;
-        if(suma != totalFinal) {
-            throw new Exception(
-                    "El reparto valores es de $"+ suma +" mientras que el total es de $"+ totalFinal);
-        } else if (suma >= 0){
+    private void validateValor(Double totalFinal) throws Exception {
+        if (totalFinal >= 0){
             throw new Exception(
                     "El valor del egreso debe ser mayor de $0");
         }
@@ -170,12 +162,7 @@ public class EgresoService {
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
         validateComprobante(dto.getComprobante());
-        validateValor(dto.getTotalFinal(),
-                      dto.getTotalA(),
-                      dto.getTotalB(),
-                      dto.getTotalC(),
-                      dto.getTotalD(),
-                      dto.getTotalE());
+        validateValor(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
 
         Egreso egreso = new Egreso();
@@ -190,11 +177,7 @@ public class EgresoService {
         egreso.setComprobante(dto.getComprobante());
         egreso.setDescripcion(dto.getDescripcion());
         egreso.setTotalFinal(dto.getTotalFinal());
-        egreso.setTotalA(dto.getTotalA());
-        egreso.setTotalA(dto.getTotalB());
-        egreso.setTotalA(dto.getTotalC());
-        egreso.setTotalA(dto.getTotalD());
-        egreso.setTotalA(dto.getTotalE());
+        egreso.setCategoriaEgreso(dto.getCategoriaEgreso());
 
         return egreso;
     }
@@ -202,12 +185,7 @@ public class EgresoService {
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
         validateComprobante(dto.getComprobante());
-        validateValor(dto.getTotalFinal(),
-                dto.getTotalA(),
-                dto.getTotalB(),
-                dto.getTotalC(),
-                dto.getTotalD(),
-                dto.getTotalE());
+        validateValor(dto.getTotalFinal());
 
         Egreso egreso = new Egreso();
 
@@ -220,11 +198,7 @@ public class EgresoService {
         egreso.setComprobante(dto.getComprobante());
         egreso.setDescripcion(dto.getDescripcion());
         egreso.setTotalFinal(dto.getTotalFinal());
-        egreso.setTotalA(dto.getTotalA());
-        egreso.setTotalA(dto.getTotalB());
-        egreso.setTotalA(dto.getTotalC());
-        egreso.setTotalA(dto.getTotalD());
-        egreso.setTotalA(dto.getTotalE());
+        egreso.setCategoriaEgreso(dto.getCategoriaEgreso());
 
         return egreso;
     }
@@ -242,6 +216,7 @@ public class EgresoService {
         dto.setComprobante(egreso.getComprobante());
         dto.setDescripcion(egreso.getDescripcion());
         dto.setTotalFinal(egreso.getTotalFinal());
+        dto.setCategoriaEgreso(egreso.getCategoriaEgreso());
 
         return dto;
     }

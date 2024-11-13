@@ -5,6 +5,9 @@ import com.mad.sumerios.administracion.repository.IAdministracionRepository;
 import com.mad.sumerios.consorcio.dto.*;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
+import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +20,15 @@ public class ConsorcioService {
 
     private final IConsorcioRepository consorcioRepository;
     private final IAdministracionRepository administracionRepository;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
 
     @Autowired
-    public ConsorcioService(IConsorcioRepository consorcioRepository, IAdministracionRepository administracionRepository) {
+    public ConsorcioService(IConsorcioRepository consorcioRepository,
+                            IAdministracionRepository administracionRepository,
+                            EstadoCuentaConsorcioService estadoCuentaConsorcioService) {
         this.consorcioRepository = consorcioRepository;
         this.administracionRepository = administracionRepository;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
     }
 
     //  CREAR CONSORCIO
@@ -29,10 +36,6 @@ public class ConsorcioService {
         if(administracionRepository.findByIdAdm(idAdm).isEmpty()){
             throw new Exception("Administración no encontrada");
         }
-
-        validarNombreUnicoCreate(dto.getNombre());
-        validarDireccionUnicaCreate(dto.getDireccion());
-        validarCuitUnicoCreate(dto.getCuit());
 
         return consorcioRepository.save(mapToConsorcioEntity(dto));
     }
@@ -138,13 +141,15 @@ public class ConsorcioService {
 
 //  MAPEO DTO
     private Consorcio mapToConsorcioEntity(ConsorcioCreateDTO dto) throws Exception {
-        Consorcio consorcio = new Consorcio();
-
+        validarNombreUnicoCreate(dto.getNombre());
+        validarDireccionUnicaCreate(dto.getDireccion());
+        validarCuitUnicoCreate(dto.getCuit());
         Optional<Administracion> adm = administracionRepository.findById(dto.getIdAdm());
         if (adm.isEmpty()) {
             throw new Exception("Administración no encontrada.");
         }
 
+        Consorcio consorcio = new Consorcio();
 
         consorcio.setAdministracion(adm.get());
         consorcio.setNombre(dto.getNombre());
@@ -169,12 +174,10 @@ public class ConsorcioService {
 
         // MAPEO DATOS ADMINISTRACION
         Administracion adm = consorcio.getAdministracion();
-        if(adm != null){
-            ConsorcioAdmDTO admDTO = new ConsorcioAdmDTO();
-            admDTO.setIdAdm(adm.getIdAdm());
-            admDTO.setNombre(adm.getNombre());
-            consorcioDTO.setAdministracion(admDTO);
-        }
+        ConsorcioAdmDTO admDTO = new ConsorcioAdmDTO();
+        admDTO.setIdAdm(adm.getIdAdm());
+        admDTO.setNombre(adm.getNombre());
+        consorcioDTO.setAdministracion(admDTO);
         // FIN MAPEO
 
         // MAPEO DATOs UFs
@@ -190,6 +193,17 @@ public class ConsorcioService {
                     return ufDTO;
                 }).collect(Collectors.toList());
         consorcioDTO.setUnidades(ufDTOList);
+        // FIN MAPEO
+
+        // MAPEO ESTADO CUENTA
+        EstadoCuentaConsorcio ec = consorcio.getEstadoCuentaConsorcio();
+        EstadoCuentaConsorcioDTO ecDto = new EstadoCuentaConsorcioDTO();
+        ecDto.setIdEstadoCuentaConsorcio(ec.getIdEstadoCuentaConsorcio());
+        ecDto.setTotal(ec.getTotal());
+        ecDto.setEfectivo(ec.getEfectivo());
+        ecDto.setBanco(ec.getBanco());
+        ecDto.setFondoAdm(ec.getFondoAdm());
+        consorcioDTO.setEstadoCuentaConsorcioDTO(ecDto);
         // FIN MAPEO
 
         return consorcioDTO;

@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.egreso.model;
 
+import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
@@ -53,15 +54,6 @@ public class Egreso {
     @NotNull
     private Double totalFinal;
     @NotNull
-    private Double totalA;
-    @NotNull
-    private Double totalB;
-    @NotNull
-    private Double totalC;
-    @NotNull
-    private Double totalD;
-    @NotNull
-    private Double totalE;
-
+    private CategoriaEgreso categoriaEgreso;
 
 }

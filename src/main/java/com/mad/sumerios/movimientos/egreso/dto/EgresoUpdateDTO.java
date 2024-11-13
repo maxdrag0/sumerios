@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.egreso.dto;
 
+import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
 import jakarta.validation.constraints.NotNull;
@@ -19,9 +20,5 @@ public class EgresoUpdateDTO {
     private String comprobante;
     private String descripcion;
     private Double totalFinal;
-    private Double totalA;
-    private Double totalB;
-    private Double totalC;
-    private Double totalD;
-    private Double totalE;
+    private CategoriaEgreso categoriaEgreso;
 }

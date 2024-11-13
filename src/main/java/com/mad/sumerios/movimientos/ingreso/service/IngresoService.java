@@ -2,11 +2,9 @@ package com.mad.sumerios.movimientos.ingreso.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
-import com.mad.sumerios.estadocuenta.service.EstadoCuentaService;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
-import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
-import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoCreateDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoResponseDTO;
 import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
@@ -29,26 +27,26 @@ public class IngresoService {
     private final IConsorcioRepository consorcioRepository;
     private final IProveedorRepository proveedorRepository;
     private final IExpensaRepository expensaRepository;
-    private final EstadoCuentaService estadoCuentaService;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
 
     @Autowired
     public IngresoService(IIngresoRepository ingresoRepository,
                           IConsorcioRepository consorcioRepository,
                           IProveedorRepository proveedorRepository,
                           IExpensaRepository expensaRepository,
-                          EstadoCuentaService estadoCuentaService) {
+                          EstadoCuentaConsorcioService estadoCuentaConsorcioService) {
         this.ingresoRepository  = ingresoRepository;
         this.consorcioRepository = consorcioRepository;
         this.proveedorRepository = proveedorRepository;
         this.expensaRepository = expensaRepository;
-        this.estadoCuentaService = estadoCuentaService;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
     }
 
     //  CREAR INGRESO
     public void createIngreso (IngresoCreateDTO dto) throws Exception{
         Ingreso ingreso = mapToIngresoEntity(dto);
         Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
-        consorcio.ifPresent(value-> estadoCuentaService.sumarIngreso(value.getEstadoCuenta(), ingreso));
+        consorcio.ifPresent(value-> estadoCuentaConsorcioService.sumarIngreso(value.getEstadoCuentaConsorcio(), ingreso));
         ingresoRepository.save(ingreso);
     }
 
@@ -87,7 +85,7 @@ public class IngresoService {
         Ingreso ingresoUpdated = mapToIngresoUpdate(dto);
 
         Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
-        consorcio.ifPresent(value-> estadoCuentaService.modificarIngreso(value.getEstadoCuenta(), ingreso, ingresoUpdated));
+        consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarIngreso(value.getEstadoCuentaConsorcio(), ingreso, ingresoUpdated));
 
         ingreso.setFecha(ingresoUpdated.getFecha());
         ingreso.setValor(ingresoUpdated.getValor());
@@ -103,7 +101,7 @@ public class IngresoService {
         Ingreso ingreso = ingresoRepository.findById(id)
                 .orElseThrow(()-> new Exception("Ingreso no encontrado"));
         Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
-        consorcio.ifPresent(value-> estadoCuentaService.revertirIngreso(value.getEstadoCuenta(), ingreso));
+        consorcio.ifPresent(value-> estadoCuentaConsorcioService.revertirIngreso(value.getEstadoCuentaConsorcio(), ingreso));
         ingresoRepository.delete(ingreso);
     }
 

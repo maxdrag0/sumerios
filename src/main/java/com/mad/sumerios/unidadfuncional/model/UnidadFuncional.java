@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.appuser.appuservecino.model.AppUserVecino;
 import com.mad.sumerios.consorcio.model.Consorcio;
+import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
+import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -58,15 +60,9 @@ public class UnidadFuncional {
     private String telefonoInquilino;
 
     // ESTADO DE CUENTA
-    private Double deuda;
-    private Double intereses;
-    private Double totalA;
-    private Double totalB;
-    private Double totalC;
-    private Double totalD;
-    private Double totalE;
-    private Double gastoParticular;
-    private Double totalFinal;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_estado_cuenta_uf", referencedColumnName = "id_estado_cuenta_uf")
+    private EstadoCuentaUf estadoCuentaUf;
 
     @OneToMany(mappedBy = "unidadFuncional",
                cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},

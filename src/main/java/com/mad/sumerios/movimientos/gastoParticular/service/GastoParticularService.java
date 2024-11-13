@@ -2,11 +2,9 @@ package com.mad.sumerios.movimientos.gastoParticular.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
-import com.mad.sumerios.estadocuenta.service.EstadoCuentaService;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
-import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
-import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularCreateDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularUpdateDTO;
@@ -30,7 +28,7 @@ public class GastoParticularService {
     private final IUnidadFuncionalRepository unidadFuncionalRepository;
     private final IProveedorRepository proveedorRepository;
     private final IExpensaRepository expensaRepository;
-    private final EstadoCuentaService estadoCuentaService;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
     private final IConsorcioRepository consorcioRepository;
 
 
@@ -38,13 +36,13 @@ public class GastoParticularService {
                                   IUnidadFuncionalRepository unidadFuncionalRepository,
                                   IProveedorRepository proveedorRepository,
                                   IExpensaRepository expensaRepository,
-                                  EstadoCuentaService estadoCuentaService,
+                                  EstadoCuentaConsorcioService estadoCuentaConsorcioService,
                                   IConsorcioRepository consorcioRepository){
         this.gastoParticularRepository = gastoParticularRepository;
         this.unidadFuncionalRepository = unidadFuncionalRepository;
         this.proveedorRepository = proveedorRepository;
         this.expensaRepository = expensaRepository;
-        this.estadoCuentaService = estadoCuentaService;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
         this.consorcioRepository = consorcioRepository;
     }
 
@@ -55,7 +53,7 @@ public class GastoParticularService {
 
         if(gastoParticular.isPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
-            consorcio.ifPresent(value-> estadoCuentaService.restarGastoParticular(value.getEstadoCuenta(), gastoParticular));
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticular(value.getEstadoCuentaConsorcio(), gastoParticular));
         }
 
         gastoParticularRepository.save(gastoParticular);
@@ -70,7 +68,7 @@ public class GastoParticularService {
 
         if(gp.isPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
-            consorcio.ifPresent(value-> estadoCuentaService.modificarGastoParticular(value.getEstadoCuenta(), gp, gpUpdated));
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarGastoParticular(value.getEstadoCuentaConsorcio(), gp, gpUpdated));
         }
 
         gp.setIdConsorcio(gpUpdated.getIdConsorcio());
@@ -93,7 +91,7 @@ public class GastoParticularService {
 
         if(gp.isPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(gp.getIdConsorcio());
-            consorcio.ifPresent(value-> estadoCuentaService.revertirGastoParticular(value.getEstadoCuenta(), gp));
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.revertirGastoParticular(value.getEstadoCuentaConsorcio(), gp));
         }
 
         gastoParticularRepository.delete(gp);

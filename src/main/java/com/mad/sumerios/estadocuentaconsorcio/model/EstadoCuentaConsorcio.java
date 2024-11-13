@@ -1,4 +1,4 @@
-package com.mad.sumerios.estadocuenta.model;
+package com.mad.sumerios.estadocuentaconsorcio.model;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import jakarta.persistence.*;
@@ -9,14 +9,14 @@ import lombok.RequiredArgsConstructor;
 @Data
 @Entity
 @RequiredArgsConstructor
-@Table(name = "tbl_estado_cuenta")
-public class EstadoCuenta {
+@Table(name = "tbl_estado_cuenta_consorcio")
+public class EstadoCuentaConsorcio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_estado_cuenta")
-    private long idEstadoCuenta;
+    @Column(name = "id_estado_cuenta_consorcio")
+    private long idEstadoCuentaConsorcio;
 
-    @OneToOne(mappedBy = "estadoCuenta")
+    @OneToOne(mappedBy = "estadoCuentaConsorcio")
     private Consorcio consorcio;
 
     @NotNull

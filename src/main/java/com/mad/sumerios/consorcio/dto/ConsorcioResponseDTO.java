@@ -1,5 +1,6 @@
 package com.mad.sumerios.consorcio.dto;
 
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -19,4 +20,5 @@ public class ConsorcioResponseDTO {
     private String alias;
     private ConsorcioAdmDTO administracion;
     private List<ConsorcioUfDTO> unidades;
+    private EstadoCuentaConsorcioDTO estadoCuentaConsorcioDTO;
 }

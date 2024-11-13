@@ -1,11 +1,11 @@
 package com.mad.sumerios.movimientos.pagouf.service;
 
+import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
-import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
-import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
@@ -29,22 +29,28 @@ public class PagoUFService {
     private final IUnidadFuncionalRepository ufRepository;
     private final IConsorcioRepository consorcioRepository;
     private final IExpensaRepository expensaRepository;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
 
     @Autowired
     public PagoUFService(IPagoUFRepository ingresoRepository,
                          IUnidadFuncionalRepository ufRepository,
                          IConsorcioRepository consorcioRepository,
-                         IExpensaRepository expensaRepository) {
+                         IExpensaRepository expensaRepository,
+                         EstadoCuentaConsorcioService estadoCuentaConsorcioService) {
         this.pagoUFRepository  = ingresoRepository;
         this.ufRepository = ufRepository;
         this.consorcioRepository = consorcioRepository;
         this.expensaRepository = expensaRepository;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
     }
 
     //  CREAR INGRESO
     public void createPagoUF (PagoUFCreateDTO dto) throws Exception{
         PagoUF pago = mapToPagoUFEntity(dto);
-        validatePagoUF(pago);
+
+        Optional<Consorcio> consorcio = consorcioRepository.findById(pago.getIdConsorcio());
+        consorcio.ifPresent(value -> estadoCuentaConsorcioService.sumarPagoUF(value.getEstadoCuentaConsorcio(), pago));
+
         pagoUFRepository.save(pago);
     }
 
@@ -95,7 +101,9 @@ public class PagoUFService {
         PagoUF pago = pagoUFRepository.findById(idPagoUf)
                 .orElseThrow(()-> new Exception("Pago no encontrado"));
         PagoUF pagoUpdated = mapToPagoUFEntityUpdate(dto);
-        validatePagoUF(pagoUpdated);
+
+        Optional<Consorcio> consorcio = consorcioRepository.findById(pago.getIdConsorcio());
+        consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarPagoUF(value.getEstadoCuentaConsorcio(), pago, pagoUpdated));
 
         pago.setFecha(pagoUpdated.getFecha());
         pago.setValor(pagoUpdated.getValor());
@@ -110,15 +118,16 @@ public class PagoUFService {
         PagoUF pago = pagoUFRepository.findById(id)
                 .orElseThrow(()-> new Exception("Pago UF no encontrado"));
 
+        Optional<Consorcio> consorcio = consorcioRepository.findById(pago.getIdConsorcio());
+        consorcio.ifPresent(value -> estadoCuentaConsorcioService.revertirPagoUF(value.getEstadoCuentaConsorcio(), pago));
+
         pagoUFRepository.delete(pago);
     }
 
     //validaciones
-    private void validatePagoUF(PagoUF pago) throws Exception{
-        if(pago == null){
+    private void validateNull(Object object) throws Exception{
+        if(object == null){
             throw new Exception("Pago nulo");
-        } else if (pago.getValor() < 0){
-            throw new Exception("El pago no puede ser menor a 0");
         }
     }
     private void validateConsorcio(Long idConsorcio) throws Exception{
@@ -127,11 +136,8 @@ public class PagoUFService {
         }
     }
     private UnidadFuncional validateUf(Long idUf) throws Exception{
-        Optional<UnidadFuncional> uf = ufRepository.findById(idUf);
-        if(uf.isEmpty()) {
-            throw new Exception("Consorcio no encontrado.");
-        }
-        return uf.get();
+        return ufRepository.findById(idUf)
+                .orElseThrow(()-> new Exception("Pago UF no encontrado"));
     }
     private void validateValor(Double valor) throws Exception{
         if (valor <= 0){
@@ -149,6 +155,7 @@ public class PagoUFService {
 
     // mapeo DTO a Entity
     private PagoUF mapToPagoUFEntity(PagoUFCreateDTO dto) throws Exception {
+        validateNull(dto);
         UnidadFuncional uf = validateUf(dto.getIdUf());
         validateConsorcio(dto.getIdConsorcio());
         Expensa exp = validateExpensa(dto.getIdExpensa());
@@ -165,6 +172,7 @@ public class PagoUFService {
         return pagoUF;
     }
     private PagoUF mapToPagoUFEntityUpdate(PagoUFUpdateDTO dto) throws Exception {
+        validateNull(dto);
         validateValor(dto.getValor());
 
         PagoUF pagoUF = new PagoUF();

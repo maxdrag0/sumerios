@@ -1,10 +1,10 @@
-package com.mad.sumerios.estadocuenta.dto;
+package com.mad.sumerios.estadocuentaconsorcio.dto;
 
 import lombok.Data;
 
 @Data
-public class EstadoCuentaDTO {
-    private Long idEstadoCuenta;
+public class EstadoCuentaConsorcioDTO {
+    private Long idEstadoCuentaConsorcio;
     private Double total;
     private Double efectivo;
     private Double banco;

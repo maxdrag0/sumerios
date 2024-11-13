@@ -1,5 +1,6 @@
 package com.mad.sumerios.unidadfuncional.dto;
 
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import lombok.Data;
 
 @Data
@@ -12,4 +13,5 @@ public class UnidadFuncionalResponseDTO {
     private Double totalFinal;
     private Double porcentajeUnidad;
     private UfConsorcioDTO consorcio;
+    private EstadoCuentaUfDTO estadoCuentaUfDTO;
 }

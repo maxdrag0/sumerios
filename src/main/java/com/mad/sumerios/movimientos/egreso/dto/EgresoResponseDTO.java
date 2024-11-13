@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.egreso.dto;
 
+import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.enums.FormaPago;
 import lombok.Data;
 
@@ -17,4 +18,5 @@ public class EgresoResponseDTO {
     private String comprobante;
     private String descripcion;
     private Double totalFinal;
+    private CategoriaEgreso categoriaEgreso;
 }

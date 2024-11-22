@@ -5,6 +5,7 @@ import com.mad.sumerios.administracion.repository.IAdministracionRepository;
 import com.mad.sumerios.consorcio.dto.*;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioCreateDTO;
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
@@ -37,7 +38,13 @@ public class ConsorcioService {
             throw new Exception("Administración no encontrada");
         }
 
-        return consorcioRepository.save(mapToConsorcioEntity(dto));
+        Consorcio consorcio = mapToConsorcioEntity(dto);
+        consorcioRepository.save(consorcio);
+
+        EstadoCuentaConsorcioCreateDTO ecDTO = new EstadoCuentaConsorcioCreateDTO(consorcio.getIdConsorcio());
+        estadoCuentaConsorcioService.createEstadoCuenta(ecDTO);
+
+        return consorcio;
     }
 
     //  LISTAR CONSORCIOS

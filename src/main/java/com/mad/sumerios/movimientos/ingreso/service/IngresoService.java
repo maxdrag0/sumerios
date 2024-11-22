@@ -14,6 +14,7 @@ import com.mad.sumerios.proveedor.repository.IProveedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
@@ -57,7 +58,7 @@ public class IngresoService {
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
     //  por consorcio y fechas
-    public List<IngresoResponseDTO> getIngresoByConsorcioYFecha(Long idConsorcio, Date startDate, Date endDate){
+    public List<IngresoResponseDTO> getIngresoByConsorcioYFecha(Long idConsorcio, LocalDate startDate, LocalDate endDate){
         List<Ingreso> ingresos = ingresoRepository.findByIdConsorcioAndFechaBetween(idConsorcio, startDate, endDate);
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
@@ -72,11 +73,11 @@ public class IngresoService {
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
     // buscar por expensa
-    public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
-        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
-        List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
-        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
-    }
+//    public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
+//        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+//        List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
+//        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
+//    }
 
     //  ACTUALIZAR INGRESO
     public void updateIngreso(Long idIngreso, IngresoUpdateDTO dto) throws Exception{
@@ -126,14 +127,14 @@ public class IngresoService {
             throw new Exception("El ingreso debe tener un valor mayor a $0");
         }
     }
-    private Expensa validateExpensa(Long idExpensa) throws Exception {
-        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
-        if(exp.isEmpty()){
-            throw new Exception("Expensa no encontrado");
-        }
-
-        return exp.get();
-    }
+//    private Expensa validateExpensa(Long idExpensa) throws Exception {
+//        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+//        if(exp.isEmpty()){
+//            throw new Exception("Expensa no encontrado");
+//        }
+//
+//        return exp.get();
+//    }
 
     //  mapeo DTO a Entity
     private Ingreso mapToIngresoEntity(IngresoCreateDTO dto) throws Exception {
@@ -141,11 +142,11 @@ public class IngresoService {
         validateConsorcio(dto.getIdConsorcio());
         validateValor(dto.getValor());
         validateProveedor(dto.getIdProveedor());
-        Expensa exp = validateExpensa(dto.getIdExpensa());
+//        Expensa exp = validateExpensa(dto.getIdExpensa());
 
         Ingreso ingreso = new Ingreso();
 
-        ingreso.setExpensa(exp);
+//        ingreso.setExpensa(exp);
         ingreso.setIdProveedor(dto.getIdProveedor());
         ingreso.setIdConsorcio(dto.getIdConsorcio());
         ingreso.setFecha(dto.getFecha());

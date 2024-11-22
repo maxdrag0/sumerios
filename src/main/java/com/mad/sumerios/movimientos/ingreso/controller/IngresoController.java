@@ -8,10 +8,12 @@ import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
 import com.mad.sumerios.movimientos.ingreso.service.IngresoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
@@ -55,8 +57,8 @@ public class IngresoController {
     //  por consorcio y fechas
     @GetMapping("/consorcios/{idConsorcio}/dates")
     public ResponseEntity<List<IngresoResponseDTO>> getIngresoByConsorcioYFecha (@PathVariable Long idConsorcio,
-                                                                                 @RequestParam Date startDate,
-                                                                                 @RequestParam Date endDate){
+                                                                                 @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+                                                                                 @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate endDate){
         try{
             List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByConsorcioYFecha(idConsorcio, startDate, endDate);
             if(ingresos.isEmpty()){
@@ -68,7 +70,7 @@ public class IngresoController {
         }
     }
     // por proveedor
-    @GetMapping("/proveedor/{idProveedor}")
+    @GetMapping("/proveedores/{idProveedor}")
     public ResponseEntity<List<IngresoResponseDTO>> getIngresoByProveedor (@PathVariable Long idProveedor){
         try{
             List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByProveedor(idProveedor);
@@ -81,7 +83,7 @@ public class IngresoController {
         }
     }
     // por proveedor y consorcio
-    @GetMapping("/proveedor/{idProveedor}/consorcio/{idConsorcio}")
+    @GetMapping("/proveedores/{idProveedor}/consorcios/{idConsorcio}")
     public ResponseEntity<List<IngresoResponseDTO>> getIngresoByProveedorAndConsorcio (@PathVariable Long idProveedor,
                                                                                        @PathVariable Long idConsorcio){
         try{
@@ -95,16 +97,16 @@ public class IngresoController {
         }
     }
     //  por periodo
-    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
-    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByExpensa(@PathVariable Long idConsorcio,
-                                                                       @PathVariable YearMonth periodo){
-        try{
-            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByExpensa(idConsorcio, periodo);
-            return ResponseEntity.ok(ingresos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
+//    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+//    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByExpensa(@PathVariable Long idConsorcio,
+//                                                                       @PathVariable YearMonth periodo){
+//        try{
+//            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByExpensa(idConsorcio, periodo);
+//            return ResponseEntity.ok(ingresos);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
 
 
     //  ACTUALIZAR INGRESO

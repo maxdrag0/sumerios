@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -15,11 +16,11 @@ public class IngresoCreateDTO {
     private Long idConsorcio;
     @NotNull
     private Long idProveedor;
-    @NotNull
-    private Long idExpensa;
+//    @NotNull
+//    private Long idExpensa;
     @NotNull
     @Temporal(TemporalType.DATE)
-    private Date fecha;
+    private LocalDate fecha;
 
     @NotNull
     private double valor;

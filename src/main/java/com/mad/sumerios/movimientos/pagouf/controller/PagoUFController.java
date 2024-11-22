@@ -139,16 +139,16 @@ public class PagoUFController {
     }
 
     //  ACTUALIZAR PAGO UF
-    @PutMapping("/{idPagoUf}")
-    public ResponseEntity<String> updatePagoUF( @PathVariable Long idPagoUf,
-                                                @RequestBody PagoUFUpdateDTO dto){
-        try{
-            pagoUFService.updatePagoUF(idPagoUf,dto);
-            return ResponseEntity.status(HttpStatus.OK).body("Pago actualizado exitosamente");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
+//    @PutMapping("/{idPagoUf}")
+//    public ResponseEntity<String> updatePagoUF( @PathVariable Long idPagoUf,
+//                                                @RequestBody PagoUFUpdateDTO dto){
+//        try{
+//            pagoUFService.updatePagoUF(idPagoUf,dto);
+//            return ResponseEntity.status(HttpStatus.OK).body("Pago actualizado exitosamente");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        }
+//    }
 
     //  BORRAR PAGO UF
     @DeleteMapping("/{idPagoUF}")

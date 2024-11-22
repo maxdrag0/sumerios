@@ -9,8 +9,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -30,16 +30,16 @@ public class Egreso {
     @Column(name = "id_proveedor")
     private Long idProveedor;
 
-    @NotNull
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_exp")
-    @JsonBackReference
-    private Expensa expensa;
+//    @NotNull
+//    @ManyToOne (fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id_exp")
+//    @JsonBackReference
+//    private Expensa expensa;
 
     //  DATOS DEL GASTO
     @NotNull
     @Temporal(TemporalType.DATE)
-    private Date fecha;
+    private LocalDate fecha;
     @NotBlank
     private String titulo;
     @NotNull

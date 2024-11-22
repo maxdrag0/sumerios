@@ -3,8 +3,7 @@ package com.mad.sumerios.enums;
 public enum FormaPago {
 
     EFECTIVO("Efectivo"),
-    DEPOSITO("Deposito"),
-    TRANSFERENCIA("Transferencia");
+    BANCO("Banco");
 
     private final String descripcion;
 

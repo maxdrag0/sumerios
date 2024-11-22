@@ -8,12 +8,8 @@ public class EstadoCuentaConsorcioCreateDTO {
 
     @NotNull
     private Long idConsorcio;
-    @NotNull
-    private Double efectivo;
-    @NotNull
-    private Double banco;
-    @NotNull
-    private Double fondoAdm;
-    @NotNull
-    private Double total;
+
+    public EstadoCuentaConsorcioCreateDTO (Long idConsorcio){
+        this.idConsorcio = idConsorcio;
+    }
 }

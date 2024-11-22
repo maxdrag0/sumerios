@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.time.YearMonth;
+import java.util.List;
+
 @Data
 @RequiredArgsConstructor
 @Entity
@@ -42,4 +45,8 @@ public class EstadoCuentaUf {
     private Double saldoExpensa;
     @NotNull
     private Double saldoIntereses;
+
+    public void setSaldoInteresesCero(){
+        this.saldoIntereses = (double) 0;
+    }
 }

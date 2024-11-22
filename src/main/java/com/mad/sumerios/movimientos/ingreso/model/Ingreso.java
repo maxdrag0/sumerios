@@ -8,12 +8,14 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
 @RequiredArgsConstructor
 @Entity
-@Table(name = "tbl_movimiento_ingreso")
+@Table(name = "tbl_ingresos")
 public class Ingreso {
 
     @Id
@@ -27,16 +29,16 @@ public class Ingreso {
     @NotNull
     private Long idProveedor;
 
-    @NotNull
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_exp")
-    @JsonBackReference
-    private Expensa expensa;
+//    @NotNull
+//    @ManyToOne (fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id_exp")
+//    @JsonBackReference
+//    private Expensa expensa;
 
 //  DATO DEL INGRESO
     @NotNull
     @Temporal(TemporalType.DATE)
-    private Date fecha;
+    private LocalDate fecha;
     @NotBlank
     private String titulo;
     @NotNull

@@ -2,8 +2,10 @@ package com.mad.sumerios.unidadfuncional.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
+import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
 import com.mad.sumerios.unidadfuncional.dto.UfConsorcioDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalCreateDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
@@ -22,16 +24,25 @@ public class UnidadFuncionalService {
 
     private final IUnidadFuncionalRepository unidadFuncionalRepository;
     private final IConsorcioRepository consorcioRepository;
+    private final EstadoCuentaUfService estadoCuentaUfService;
 
     @Autowired
-    public UnidadFuncionalService(IUnidadFuncionalRepository unidadFuncionalRepository, IConsorcioRepository consorcioRepository) {
+    public UnidadFuncionalService(IUnidadFuncionalRepository unidadFuncionalRepository,
+                                  IConsorcioRepository consorcioRepository,
+                                  EstadoCuentaUfService estadoCuentaUfService) {
         this.unidadFuncionalRepository = unidadFuncionalRepository;
         this.consorcioRepository = consorcioRepository;
+        this.estadoCuentaUfService = estadoCuentaUfService;
     }
 
     //  CREAR UNIDAD FUNCIONAL
     public void createUnidadFuncional(UnidadFuncionalCreateDTO dto) throws Exception {
-        unidadFuncionalRepository.save(mapToUnidadFuncionalEntity(dto));
+        UnidadFuncional uf = mapToUnidadFuncionalEntity(dto);
+        unidadFuncionalRepository.save(uf);
+
+        EstadoCuentaUfCreateDTO eaDTO = new EstadoCuentaUfCreateDTO(uf.getIdUf());
+        estadoCuentaUfService.createEstadoCuentaUf(eaDTO);
+
     }
 
     //  LISTAR UF
@@ -79,8 +90,6 @@ public class UnidadFuncionalService {
         ufExistente.setNombreInquilino(ufUpdated.getNombreInquilino());
         ufExistente.setMailInquilino(ufUpdated.getMailInquilino());
         ufExistente.setTelefonoInquilino(ufUpdated.getTelefonoInquilino());
-        // DATOS DE CUENTA
-
 
         unidadFuncionalRepository.save(ufExistente);
     }
@@ -147,7 +156,6 @@ public class UnidadFuncionalService {
         Consorcio consorcio = validateConsorcio(dto.getIdConsorcio());
         UnidadFuncional uf = new UnidadFuncional();
 
-
         uf.setConsorcio(consorcio);
         uf.setUnidadFuncional(dto.getUnidadFuncional());
         uf.setTitulo(dto.getTitulo());
@@ -206,6 +214,7 @@ public class UnidadFuncionalService {
 
         EstadoCuentaUf ec = uf.getEstadoCuentaUf();
         EstadoCuentaUfDTO ecDto = new EstadoCuentaUfDTO();
+        ecDto.setIdUf(uf.getIdUf());
         ecDto.setDeuda(ec.getDeuda());
         ecDto.setIntereses(ec.getIntereses());
         ecDto.setTotalA(ec.getTotalA());
@@ -214,6 +223,7 @@ public class UnidadFuncionalService {
         ecDto.setTotalC(ec.getTotalC());
         ecDto.setTotalD(ec.getTotalD());
         ecDto.setTotalE(ec.getTotalE());
+        ecDto.setGastoParticular(ec.getGastoParticular());
         ecDto.setTotalFinal(ec.getTotalFinal());
         ecDto.setSaldoExpensa(ec.getSaldoExpensa());
         ecDto.setSaldoIntereses(ec.getSaldoIntereses());

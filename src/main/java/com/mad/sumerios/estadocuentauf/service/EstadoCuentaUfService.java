@@ -4,6 +4,7 @@ import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
+import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ public class EstadoCuentaUfService {
         return mapToEstadoCuentaUfDTO(estadoCuentaUfRepository.findByUnidadFuncional_idUf(idUf));
     }
 
-    // VALIDACIONES
+    // VALIDACIONES Y AUX
     private void validateValor(Double deuda,
                                Double intereses,
                                Double totalA,
@@ -85,15 +86,6 @@ public class EstadoCuentaUfService {
     // MAP DTO TO ENTITY
     private EstadoCuentaUf mapToEstadoCuentaUfEntity(EstadoCuentaUfCreateDTO dto) throws Exception {
         UnidadFuncional uf = validateUf(dto.getIdUf());
-        validateValor(dto.getDeuda(),
-                      dto.getIntereses(),
-                      dto.getTotalA(),
-                      dto.getTotalB(),
-                      dto.getTotalC(),
-                      dto.getTotalD(),
-                      dto.getTotalE(),
-                      dto.getGastoParticular(),
-                      dto.getTotalFinal());
 
         if(uf.getEstadoCuentaUf() != null){
             throw new Exception("La unidad funcional ya tiene un estado de cuenta asociado.");
@@ -102,17 +94,17 @@ public class EstadoCuentaUfService {
         EstadoCuentaUf ec = new EstadoCuentaUf();
 
         ec.setUnidadFuncional(uf);
-        ec.setDeuda(dto.getDeuda());
-        ec.setIntereses(dto.getIntereses());
-        ec.setTotalA(dto.getTotalA());
-        ec.setTotalB(dto.getTotalB());
-        ec.setTotalC(dto.getTotalC());
-        ec.setTotalD(dto.getTotalD());
-        ec.setTotalE(dto.getTotalE());
-        ec.setGastoParticular(dto.getGastoParticular());
-        ec.setTotalFinal(dto.getTotalFinal());
-        ec.setSaldoExpensa(dto.getSaldoExpensa());
-        ec.setSaldoIntereses(dto.getSaldoIntereses());
+        ec.setDeuda(0.0);
+        ec.setIntereses(0.0);
+        ec.setTotalA(0.0);
+        ec.setTotalB(0.0);
+        ec.setTotalC(0.0);
+        ec.setTotalD(0.0);
+        ec.setTotalE(0.0);
+        ec.setGastoParticular(0.0);
+        ec.setTotalFinal(0.0);
+        ec.setSaldoExpensa(0.0);
+        ec.setSaldoIntereses(0.0);
 
         uf.setEstadoCuentaUf(ec);
 
@@ -168,4 +160,60 @@ public class EstadoCuentaUfService {
 
         return dto;
     }
+
+
+    // CHEQUEO INTERESES
+    private double verificarIntereses(EstadoCuentaUf estadoCuentaUf, PagoUF pago) {
+        double saldoIntereses = estadoCuentaUf.getSaldoIntereses();
+        double pagoTotal = pago.getValor();
+        double diferencia;
+        double interesesPagados;
+
+        if (saldoIntereses > 0) {
+            if (pagoTotal >= saldoIntereses) {
+                diferencia = pagoTotal - saldoIntereses;
+                interesesPagados = saldoIntereses;
+                estadoCuentaUf.setSaldoInteresesCero();
+            } else {
+                diferencia = 0;
+                interesesPagados = pagoTotal;
+                estadoCuentaUf.setSaldoIntereses(saldoIntereses - pagoTotal);
+            }
+        } else {
+            diferencia = pagoTotal;
+            interesesPagados = 0;
+        }
+
+        pago.setInteresesPagos(interesesPagados);
+
+        return diferencia;
+    }
+
+    // Pagos Uf
+    public void restarPago (EstadoCuentaUf estadoCuentaUf, PagoUF pago){
+        double pagoTotal = pago.getValor();
+        double diferenciaIntereses = verificarIntereses(estadoCuentaUf, pago);
+
+        estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() - diferenciaIntereses);
+        estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() - pagoTotal);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+
+    public void revertirPago(EstadoCuentaUf estadoCuentaUf, PagoUF pago){
+        double pagoTotal = pago.getValor();
+        double intereses = pago.getInteresesPagos();
+        double diferenciaTotalIntereses = pagoTotal - intereses;
+
+        estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() + pagoTotal);
+        if(intereses == 0){
+            estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() + pagoTotal);
+        } else{
+            estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() + diferenciaTotalIntereses);
+            estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() + intereses);
+        }
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+
 }

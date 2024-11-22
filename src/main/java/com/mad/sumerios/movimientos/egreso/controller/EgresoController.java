@@ -6,10 +6,12 @@ import com.mad.sumerios.movimientos.egreso.dto.EgresoUpdateDTO;
 import com.mad.sumerios.movimientos.egreso.service.EgresoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
@@ -37,23 +39,8 @@ public class EgresoController {
     }
 
     //  LISTAR EGRESOS
-    //  por consorcio y fechas
-    @GetMapping("/consorcio/{idConsorcio}/dates")
-    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByIdConsorcioAndFecha (@PathVariable Long idConsorcio,
-                                                                                    @RequestParam Date startDate,
-                                                                                    @RequestParam Date endDate){
-        try{
-            List<EgresoResponseDTO> egresos = egresoService.getEgresosByIdConsorcioAndFecha(idConsorcio, startDate, endDate);
-            if(egresos.isEmpty()){
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(egresos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
     //  por consorcio
-    @GetMapping("/consorcio/{idConsorcio}")
+    @GetMapping("/consorcios/{idConsorcio}")
     public ResponseEntity<List<EgresoResponseDTO>> getEgresosByIdConsorcio (@PathVariable Long idConsorcio){
         try{
             List<EgresoResponseDTO> egresos = egresoService.getEgresosByIdConsorcio(idConsorcio);
@@ -65,6 +52,22 @@ public class EgresoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    //  por consorcio y fechas
+    @GetMapping("/consorcios/{idConsorcio}/dates")
+    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByIdConsorcioAndFecha (@PathVariable Long idConsorcio,
+                                                                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
+        try{
+            List<EgresoResponseDTO> egresos = egresoService.getEgresosByIdConsorcioAndFecha(idConsorcio, startDate, endDate);
+            if(egresos.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(egresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     //  por proveedor
     @GetMapping("/proveedores/{idProveedor}")
     public ResponseEntity<List<EgresoResponseDTO>> getEgresosByProveedor (@PathVariable Long idProveedor){
@@ -113,17 +116,6 @@ public class EgresoController {
             return ResponseEntity.ok(egreso);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
-        }
-    }
-    //  por periodo
-    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
-    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByExpensa(@PathVariable Long idConsorcio,
-                                                                       @PathVariable YearMonth periodo){
-        try{
-            List<EgresoResponseDTO> egresos = egresoService.getEgresosByExpensa(idConsorcio, periodo);
-            return ResponseEntity.ok(egresos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

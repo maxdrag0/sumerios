@@ -5,6 +5,7 @@ import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
+import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularCreateDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularUpdateDTO;
@@ -15,6 +16,7 @@ import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +53,7 @@ public class GastoParticularService {
     public void createGastoParticular (GastoParticularCreateDTO dto) throws Exception{
         GastoParticular gastoParticular = mapToGastoParticularEntity(dto);
 
-        if(gastoParticular.isPagoConsorcio()){
+        if(gastoParticular.getPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
             consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticular(value.getEstadoCuentaConsorcio(), gastoParticular));
         }
@@ -59,16 +61,19 @@ public class GastoParticularService {
         gastoParticularRepository.save(gastoParticular);
     }
 
-    // UPDATE Gp.
+//    // UPDATE Gp.
     public void updateGastoParticular (Long idGastoParticular, GastoParticularUpdateDTO dto) throws Exception{
         GastoParticular gp = gastoParticularRepository.findById(idGastoParticular)
                 .orElseThrow(()-> new Exception("Gasto Particular no encontrado."));
 
         GastoParticular gpUpdated = mapToGastoParticularEntityUpdate(dto);
-
-        if(gp.isPagoConsorcio()){
-            Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
+        System.out.println(gp.getPagoConsorcio());
+        System.out.println(gpUpdated.getPagoConsorcio());
+        Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
+        if(gp.getPagoConsorcio()){
             consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarGastoParticular(value.getEstadoCuentaConsorcio(), gp, gpUpdated));
+        } else if(gpUpdated.getPagoConsorcio()){
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticular(value.getEstadoCuentaConsorcio(), gpUpdated));
         }
 
         gp.setIdConsorcio(gpUpdated.getIdConsorcio());
@@ -80,6 +85,7 @@ public class GastoParticularService {
         gp.setComprobante(gpUpdated.getComprobante());
         gp.setDescripcion(gpUpdated.getDescripcion());
         gp.setTotalFinal(gpUpdated.getTotalFinal());
+        gp.setPagoConsorcio(gpUpdated.getPagoConsorcio());
 
         gastoParticularRepository.save(gp);
     }
@@ -89,7 +95,7 @@ public class GastoParticularService {
         GastoParticular gp = gastoParticularRepository.findById(idGastoParticular)
                 .orElseThrow(()-> new Exception("Gasto Particular no encontrado"));
 
-        if(gp.isPagoConsorcio()){
+        if(gp.getPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(gp.getIdConsorcio());
             consorcio.ifPresent(value-> estadoCuentaConsorcioService.revertirGastoParticular(value.getEstadoCuentaConsorcio(), gp));
         }
@@ -109,7 +115,7 @@ public class GastoParticularService {
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
     // consorcio y fechas
-    public List<GastoParticularResponseDTO> findByConsorcioAndFecha (Long idConsorcio, Date startDate, Date endDate) {
+    public List<GastoParticularResponseDTO> findByConsorcioAndFecha (Long idConsorcio, LocalDate startDate, LocalDate endDate) {
         List<GastoParticular> gastos = gastoParticularRepository.findByIdConsorcioAndFechaBetween(idConsorcio,startDate,endDate );
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
@@ -119,7 +125,7 @@ public class GastoParticularService {
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
     // uf y fechas
-    public List<GastoParticularResponseDTO> findByUfAndFecha (Long idUf, Date startDate, Date endDate) {
+    public List<GastoParticularResponseDTO> findByUfAndFecha (Long idUf, LocalDate startDate, LocalDate endDate) {
         List<GastoParticular> gastos = gastoParticularRepository.findByIdUfAndFechaBetween(idUf, startDate, endDate);
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
@@ -129,11 +135,11 @@ public class GastoParticularService {
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
     // buscar por expensa
-    public List<GastoParticularResponseDTO> getGastoParticularByExpensa(Long idConsorcio, YearMonth periodo) {
-        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
-        List<GastoParticular> gastos= gastoParticularRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
-        return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
-    }
+//    public List<GastoParticularResponseDTO> getGastoParticularByExpensa(Long idConsorcio, YearMonth periodo) {
+//        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+//        List<GastoParticular> gastos= gastoParticularRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
+//        return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
+//    }
     // buscar por comprobante
     public GastoParticularResponseDTO getGastoParticularByComprobante(String comprobante) {
         return mapToGastoParticularResponse(gastoParticularRepository.findByComprobante(comprobante));
@@ -161,6 +167,13 @@ public class GastoParticularService {
             throw new Exception("El n° de comprobante ya existe");
         }
     }
+    private void validateComprobanteUpdate(Long idGastoParticular, String comprobante) throws Exception {
+        GastoParticular gp = gastoParticularRepository.findByComprobante(comprobante);
+        if (gp != null && !gp.getIdGastoParticular().equals(idGastoParticular)) {
+            throw new Exception("El n° de comprobante ya existe para otro gasto particular.");
+        }
+    }
+
     //  total final
     private void validateTotalFinal(Double totalFinal) throws Exception {
         if(totalFinal<=0){
@@ -169,14 +182,14 @@ public class GastoParticularService {
         }
     }
     //  expensa
-    private Expensa validateExpensa(Long idExpensa) throws Exception {
-        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
-        if(exp.isEmpty()){
-            throw new Exception("Expensa no encontrado");
-        }
-
-        return exp.get();
-    }
+//    private Expensa validateExpensa(Long idExpensa) throws Exception {
+//        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+//        if(exp.isEmpty()){
+//            throw new Exception("Expensa no encontrado");
+//        }
+//
+//        return exp.get();
+//    }
 
     // MAP
     //  map DTO a Entity
@@ -184,12 +197,12 @@ public class GastoParticularService {
         validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
         validateComprobante(dto.getComprobante());
-        Expensa exp = validateExpensa(dto.getIdExpensa());
+//        Expensa exp = validateExpensa(dto.getIdExpensa());
         validateTotalFinal(dto.getTotalFinal());
 
         GastoParticular gastoParticular = new GastoParticular();
 
-        gastoParticular.setExpensa(exp);
+//        gastoParticular.setExpensa(exp);
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
         gastoParticular.setIdProveedor(dto.getIdProveedor());
         gastoParticular.setIdUf(dto.getIdUf());
@@ -199,14 +212,14 @@ public class GastoParticularService {
         gastoParticular.setComprobante(dto.getComprobante());
         gastoParticular.setDescripcion(dto.getDescripcion());
         gastoParticular.setTotalFinal(dto.getTotalFinal());
-        gastoParticular.setPagoConsorcio(dto.isPagoConsorcio());
+        gastoParticular.setPagoConsorcio(dto.getPagoConsorcio());
 
         return gastoParticular;
     }
     public GastoParticular mapToGastoParticularEntityUpdate(GastoParticularUpdateDTO dto) throws Exception{
         validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateComprobante(dto.getComprobante());
+        validateComprobanteUpdate(dto.getIdGastoParticular(), dto.getComprobante());
         validateTotalFinal(dto.getTotalFinal());
 
         GastoParticular gastoParticular = new GastoParticular();
@@ -220,7 +233,7 @@ public class GastoParticularService {
         gastoParticular.setComprobante(dto.getComprobante());
         gastoParticular.setDescripcion(dto.getDescripcion());
         gastoParticular.setTotalFinal(dto.getTotalFinal());
-        gastoParticular.setPagoConsorcio(dto.isPagoConsorcio());
+        gastoParticular.setPagoConsorcio(dto.getPagoConsorcio());
 
         return gastoParticular;
     }
@@ -237,6 +250,7 @@ public class GastoParticularService {
         dto.setFormaPago(gp.getFormaPago());
         dto.setComprobante(gp.getComprobante());
         dto.setDescripcion(gp.getDescripcion());
+        dto.setPagoConsorcio(gp.getPagoConsorcio());
         dto.setTotalFinal(gp.getTotalFinal());
 
         return dto;

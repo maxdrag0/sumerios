@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import com.mad.sumerios.expensa.model.Expensa;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -32,7 +34,7 @@ public class PagoUF {
 //  DATO DEL INGRESO
     @NotNull
     @Temporal(TemporalType.DATE)
-    private Date fecha;
+    private LocalDate fecha;
 
     @NotNull
     private double valor;
@@ -42,10 +44,12 @@ public class PagoUF {
 
     private String descripcion;
 
-    @NotNull
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_exp")
-    @JsonBackReference
-    private Expensa expensa;
+//    @NotNull
+//    @ManyToOne (fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id_exp")
+//    @JsonBackReference
+//    private Expensa expensa;
+
+    private double interesesPagos;
 
 }

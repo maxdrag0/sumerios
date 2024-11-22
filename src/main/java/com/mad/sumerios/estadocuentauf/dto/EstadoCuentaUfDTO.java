@@ -2,6 +2,8 @@ package com.mad.sumerios.estadocuentauf.dto;
 
 import lombok.Data;
 
+import java.time.YearMonth;
+
 @Data
 public class EstadoCuentaUfDTO {
     private Long idUf;

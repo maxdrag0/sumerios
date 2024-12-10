@@ -11,6 +11,7 @@ import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
 import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
 import com.mad.sumerios.movimientos.ingreso.repository.IIngresoRepository;
 import com.mad.sumerios.proveedor.repository.IProveedorRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,7 @@ public class IngresoService {
     }
 
     //  CREAR INGRESO
+    @Transactional
     public void createIngreso (IngresoCreateDTO dto) throws Exception{
         Ingreso ingreso = mapToIngresoEntity(dto);
         Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());

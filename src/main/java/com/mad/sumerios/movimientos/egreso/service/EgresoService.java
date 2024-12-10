@@ -11,6 +11,7 @@ import com.mad.sumerios.movimientos.egreso.dto.EgresoUpdateDTO;
 import com.mad.sumerios.movimientos.egreso.model.Egreso;
 import com.mad.sumerios.movimientos.egreso.repository.IEgresoRepository;
 import com.mad.sumerios.proveedor.repository.IProveedorRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,7 @@ public class EgresoService {
     }
 
     //  CREAR EGRESO
+    @Transactional
     public void createEgreso(EgresoCreateDTO dto) throws Exception{
         Egreso egreso = mapToEgresoEntity(dto);
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
@@ -223,6 +225,7 @@ public class EgresoService {
         dto.setComprobante(egreso.getComprobante());
         dto.setDescripcion(egreso.getDescripcion());
         dto.setTotalFinal(egreso.getTotalFinal());
+        dto.setTipoEgreso(egreso.getTipoEgreso());
         dto.setCategoriaEgreso(egreso.getCategoriaEgreso());
 
         return dto;

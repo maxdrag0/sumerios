@@ -21,15 +21,4 @@ public class UnidadFuncionalUpdateDTO {
     private String nombreInquilino;
     private String mailInquilino;
     private String telefonoInquilino;
-
-    // EST ADO DE CUENTA
-    private Double deuda;
-    private Double intereses;
-    private Double totalA;
-    private Double totalB;
-    private Double totalC;
-    private Double totalD;
-    private Double totalE;
-    private Double gastoParticular;
-    private Double totalFinal;
 }

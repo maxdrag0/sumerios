@@ -61,7 +61,6 @@ public class AdministracionService {
         existingAdm.setTelefono(updatedAdm.getTelefono());
         existingAdm.setCuit(updatedAdm.getCuit());
         existingAdm.setMail(updatedAdm.getMail());
-        existingAdm.setAdministrador(updatedAdm.getAdministrador());
 
         administracionRepository.save(existingAdm);
     }
@@ -113,6 +112,9 @@ public class AdministracionService {
     }
 
     private Administracion mapToAdministracionEntityUpdate(AdministracionUpdateDTO dto) throws Exception {
+        AppUserAdmin administrador = appUserAdminRepository.findById(dto.getIdAppUser())
+                .orElseThrow(() -> new IllegalArgumentException("Administrador no encontrado"));
+
         Administracion administracion = new Administracion();
         administracion.setIdAdm(dto.getIdAdm());
         administracion.setNombre(dto.getNombre());
@@ -122,8 +124,6 @@ public class AdministracionService {
         administracion.setMail(dto.getMail());
 
         // Buscar el AppUser (administrador)
-        AppUserAdmin administrador = appUserAdminRepository.findById(dto.getAdministradorId())
-                .orElseThrow(() -> new IllegalArgumentException("Administrador no encontrado"));
 
         if (administrador.getAdministracion() != null) {
             long idAdmExistente = administrador.getAdministracion().getIdAdm();
@@ -134,8 +134,6 @@ public class AdministracionService {
             throw new Exception("El rol del administrador no puede ser " + administrador.getRol());
         }
 
-        administracion.setAdministrador(administrador);
-        administrador.setAdministracion(administracion);
         return administracion;
     }
 

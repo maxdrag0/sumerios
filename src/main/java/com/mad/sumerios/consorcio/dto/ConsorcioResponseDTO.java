@@ -13,6 +13,8 @@ public class ConsorcioResponseDTO {
     private long idConsorcio;
     private String nombre;
     private String direccion;
+    private String ciudad;
+    private String banco;
     private String cuit;
     private String titulo;
     private String cbu;

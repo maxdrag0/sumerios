@@ -1,6 +1,5 @@
 package com.mad.sumerios.proveedor.controller;
 
-import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.proveedor.dto.ProveedorCreateDTO;
 import com.mad.sumerios.proveedor.dto.ProveedorResponseDTO;
 import com.mad.sumerios.proveedor.dto.ProveedorUpdateDTO;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/proveedores")
+@RequestMapping("/api/administraciones/{idAdm}/proveedores")
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
@@ -34,9 +33,9 @@ public class ProveedorController {
         }
     }
     @GetMapping
-    public ResponseEntity<List<ProveedorResponseDTO>> getAllProveedores (){
+    public ResponseEntity<List<ProveedorResponseDTO>> getAllProveedores (@PathVariable Long idAdm){
         try {
-            List<ProveedorResponseDTO> proveedores = proveedorService.getAllProveedores();
+            List<ProveedorResponseDTO> proveedores = proveedorService.getAllProveedores(idAdm);
             if (proveedores.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

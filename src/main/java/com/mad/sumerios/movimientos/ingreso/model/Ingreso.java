@@ -10,7 +10,6 @@ import com.mad.sumerios.expensa.model.Expensa;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Data
 @RequiredArgsConstructor

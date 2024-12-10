@@ -7,7 +7,6 @@ import lombok.Data;
 public class ProveedorUpdateDTO {
     @NotBlank
     private long idProveedor;
-
     private String nombre;
     private String telefono;
     private String descripcion;

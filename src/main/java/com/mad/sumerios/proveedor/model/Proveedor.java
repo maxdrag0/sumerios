@@ -2,6 +2,7 @@ package com.mad.sumerios.proveedor.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +16,9 @@ public class Proveedor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_proveedor")
     private long idProveedor;
+
+    @NotNull
+    private Long idAdm;
 
     @NotBlank
     private String nombre;

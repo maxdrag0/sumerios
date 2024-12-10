@@ -3,6 +3,7 @@ package com.mad.sumerios.appuser.appuseradmin.controller;
 import com.mad.sumerios.appuser.appuseradmin.dto.AppUserAdminResponseDTO;
 import com.mad.sumerios.appuser.appuseradmin.dto.AppUserAdminUpdateDTO;
 import com.mad.sumerios.appuser.appuseradmin.service.AppUserAdminService;
+import com.mad.sumerios.appuser.dto.AppUserResponseDTO;
 import com.mad.sumerios.appuser.service.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,6 +52,16 @@ public class AppUserAdminController {
         try {
             AppUserAdminResponseDTO dto = appUserAdminService.getAdminByMatricula(matricula);
             return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username){
+        try {
+            AppUserAdminResponseDTO response = appUserAdminService.getAppUserByUsername(username);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         }

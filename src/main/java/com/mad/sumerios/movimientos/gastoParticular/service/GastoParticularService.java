@@ -14,6 +14,7 @@ import com.mad.sumerios.movimientos.gastoParticular.repository.IGastoParticularR
 import com.mad.sumerios.proveedor.repository.IProveedorRepository;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -50,6 +51,7 @@ public class GastoParticularService {
 
     // CRUD
     // CREATE GP.
+    @Transactional
     public void createGastoParticular (GastoParticularCreateDTO dto) throws Exception{
         GastoParticular gastoParticular = mapToGastoParticularEntity(dto);
 

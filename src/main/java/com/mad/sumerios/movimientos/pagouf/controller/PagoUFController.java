@@ -5,16 +5,15 @@ import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
-import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.YearMonth;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -56,8 +55,8 @@ public class PagoUFController {
     //  por uf y fecha
     @GetMapping("unidadFuncional/{ufId}/dates")
     public ResponseEntity<List<PagoUFDTO>> getPagoUFByUFAndFecha (@PathVariable Long ufId,
-                                                                  @RequestParam Date startDate,
-                                                                  @RequestParam Date endDate
+                                                                  @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                  @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ){
         try{
             List<PagoUFDTO> pagoUFS = pagoUFService.getPagosByUnidadFuncionalAndFecha(ufId,startDate, endDate);
@@ -85,8 +84,8 @@ public class PagoUFController {
     //  por consorcio y fecha
     @GetMapping("/consorcio/{idConsorcio}/dates")
     public ResponseEntity<List<PagoUFDTO>> getPagoUFByConsorcio (@PathVariable Long idConsorcio,
-                                                                 @RequestParam Date startDate,
-                                                                 @RequestParam Date endDate){
+                                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
         try{
             List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByConsorcioAndFecha(idConsorcio,
                                                                                  startDate,
@@ -127,16 +126,16 @@ public class PagoUFController {
         }
     }
     //  por periodo
-    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
-    public ResponseEntity<List<PagoUFDTO>> getPagoUFByExpensa(@PathVariable Long idConsorcio,
-                                                              @PathVariable YearMonth periodo){
-        try{
-            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByExpensa(idConsorcio, periodo);
-            return ResponseEntity.ok(pagoUFS);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
+//    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+//    public ResponseEntity<List<PagoUFDTO>> getPagoUFByExpensa(@PathVariable Long idConsorcio,
+//                                                              @PathVariable YearMonth periodo){
+//        try{
+//            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByExpensa(idConsorcio, periodo);
+//            return ResponseEntity.ok(pagoUFS);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
 
     //  ACTUALIZAR PAGO UF
 //    @PutMapping("/{idPagoUf}")

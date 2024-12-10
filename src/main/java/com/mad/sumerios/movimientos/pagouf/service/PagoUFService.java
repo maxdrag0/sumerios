@@ -16,6 +16,7 @@ import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.repository.IPagoUFRepository;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,12 +53,13 @@ public class PagoUFService {
     }
 
     //  CREAR INGRESO
+    @Transactional
     public void createPagoUF(PagoUFCreateDTO dto) throws Exception {
         // Mapeo del DTO a la entidad PagoUF
         PagoUF pago = mapToPagoUFEntity(dto);
 
         // Actualizar estado de cuenta del consorcio
-       EstadoCuentaConsorcio estadoCuentaConsorcio = obtenerEstadoCuentaConsorcio(pago.getIdConsorcio());
+        EstadoCuentaConsorcio estadoCuentaConsorcio = obtenerEstadoCuentaConsorcio(pago.getIdConsorcio());
         estadoCuentaConsorcioService.sumarPagoUF(estadoCuentaConsorcio, pago);
 
         // Actualizar estado de cuenta de la unidad funcional

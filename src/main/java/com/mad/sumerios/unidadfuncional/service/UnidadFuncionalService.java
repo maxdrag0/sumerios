@@ -214,6 +214,8 @@ public class UnidadFuncionalService {
 
         EstadoCuentaUf ec = uf.getEstadoCuentaUf();
         EstadoCuentaUfDTO ecDto = new EstadoCuentaUfDTO();
+
+        ecDto.setIdEstadoCuentaUf(ec.getIdEstadoCuentaUf());
         ecDto.setIdUf(uf.getIdUf());
         ecDto.setDeuda(ec.getDeuda());
         ecDto.setIntereses(ec.getIntereses());

@@ -35,7 +35,8 @@ public class EgresoCreateDTO {
 
     //  VALOR
     @NotNull
-    private Double totalFinal;
-    @NotNull
     private CategoriaEgreso categoriaEgreso;
+    @NotNull
+    private Double totalFinal;
+
 }

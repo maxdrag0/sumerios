@@ -22,9 +22,6 @@ public class IngresoCreateDTO {
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;
 
-    @NotNull
-    private double valor;
-
     @NotBlank
     private String titulo;
 
@@ -33,4 +30,7 @@ public class IngresoCreateDTO {
 
     @NotNull
     private FormaPago formaPago;
+
+    @NotNull
+    private double valor;
 }

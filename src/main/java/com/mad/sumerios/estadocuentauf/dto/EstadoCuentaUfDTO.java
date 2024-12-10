@@ -6,6 +6,7 @@ import java.time.YearMonth;
 
 @Data
 public class EstadoCuentaUfDTO {
+    private Long idEstadoCuentaUf;
     private Long idUf;
     private Double deuda;
     private Double intereses;

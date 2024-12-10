@@ -13,6 +13,5 @@ public class AdministracionUpdateDTO {
     private String mail;
     private String telefono;
     private String direccion;
-    private Long administradorId;
-    private List<ConsorcioResponseDTO> consorcios;
+    private Long idAppUser;
 }

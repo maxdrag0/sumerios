@@ -69,6 +69,7 @@ public class ConsorcioService {
         if(cons.getAdministracion().getIdAdm() != idAdm){
             throw new Exception("El consorcio no pertenece a la administración especificada");
         }
+
         // Validar si el nombre o la dirección ya están en uso por otro consorcio
         validarNombreUnicoUpdate(dto.getNombre(), idConsorcio);
         validarDireccionUnicaUpdate(dto.getDireccion(), idConsorcio);
@@ -116,7 +117,7 @@ public class ConsorcioService {
         }
     }
     private void validarCuitUnicoCreate(String cuit) throws Exception {
-        if(cuit!=null){
+        if(cuit!=null && !cuit.isBlank()){
             if (consorcioRepository.findByCuit(cuit).isPresent()) {
                 throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
             }
@@ -139,10 +140,12 @@ public class ConsorcioService {
         }
     }
     private void validarCuitUnicoUpdate(String cuit, Long idActualConsorcio) throws Exception {
-        if (consorcioRepository.findByCuit(cuit)
-                .filter(c -> !Long.valueOf(c.getCuit()).equals(idActualConsorcio))  // Conversión de long a Long
-                .isPresent()) {
-            throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
+        if(cuit != null && !cuit.isEmpty()){
+            if (consorcioRepository.findByCuit(cuit)
+                    .filter(c -> !Long.valueOf(c.getCuit()).equals(idActualConsorcio))  // Conversión de long a Long
+                    .isPresent()) {
+                throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
+            }
         }
     }
 
@@ -177,6 +180,14 @@ public class ConsorcioService {
         consorcioDTO.setIdConsorcio(consorcio.getIdConsorcio());
         consorcioDTO.setNombre(consorcio.getNombre());
         consorcioDTO.setDireccion(consorcio.getDireccion());
+        consorcioDTO.setCiudad(consorcio.getCiudad());
+        consorcioDTO.setBanco(consorcio.getBanco());
+        consorcioDTO.setCuit(consorcio.getCuit());
+        consorcioDTO.setTitulo(consorcio.getTitulo());
+        consorcioDTO.setCbu(consorcio.getCbu());
+        consorcioDTO.setNumCuenta(consorcio.getNumCuenta());
+        consorcioDTO.setAlias(consorcio.getAlias());
+
         // FIN MAPEO
 
         // MAPEO DATOS ADMINISTRACION
@@ -185,6 +196,7 @@ public class ConsorcioService {
         admDTO.setIdAdm(adm.getIdAdm());
         admDTO.setNombre(adm.getNombre());
         consorcioDTO.setAdministracion(admDTO);
+
         // FIN MAPEO
 
         // MAPEO DATOs UFs

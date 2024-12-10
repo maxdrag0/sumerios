@@ -146,6 +146,7 @@ public class EstadoCuentaUfService {
     private EstadoCuentaUfDTO mapToEstadoCuentaUfDTO(EstadoCuentaUf ea){
         EstadoCuentaUfDTO dto = new EstadoCuentaUfDTO();
 
+        dto.setIdEstadoCuentaUf(ea.getIdEstadoCuentaUf());
         dto.setIdUf(ea.getUnidadFuncional().getIdUf());
         dto.setDeuda(ea.getDeuda());
         dto.setTotalA(ea.getTotalA());
@@ -157,6 +158,8 @@ public class EstadoCuentaUfService {
         dto.setTotalFinal(ea.getTotalFinal());
         dto.setSaldoExpensa(ea.getSaldoExpensa());
         dto.setSaldoIntereses(ea.getSaldoIntereses());
+
+        System.out.println(dto);
 
         return dto;
     }
@@ -192,10 +195,26 @@ public class EstadoCuentaUfService {
     // Pagos Uf
     public void restarPago (EstadoCuentaUf estadoCuentaUf, PagoUF pago){
         double pagoTotal = pago.getValor();
+        System.out.println(pagoTotal);
         double diferenciaIntereses = verificarIntereses(estadoCuentaUf, pago);
+        System.out.println(diferenciaIntereses);
 
+        System.out.println("1---------------------ANTES DE MODIFICAR-------------------------");
+        System.out.println(estadoCuentaUf.getTotalFinal());
+        System.out.println(estadoCuentaUf.getSaldoExpensa());
+        System.out.println("1---------------------ANTES DE MODIFICAR-------------------------");
         estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() - diferenciaIntereses);
+        System.out.println("1---------------------DESPU[ES DE MODIFICAR SALDO EXP------------");
+        System.out.println(diferenciaIntereses);
+        System.out.println(estadoCuentaUf.getTotalFinal());
+        System.out.println(estadoCuentaUf.getSaldoExpensa());
+        System.out.println("1---------------------DESPU[ES DE MODIFICAR SALDO EXP------------");
         estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() - pagoTotal);
+        System.out.println("1---------------------DESPU[ES DE MODIFICAR TOTAL FINAL----------");
+        System.out.println(pagoTotal);
+        System.out.println(estadoCuentaUf.getTotalFinal());
+        System.out.println(estadoCuentaUf.getSaldoExpensa());
+        System.out.println("1---------------------DESPU[ES DE MODIFICAR TOTAL FINAL----------");
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }

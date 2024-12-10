@@ -22,6 +22,9 @@ public class EstadoCuentaUf {
 
     @OneToOne(mappedBy = "estadoCuentaUf")
     private UnidadFuncional unidadFuncional;
+//
+//    @NotNull
+//    private YearMonth periodo;
 
     @NotNull
     private Double deuda;

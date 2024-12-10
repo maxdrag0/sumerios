@@ -32,9 +32,10 @@ public class ProveedorService {
 
         return mapToResponseDTO(proveedor);
     }
+
     // get all proveedores
-    public List<ProveedorResponseDTO> getAllProveedores(){
-        List<Proveedor> proveedores = proveedorRepository.findAll();
+    public List<ProveedorResponseDTO> getAllProveedores(Long idAdm){
+        List<Proveedor> proveedores = proveedorRepository.findByIdAdm(idAdm);
         return proveedores.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
     }
     // get proveedor by id
@@ -55,19 +56,19 @@ public class ProveedorService {
     }
     // update proveedor
     public ProveedorResponseDTO updateProveedor (ProveedorUpdateDTO dto) throws Exception{
+
         Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
                 .orElseThrow(() -> new Exception ("Proveedor no encontrado"));
 
         validateCuitUpdate(dto.getIdProveedor(), dto.getCuit());
-        validateTelefonoUpdate(dto.getIdProveedor(), dto.getTelefono());
+//        validateTelefonoUpdate(dto.getIdProveedor(), dto.getTelefono());
         Proveedor proveedorUpdated = mapToProveedorEntityUpdate(dto);
 
-        //
-        proveedor.setTelefono(dto.getTelefono());
-        proveedor.setNombre(dto.getNombre());
-        proveedor.setDescripcion(dto.getDescripcion());
-        proveedor.setCbu(dto.getCbu());
-        proveedor.setCuit(dto.getCuit());
+        proveedor.setTelefono(proveedorUpdated.getTelefono());
+        proveedor.setNombre(proveedorUpdated.getNombre());
+        proveedor.setDescripcion(proveedorUpdated.getDescripcion());
+        proveedor.setCbu(proveedorUpdated.getCbu());
+        proveedor.setCuit(proveedorUpdated.getCuit());
 
         proveedorRepository.save(proveedor);
 
@@ -107,9 +108,13 @@ public class ProveedorService {
         ProveedorResponseDTO dto = new ProveedorResponseDTO();
 
         dto.setIdProveedor(proveedor.getIdProveedor());
+        dto.setIdAdm(proveedor.getIdAdm());
         dto.setNombre(proveedor.getNombre());
+        dto.setTelefono(proveedor.getTelefono());
         dto.setDescripcion(proveedor.getDescripcion());
         dto.setCuit(proveedor.getCuit());
+        dto.setDescripcion(proveedor.getDescripcion());
+        dto.setCbu(proveedor.getCbu());
 
         return dto;
     }
@@ -118,6 +123,7 @@ public class ProveedorService {
     private Proveedor mapToProveedorEntity(ProveedorCreateDTO dto) {
         Proveedor proveedor = new Proveedor();
 
+        proveedor.setIdAdm(dto.getIdAdm());
         proveedor.setNombre(dto.getNombre());
         proveedor.setTelefono(dto.getTelefono());
         proveedor.setDescripcion(dto.getDescripcion());
@@ -127,6 +133,7 @@ public class ProveedorService {
         return proveedor;
     }
     private Proveedor mapToProveedorEntityUpdate(ProveedorUpdateDTO dto) {
+        System.out.println("DTO"+dto);
         Proveedor proveedor = new Proveedor();
 
         proveedor.setIdProveedor(dto.getIdProveedor());
@@ -135,6 +142,7 @@ public class ProveedorService {
         proveedor.setCbu(dto.getCbu());
         proveedor.setCuit(dto.getCuit());
         proveedor.setTelefono(dto.getTelefono());
+        System.out.println("Entidad mapeada"+proveedor);
 
         return proveedor;
     }

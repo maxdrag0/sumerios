@@ -4,13 +4,13 @@ import lombok.Data;
 
 @Data
 public class ConsorcioUpdateDTO {
-
+    private Long idAdm;
     private long idConsorcio;
 
     private String nombre;
     private String direccion;
     private String ciudad;
-    private Long idAdm;
+
     private String cuit;
     private String titulo;
     private String cbu;

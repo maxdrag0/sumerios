@@ -32,6 +32,15 @@ public class AppUserAdminService {
         appUserAdminRepository.save(admin);
     }
 
+    // GET BY USERNAME
+    public AppUserAdminResponseDTO getAppUserByUsername(String username) throws Exception {
+        AppUserAdmin user = appUserAdminRepository.findByUsername(username)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con el usuario "+ username));
+
+        return mapToDTO(user);
+    }
+
+
     public void deleteAdministracion (Long id) throws Exception{
         Optional<AppUserAdmin> existingAdmin = appUserAdminRepository.findById(id);
         if(existingAdmin.isPresent()){
@@ -125,7 +134,7 @@ public class AppUserAdminService {
         dto.setRol(admin.getRol());
         dto.setMatriculaAdministrador(admin.getMatriculaAdministrador());
         if(admin.getAdministracion() != null){
-            dto.setAdministracionId(admin.getAdministracion().getIdAdm());
+            dto.setIdAdm(admin.getAdministracion().getIdAdm());
         }
 
 

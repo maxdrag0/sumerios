@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.YearMonth;
+import java.util.List;
 
 @Repository
 public interface IExpensaRepository extends JpaRepository<Expensa, Long> {
     Expensa findByConsorcio_idConsorcioAndPeriodo(Long idConsorcio, YearMonth periodo);
+    List<Expensa> findByConsorcio_idConsorcio(Long idConsorcio);
 }

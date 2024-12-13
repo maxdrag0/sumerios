@@ -1,14 +1,14 @@
-package com.mad.sumerios.estadocuentauf.dto;
+package com.mad.sumerios.estadocuentaufcopia.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.YearMonth;
 
 @Data
-public class EstadoCuentaUfDTO {
-    private Long idEstadoCuentaUf;
-    private Long idUf;
+public class CopiaEstadoCuentaUfDTO {
+    private long idCopiaEstadoCuentaUf;
+    private long idEstadoCuentaUf;
+    private long idUf;
     private YearMonth periodo;
     private Double deuda;
     private Double intereses;
@@ -19,6 +19,4 @@ public class EstadoCuentaUfDTO {
     private Double totalE;
     private Double gastoParticular;
     private Double totalFinal;
-    private Double saldoExpensa;
-    private Double saldoIntereses;
 }

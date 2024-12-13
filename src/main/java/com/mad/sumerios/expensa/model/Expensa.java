@@ -32,9 +32,13 @@ public class Expensa {
     @JsonBackReference
     private Consorcio consorcio;
 
+    @NotNull
     private YearMonth periodo;
 
+    @NotNull
     private Double porcentajeIntereses;
+
+    private Double porcentajeSegundoVencimiento;
 
 //  MOVIMIENTOS
 //    @OneToMany(mappedBy = "expensa",
@@ -42,19 +46,19 @@ public class Expensa {
 //               fetch = FetchType.LAZY)
 //    @JsonManagedReference
 //    private List<Egreso> egresos;
-
+//
 //    @OneToMany(mappedBy = "expensa",
 //               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
 //               fetch = FetchType.LAZY)
 //    @JsonManagedReference
 //    private List<PagoUF> pagoUFS;
-
+//
 //    @OneToMany(mappedBy = "expensa",
 //               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
 //               fetch = FetchType.LAZY)
 //    @JsonManagedReference
 //    private List<Ingreso> ingresos;
-
+//
 //    @OneToMany(mappedBy = "expensa",
 //               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
 //               fetch = FetchType.LAZY)

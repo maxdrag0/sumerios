@@ -4,6 +4,9 @@ import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
+import com.mad.sumerios.estadocuentaufcopia.model.CopiaEstadoCuentaUf;
+import com.mad.sumerios.estadocuentaufcopia.repository.IEstadoCuentaUfCopiaRepository;
+import com.mad.sumerios.estadocuentaufcopia.service.CopiaEstadoCuentaUfService;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
@@ -17,12 +20,15 @@ public class EstadoCuentaUfService {
 
     private final IEstadoCuentaUfRepository estadoCuentaUfRepository;
     private final IUnidadFuncionalRepository unidadFuncionalRepository;
+    private final CopiaEstadoCuentaUfService copiaEstadoCuentaUfService;
 
     @Autowired
     public EstadoCuentaUfService (IEstadoCuentaUfRepository estadoCuentaUfRepository,
-                                  IUnidadFuncionalRepository unidadFuncionalRepository){
+                                  IUnidadFuncionalRepository unidadFuncionalRepository,
+                                  CopiaEstadoCuentaUfService copiaEstadoCuentaUfService){
         this.estadoCuentaUfRepository = estadoCuentaUfRepository;
         this.unidadFuncionalRepository = unidadFuncionalRepository;
+        this.copiaEstadoCuentaUfService = copiaEstadoCuentaUfService;
     }
 
     //  CREATE ESTADO CUENTA
@@ -93,6 +99,7 @@ public class EstadoCuentaUfService {
 
         EstadoCuentaUf ec = new EstadoCuentaUf();
 
+        ec.setPeriodo(dto.getPeriodo());
         ec.setUnidadFuncional(uf);
         ec.setDeuda(0.0);
         ec.setIntereses(0.0);
@@ -128,6 +135,7 @@ public class EstadoCuentaUfService {
 
         EstadoCuentaUf ec = new EstadoCuentaUf();
 
+        ec.setPeriodo(dto.getPeriodo());
         ec.setDeuda(dto.getDeuda());
         ec.setIntereses(dto.getIntereses());
         ec.setTotalA(dto.getTotalA());
@@ -148,6 +156,7 @@ public class EstadoCuentaUfService {
 
         dto.setIdEstadoCuentaUf(ea.getIdEstadoCuentaUf());
         dto.setIdUf(ea.getUnidadFuncional().getIdUf());
+        dto.setPeriodo(ea.getPeriodo());
         dto.setDeuda(ea.getDeuda());
         dto.setTotalA(ea.getTotalA());
         dto.setTotalB(ea.getTotalB());
@@ -163,7 +172,10 @@ public class EstadoCuentaUfService {
 
         return dto;
     }
-
+    // CREAR COPIA DE ESTADO DE CUENTA
+    public void createCopiaEstadoCuentaUf(EstadoCuentaUf estadoCuentaUf) throws Exception {
+        copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
+    }
 
     // CHEQUEO INTERESES
     private double verificarIntereses(EstadoCuentaUf estadoCuentaUf, PagoUF pago) {

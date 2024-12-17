@@ -18,8 +18,8 @@ public class EgresoCreateDTO {
     private Long idConsorcio;
     @NotNull
     private Long idProveedor;
-//    @NotNull
-//    private Long idExpensa;
+    @NotNull
+    private Long idExpensa;
     @NotNull
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;

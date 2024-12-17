@@ -116,7 +116,19 @@ public class EgresoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         }
     }
-
+    //  por expensa
+    @GetMapping("/expensas/{idExpensa}")
+    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByExpensa (@PathVariable Long idExpensa){
+        try{
+            List<EgresoResponseDTO> egresos = egresoService.getEgresosByExpensa(idExpensa);
+            if(egresos.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(egresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
     //  ACTUALIZAR EGRESO
     @PutMapping ("/{idIngreso}")

@@ -1,5 +1,6 @@
 package com.mad.sumerios.movimientos.egreso.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.enums.FormaPago;
@@ -30,11 +31,11 @@ public class Egreso {
     @Column(name = "id_proveedor")
     private Long idProveedor;
 
-//    @NotNull
-//    @ManyToOne (fetch = FetchType.LAZY)
-//    @JoinColumn(name = "id_exp")
-//    @JsonBackReference
-//    private Expensa expensa;
+    @NotNull
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_exp")
+    @JsonBackReference
+    private Expensa expensa;
 
     //  DATOS DEL GASTO
     @NotNull

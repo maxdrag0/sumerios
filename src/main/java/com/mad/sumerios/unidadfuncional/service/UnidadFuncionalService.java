@@ -14,6 +14,7 @@ import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,7 @@ public class UnidadFuncionalService {
     }
 
     //  CREAR UNIDAD FUNCIONAL
+    @Transactional
     public void createUnidadFuncional(UnidadFuncionalCreateDTO dto) throws Exception {
         UnidadFuncional uf = mapToUnidadFuncionalEntity(dto);
         unidadFuncionalRepository.save(uf);
@@ -217,6 +219,7 @@ public class UnidadFuncionalService {
 
         ecDto.setIdEstadoCuentaUf(ec.getIdEstadoCuentaUf());
         ecDto.setIdUf(uf.getIdUf());
+        ecDto.setPeriodo(ec.getPeriodo());
         ecDto.setDeuda(ec.getDeuda());
         ecDto.setIntereses(ec.getIntereses());
         ecDto.setTotalA(ec.getTotalA());

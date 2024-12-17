@@ -1,4 +1,4 @@
-package com.mad.sumerios.estadocuentaufcopia.dto;
+package com.mad.sumerios.copiaestadocuentauf.dto;
 
 import lombok.Data;
 

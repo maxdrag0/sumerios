@@ -7,6 +7,7 @@ import com.mad.sumerios.proveedor.model.Proveedor;
 import com.mad.sumerios.proveedor.repository.IProveedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ public class ProveedorService {
     }
 
     // create proveedor
+    @Transactional
     public ProveedorResponseDTO createProveedor (ProveedorCreateDTO dto) throws Exception {
         validateTelefono(dto.getTelefono());
         validateCuit(dto.getCuit());

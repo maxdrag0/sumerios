@@ -17,6 +17,6 @@ public interface IGastoParticularRepository extends JpaRepository<GastoParticula
     List<GastoParticular> findByIdConsorcio(Long idConsorcio);
     List<GastoParticular> findByIdConsorcioAndFechaBetween(Long idConsorcio, LocalDate startDate, LocalDate endDate);
     List<GastoParticular> findByTotalFinal(Double totalFinal);
-//    List<GastoParticular> findByExpensa_IdExpensa(Long idExpensa);
+    List<GastoParticular> findByExpensa_IdExpensa(Long idExpensa);
     GastoParticular findByComprobante(String comprobante);
 }

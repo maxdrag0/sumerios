@@ -7,13 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Data
 public class EgresoUpdateDTO {
     private Long idEgreso;
     private Long idConsorcio;
     private Long idProveedor;
+    private Long idExpensa;
     private LocalDate fecha;
     private TipoEgreso tipoEgreso;
     private String titulo;

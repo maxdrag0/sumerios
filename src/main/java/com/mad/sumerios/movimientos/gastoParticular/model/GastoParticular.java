@@ -33,11 +33,11 @@ public class  GastoParticular {
     @NotNull
     private Long idUf;
 
-//    @NotNull
-//    @ManyToOne (fetch = FetchType.LAZY)
-//    @JoinColumn(name = "id_exp")
-//    @JsonBackReference
-//    private Expensa expensa;
+    @NotNull
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_exp")
+    @JsonBackReference
+    private Expensa expensa;
 
     //  DATOS DE PAGO
     @NotNull

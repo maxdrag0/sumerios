@@ -10,8 +10,9 @@ public class EstadoCuentaUfCreateDTO {
 
     @NotNull
     private Long idUf;
-    @NotNull
-    private YearMonth periodo;
+
+    private YearMonth periodo = YearMonth.now();
+
 
     public EstadoCuentaUfCreateDTO (Long idUf){
         this.idUf = idUf;

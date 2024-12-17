@@ -1,6 +1,5 @@
 package com.mad.sumerios.estadocuentauf.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.YearMonth;

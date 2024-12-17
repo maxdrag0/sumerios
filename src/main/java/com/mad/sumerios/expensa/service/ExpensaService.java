@@ -7,15 +7,25 @@ import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
 import com.mad.sumerios.expensa.dto.ExpensaCreateDTO;
+import com.mad.sumerios.expensa.dto.ExpensaResponseDto;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
+import com.mad.sumerios.intermedioExpensaConsorcio.dto.IntermediaExpensaConsorcioCreateDto;
+import com.mad.sumerios.intermedioExpensaConsorcio.dto.IntermediaExpensaConsorcioDto;
+import com.mad.sumerios.intermedioExpensaConsorcio.model.IntermediaExpensaConsorcio;
+import com.mad.sumerios.intermedioExpensaConsorcio.repository.IIntermediaExpensaConsorcioRepository;
+import com.mad.sumerios.intermedioExpensaConsorcio.service.IntermediaExpensaConsorcioService;
 import com.mad.sumerios.movimientos.egreso.model.Egreso;
+import com.mad.sumerios.movimientos.gastoParticular.model.GastoParticular;
+import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpensaService {
@@ -25,53 +35,90 @@ public class ExpensaService {
     private final IUnidadFuncionalRepository unidadFuncionalRepository;
     private final IEstadoCuentaUfRepository estadoCuentaUfRepository;
     private final EstadoCuentaUfService estadoCuentaUfService;
-
+    private final IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository;
+    private final IntermediaExpensaConsorcioService intermediaExpensaConsorcioService;
 
     @Autowired
     public ExpensaService (IExpensaRepository expensaRepository,
                            IConsorcioRepository consorcioRepository,
                            IUnidadFuncionalRepository unidadFuncionalRepository,
                            EstadoCuentaUfService estadoCuentaUfService,
-                           IEstadoCuentaUfRepository estadoCuentaUfRepository){
+                           IEstadoCuentaUfRepository estadoCuentaUfRepository,
+                           IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository,
+                           IntermediaExpensaConsorcioService intermediaExpensaConsorcioService){
         this.expensaRepository = expensaRepository;
         this.consorcioRepository = consorcioRepository;
         this.unidadFuncionalRepository = unidadFuncionalRepository;
         this.estadoCuentaUfService = estadoCuentaUfService;
         this.estadoCuentaUfRepository = estadoCuentaUfRepository;
+        this.intermediaExpensaConsorcioRepository = intermediaExpensaConsorcioRepository;
+        this.intermediaExpensaConsorcioService = intermediaExpensaConsorcioService;
     }
 
-//    @Transactional
-//    public void liquidarExpensa(Long idExpensa,ExpensaCreateDTO dto) throws Exception{
-//        Expensa expensa = expensaRepository.findById(idExpensa)
-//                .orElseThrow(()-> new Exception("Expensa no encontrado"));
-//        List<UnidadFuncional> ufs = unidadFuncionalRepository.findByConsorcio_IdConsorcio(expensa.getConsorcio().getIdConsorcio());
-//        List<EstadoCuentaUf> estadosDeCuentaUf = estadoCuentaUfRepository.findByUnidadFuncionalIn(ufs);
+    @Transactional
+    public void liquidarExpensaMesVencido(Long idExpensa, Long idConsorcio, ExpensaCreateDTO dto) throws Exception{
+        Expensa expensa = expensaRepository.findById(idExpensa)
+                .orElseThrow(()-> new Exception("Expensa no encontrado"));
+        Consorcio consorcio = consorcioRepository.findById(idConsorcio)
+                .orElseThrow(()-> new Exception("Expensa no encontrado"));
+
+        List<UnidadFuncional> ufs = consorcio.getUnidadesFuncionales();
+        List<EstadoCuentaUf> estadosDeCuentaUf = estadoCuentaUfRepository.findByUnidadFuncionalIn(ufs);
 
     // CREA COPIA DE ECUF ACTUAL
-//        createCopiasEstadoDeCuentaUf(estadosDeCuentaUf);
+        createCopiasEstadoDeCuentaUf(estadosDeCuentaUf);
     // SUMA GASTOS A, B, C, D Y E
-//        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.A);
-//        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.B);
-//        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.C);
-//        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.D);
-//        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.E);
+        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.A);
+        double totalB = totalGastos(expensa.getEgresos(),CategoriaEgreso.B);
+        double totalC = totalGastos(expensa.getEgresos(),CategoriaEgreso.C);
+        double totalD = totalGastos(expensa.getEgresos(),CategoriaEgreso.D);
+        double totalE = totalGastos(expensa.getEgresos(),CategoriaEgreso.E);
     // ECUF -> APLICA A ESTADO DE CUENTA UF POR PORCENTAJE SUMATORIA DE CADA GASTO
+        aplicarTotal(estadosDeCuentaUf, totalA, CategoriaEgreso.A);
+        aplicarTotal(estadosDeCuentaUf, totalB, CategoriaEgreso.B);
+        aplicarTotal(estadosDeCuentaUf, totalC, CategoriaEgreso.C);
+        aplicarTotal(estadosDeCuentaUf, totalD, CategoriaEgreso.D);
+        aplicarTotal(estadosDeCuentaUf, totalE, CategoriaEgreso.E);
     // ECUF -> APLICA VALOR POR GASTOS PARTICULARES O APLICA 0
-    // ECUF -> TOMA EL SALDO INTERESES Y LO TRANSFORMA EN DEUDA Y CALCULA EL INTERES
-    // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL
-    // ECUF -> APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES Y SALDO ITNERESES CON LOS INTERESES
-    // ELIMINA ENTIDAD INTERMEDIA PARA SABER LA ÚLTIMA EXPENSA CREADA EN EL CONSORCIO
-    // CREA NUEVA EXPENSA  VACIA
-//        createExpensa(dto);
-    // CREA ENTIDAD INTERMEDIA PARA SABER LA ULTIMA EXPENSA LIQUIDADA DEL CONSORCIO
-//    }
+        aplicarGastosParticulares(expensa.getGastosParticulares());
+    // ECUF -> TOMA EL SALDO EXPENSAS Y LO TRANSFORMA EN DEUDA Y CALCULA EL INTERES
+        aplicarDeudaEIntereses(estadosDeCuentaUf, expensa.getPorcentajeIntereses());
+    // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL, APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES
+        aplicarValorTotal(estadosDeCuentaUf);
+    // CREA NUEVA EXPENSA  VACIA E INTNERMEDIA
+        createExpensa(dto);
+    }
 
-
-
+    @Transactional
     public void createExpensa(ExpensaCreateDTO dto) throws Exception {
         Expensa exp = mapToExpensaEntity(dto);
+        // CREA ENTIDAD INTERMEDIA PARA SABER LA ULTIMA EXPENSA LIQUIDADA DEL CONSORCIO
+        IntermediaExpensaConsorcio intermedia = intermediaExpensaConsorcioRepository.findByIdConsorcio(dto.getIdConsorcio());
+
+        if(intermedia == null){
+            System.out.println("ENTRE AL IF");
+
+            IntermediaExpensaConsorcioCreateDto dtoIntermedia = new IntermediaExpensaConsorcioCreateDto();
+            dtoIntermedia.setIdConsorcio(dto.getIdConsorcio());
+            dtoIntermedia.setIdExpensa(exp.getIdExpensa());
+            intermediaExpensaConsorcioService.createIntermediaExpensaConsorcio(dtoIntermedia);
+        } else {
+            IntermediaExpensaConsorcioDto dtoIntermediaUpdate = new IntermediaExpensaConsorcioDto();
+            dtoIntermediaUpdate.setIdIntermedia(intermedia.getIdIntermedia());
+            dtoIntermediaUpdate.setIdExpensa(intermedia.getIdExpensa());
+            dtoIntermediaUpdate.setIdConsorcio(intermedia.getIdConsorcio());
+            intermediaExpensaConsorcioService.updateIntermediaExpensaConsorcio(dtoIntermediaUpdate);
+        }
+
         expensaRepository.save(exp);
     }
+
+    public List<ExpensaResponseDto> getExpensas(){
+        List<Expensa> expensas = expensaRepository.findAll();
+        return expensas.stream().map(this::mapToExpensaResponse).collect(Collectors.toList());
+    }
+
+
 
     // Validates y metodos complementarios
     private Consorcio validateConsorcio(Long idConsorcio) throws Exception{
@@ -104,6 +151,41 @@ public class ExpensaService {
                 .mapToDouble(Egreso::getTotalFinal)
                 .sum();
     }
+    private void aplicarTotal(List<EstadoCuentaUf> estadoCuentaUfs,
+                              double total,
+                              CategoriaEgreso categoria) throws Exception {
+        for (EstadoCuentaUf estadoActual : estadoCuentaUfs) {
+            estadoCuentaUfService.aplicarValorCategoria(estadoActual.getIdEstadoCuentaUf(),
+                                               estadoActual.getUnidadFuncional().getPorcentajeUnidad(),
+                                               total,
+                                               categoria);
+        }
+    }
+    private void aplicarGastosParticulares(List<GastoParticular> gastosParticulares) throws Exception {
+        for(GastoParticular gp : gastosParticulares){
+            double valor = gp.getTotalFinal();
+            UnidadFuncional uf = unidadFuncionalRepository.findById(gp.getIdUf())
+                    .orElseThrow(()->new Exception("Unidad funcional no encontrada."));
+            estadoCuentaUfService.aplicarValorGastoParticular(uf.getEstadoCuentaUf().getIdEstadoCuentaUf(), valor);
+        }
+    }
+    private void aplicarDeudaEIntereses(List<EstadoCuentaUf> estadosDeCuentaUf, double porcentajeIntereses) throws Exception {
+        for (EstadoCuentaUf estadoActual : estadosDeCuentaUf) {
+            if(estadoActual.getTotalFinal() > 0){
+                estadoCuentaUfService.aplicarDeudaEIntereses(estadoActual.getIdEstadoCuentaUf(), porcentajeIntereses);
+            } else {
+                estadoActual.setDeuda(estadoActual.getSaldoExpensa());
+                estadoActual.setIntereses(0.0);
+                estadoActual.setSaldoExpensa(0.0);
+                estadoActual.setSaldoIntereses(0.0);
+            }
+        }
+    }
+    private void aplicarValorTotal(List<EstadoCuentaUf> estadosDeCuentaUf) throws Exception {
+        for (EstadoCuentaUf estadoActual : estadosDeCuentaUf) {
+            estadoCuentaUfService.aplicarTotalFinal(estadoActual.getIdEstadoCuentaUf());
+        }
+    }
     // Mapeo a entidad
     private Expensa mapToExpensaEntity(ExpensaCreateDTO dto) throws Exception {
         Consorcio consorcio = validateConsorcio(dto.getIdConsorcio());
@@ -112,11 +194,26 @@ public class ExpensaService {
         Expensa expensa = new Expensa();
 
         expensa.setConsorcio(consorcio);
-        expensa.setPeriodo(dto.getPeriodo());
+        if(expensaRepository.findByConsorcio_idConsorcio(dto.getIdConsorcio()).isEmpty()){
+            expensa.setPeriodo(dto.getPeriodo());
+        } else {
+            expensa.setPeriodo(dto.getPeriodo().plusMonths(1));
+        }
+
         expensa.setPorcentajeIntereses(dto.getPorcentajeIntereses());
         expensa.setPorcentajeSegundoVencimiento(dto.getPorcentajeSegundoVencimiento());
         return expensa;
     }
 
+    private ExpensaResponseDto mapToExpensaResponse (Expensa expensa) {
+        ExpensaResponseDto dto = new ExpensaResponseDto();
 
+        dto.setIdExpensa(expensa.getIdExpensa());
+        dto.setIdConsorcio(expensa.getConsorcio().getIdConsorcio());
+        dto.setPeriodo(expensa.getPeriodo());
+        dto.setPorcentajeIntereses(expensa.getPorcentajeIntereses());
+        dto.setPorcentajeSegundoVencimiento(expensa.getPorcentajeSegundoVencimiento());
+
+        return dto;
+    }
 }

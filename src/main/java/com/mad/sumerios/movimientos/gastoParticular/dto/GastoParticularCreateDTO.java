@@ -19,8 +19,8 @@ public class GastoParticularCreateDTO {
     private Long idProveedor;
     @NotNull
     private Long idUf;
-//    @NotNull
-//    private Long idExpensa;
+    @NotNull
+    private Long idExpensa;
     @NotNull
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;

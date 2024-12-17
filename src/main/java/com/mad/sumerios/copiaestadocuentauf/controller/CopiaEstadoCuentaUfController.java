@@ -1,9 +1,8 @@
-package com.mad.sumerios.estadocuentaufcopia.controller;
+package com.mad.sumerios.copiaestadocuentauf.controller;
 
-import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
-import com.mad.sumerios.estadocuentaufcopia.dto.CopiaEstadoCuentaUfDTO;
-import com.mad.sumerios.estadocuentaufcopia.service.CopiaEstadoCuentaUfService;
+import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
+import com.mad.sumerios.copiaestadocuentauf.service.CopiaEstadoCuentaUfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

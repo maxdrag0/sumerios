@@ -137,11 +137,10 @@ public class GastoParticularService {
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
     // buscar por expensa
-//    public List<GastoParticularResponseDTO> getGastoParticularByExpensa(Long idConsorcio, YearMonth periodo) {
-//        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
-//        List<GastoParticular> gastos= gastoParticularRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
-//        return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
-//    }
+    public List<GastoParticularResponseDTO> getGastoParticularByExpensa(Long idExpensa) {
+        List<GastoParticular> gastos= gastoParticularRepository.findByExpensa_IdExpensa(idExpensa);
+        return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
+    }
     // buscar por comprobante
     public GastoParticularResponseDTO getGastoParticularByComprobante(String comprobante) {
         return mapToGastoParticularResponse(gastoParticularRepository.findByComprobante(comprobante));
@@ -184,14 +183,14 @@ public class GastoParticularService {
         }
     }
     //  expensa
-//    private Expensa validateExpensa(Long idExpensa) throws Exception {
-//        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
-//        if(exp.isEmpty()){
-//            throw new Exception("Expensa no encontrado");
-//        }
-//
-//        return exp.get();
-//    }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
 
     // MAP
     //  map DTO a Entity
@@ -199,12 +198,12 @@ public class GastoParticularService {
         validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
         validateComprobante(dto.getComprobante());
-//        Expensa exp = validateExpensa(dto.getIdExpensa());
+        Expensa exp = validateExpensa(dto.getIdExpensa());
         validateTotalFinal(dto.getTotalFinal());
 
         GastoParticular gastoParticular = new GastoParticular();
 
-//        gastoParticular.setExpensa(exp);
+        gastoParticular.setExpensa(exp);
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
         gastoParticular.setIdProveedor(dto.getIdProveedor());
         gastoParticular.setIdUf(dto.getIdUf());
@@ -223,10 +222,12 @@ public class GastoParticularService {
         validateProveedor(dto.getIdProveedor());
         validateComprobanteUpdate(dto.getIdGastoParticular(), dto.getComprobante());
         validateTotalFinal(dto.getTotalFinal());
+        Expensa exp = validateExpensa(dto.getIdExpensa());
 
         GastoParticular gastoParticular = new GastoParticular();
 
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
+        gastoParticular.setExpensa(exp);
         gastoParticular.setIdProveedor(dto.getIdProveedor());
         gastoParticular.setIdUf(dto.getIdUf());
         gastoParticular.setFecha(dto.getFecha());
@@ -247,6 +248,7 @@ public class GastoParticularService {
         dto.setIdProveedor(gp.getIdProveedor());
         dto.setIdUf(gp.getIdUf());
         dto.setIdConsorcio(gp.getIdConsorcio());
+        dto.setIdExpensa(gp.getExpensa().getIdExpensa());
         dto.setFecha(gp.getFecha());
         dto.setTitulo(gp.getTitulo());
         dto.setFormaPago(gp.getFormaPago());

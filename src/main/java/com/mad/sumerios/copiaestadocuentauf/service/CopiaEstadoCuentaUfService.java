@@ -1,9 +1,9 @@
-package com.mad.sumerios.estadocuentaufcopia.service;
+package com.mad.sumerios.copiaestadocuentauf.service;
 
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
-import com.mad.sumerios.estadocuentaufcopia.dto.CopiaEstadoCuentaUfDTO;
-import com.mad.sumerios.estadocuentaufcopia.model.CopiaEstadoCuentaUf;
-import com.mad.sumerios.estadocuentaufcopia.repository.IEstadoCuentaUfCopiaRepository;
+import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
+import com.mad.sumerios.copiaestadocuentauf.model.CopiaEstadoCuentaUf;
+import com.mad.sumerios.copiaestadocuentauf.repository.IEstadoCuentaUfCopiaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

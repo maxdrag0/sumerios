@@ -1,5 +1,6 @@
 package com.mad.sumerios.consorcio.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -10,7 +11,6 @@ public class ConsorcioUpdateDTO {
     private String nombre;
     private String direccion;
     private String ciudad;
-
     private String cuit;
     private String titulo;
     private String cbu;

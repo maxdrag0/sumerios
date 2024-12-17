@@ -1,8 +1,6 @@
-package com.mad.sumerios.estadocuentaufcopia.repository;
+package com.mad.sumerios.copiaestadocuentauf.repository;
 
-import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
-import com.mad.sumerios.estadocuentaufcopia.model.CopiaEstadoCuentaUf;
-import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
+import com.mad.sumerios.copiaestadocuentauf.model.CopiaEstadoCuentaUf;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

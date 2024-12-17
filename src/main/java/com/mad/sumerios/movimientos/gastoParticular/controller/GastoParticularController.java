@@ -157,16 +157,15 @@ public class GastoParticularController {
         }
     }
     //  por periodo
-//    @GetMapping("/consorcios/{idConsorcio}/expensa/{periodo}")
-//    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByExpensa(@PathVariable Long idConsorcio,
-//                                                                                        @PathVariable YearMonth periodo){
-//        try{
-//            List<GastoParticularResponseDTO> gastos = gastoParticularService.getGastoParticularByExpensa(idConsorcio, periodo);
-//            return ResponseEntity.ok(gastos);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
+    @GetMapping("/expensas/{idExpensa}")
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByExpensa(@PathVariable Long idExpensa){
+        try{
+            List<GastoParticularResponseDTO> gastos = gastoParticularService.getGastoParticularByExpensa(idExpensa);
+            return ResponseEntity.ok(gastos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
 
 

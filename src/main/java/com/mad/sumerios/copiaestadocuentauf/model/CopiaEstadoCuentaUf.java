@@ -1,4 +1,4 @@
-package com.mad.sumerios.estadocuentaufcopia.model;
+package com.mad.sumerios.copiaestadocuentauf.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

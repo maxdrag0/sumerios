@@ -1,12 +1,11 @@
 package com.mad.sumerios.estadocuentauf.service;
 
+import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
-import com.mad.sumerios.estadocuentaufcopia.model.CopiaEstadoCuentaUf;
-import com.mad.sumerios.estadocuentaufcopia.repository.IEstadoCuentaUfCopiaRepository;
-import com.mad.sumerios.estadocuentaufcopia.service.CopiaEstadoCuentaUfService;
+import com.mad.sumerios.copiaestadocuentauf.service.CopiaEstadoCuentaUfService;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
@@ -41,7 +40,7 @@ public class EstadoCuentaUfService {
                 .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuentaUf));
 
         EstadoCuentaUf ecUpdated = mapToEstadoCuentaUfEntityUpdate(dto);
-
+        System.out.println();
         ec.setDeuda(ecUpdated.getDeuda());
         ec.setIntereses(ecUpdated.getIntereses());
         ec.setTotalA(ecUpdated.getTotalA());
@@ -87,8 +86,59 @@ public class EstadoCuentaUfService {
 
         return uf.get();
     }
+    public void aplicarValorCategoria(long idEstadoCuentaUf,
+                             double porcentajeUf,
+                             double total,
+                             CategoriaEgreso categoria) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
 
+        double totalAAplicar = (total*porcentajeUf)/100;
 
+        categoria.aplicar(estadoCuentaUf, totalAAplicar);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+    public void aplicarValorGastoParticular(long idEstadoCuentaUf, double valor) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+
+        double nuevoValor = estadoCuentaUf.getGastoParticular() + valor;
+        estadoCuentaUf.setGastoParticular(nuevoValor);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+    public void aplicarDeudaEIntereses(long idEstadoCuentaUf, double porcentajeIntereses) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+        double deuda = estadoCuentaUf.getSaldoExpensa();
+        double intereses = (deuda*porcentajeIntereses)/100;
+        estadoCuentaUf.setDeuda(deuda);
+        estadoCuentaUf.setIntereses(intereses);
+        // Modifico saldo expensa e saldo intereses
+        estadoCuentaUf.setTotalFinal(0.0);
+        estadoCuentaUf.setSaldoExpensa(0.0);
+        estadoCuentaUf.setSaldoIntereses(intereses);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+    public void aplicarTotalFinal(long idEstadoCuentaUf) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+
+        double valorDeExpensa = estadoCuentaUf.getTotalA() +
+                                estadoCuentaUf.getTotalB() +
+                                estadoCuentaUf.getTotalC() +
+                                estadoCuentaUf.getTotalD() +
+                                estadoCuentaUf.getTotalE() +
+                                estadoCuentaUf.getGastoParticular();
+        double valorDeudaEIntereses = estadoCuentaUf.getDeuda() + estadoCuentaUf.getIntereses();
+
+        estadoCuentaUf.setSaldoExpensa(valorDeExpensa);
+        estadoCuentaUf.setTotalFinal(valorDeExpensa+valorDeudaEIntereses);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
     // MAP DTO TO ENTITY
     private EstadoCuentaUf mapToEstadoCuentaUfEntity(EstadoCuentaUfCreateDTO dto) throws Exception {
         UnidadFuncional uf = validateUf(dto.getIdUf());
@@ -99,7 +149,6 @@ public class EstadoCuentaUfService {
 
         EstadoCuentaUf ec = new EstadoCuentaUf();
 
-        ec.setPeriodo(dto.getPeriodo());
         ec.setUnidadFuncional(uf);
         ec.setDeuda(0.0);
         ec.setIntereses(0.0);
@@ -134,6 +183,7 @@ public class EstadoCuentaUfService {
         }
 
         EstadoCuentaUf ec = new EstadoCuentaUf();
+
 
         ec.setPeriodo(dto.getPeriodo());
         ec.setDeuda(dto.getDeuda());
@@ -175,6 +225,19 @@ public class EstadoCuentaUfService {
     // CREAR COPIA DE ESTADO DE CUENTA
     public void createCopiaEstadoCuentaUf(EstadoCuentaUf estadoCuentaUf) throws Exception {
         copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
+        System.out.println("Estado cuenta copiado antes de limpiar "+estadoCuentaUf);
+        // LIMPIA VALORES
+        estadoCuentaUf.setTotalA(0.0);
+        estadoCuentaUf.setTotalB(0.0);
+        estadoCuentaUf.setTotalC(0.0);
+        estadoCuentaUf.setTotalD(0.0);
+        estadoCuentaUf.setTotalE(0.0);
+        estadoCuentaUf.setGastoParticular(0.0);
+        System.out.println("Estado cuenta copiado limpio "+estadoCuentaUf);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+        System.out.println("Estado cuenta guardado "+estadoCuentaUf);
+
     }
 
     // CHEQUEO INTERESES
@@ -246,5 +309,6 @@ public class EstadoCuentaUfService {
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
+
 
 }

@@ -90,6 +90,11 @@ public class PagoUFService {
         List<PagoUF> pagos = pagoUFRepository.findByIdConsorcio(idConsorcio);
         return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
     }
+    //  por consorcio y periodo
+    public List<PagoUFDTO> getPagoUFByPeriodoAndConsorcio(YearMonth periodo, Long idConsorcio){
+        List<PagoUF> pagos = pagoUFRepository.findByPeriodoAndIdConsorcio(periodo, idConsorcio);
+        return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
+    }
     //  por consorcio y fechas
     public List<PagoUFDTO> getPagoUFByConsorcioAndFecha(Long idConsorcio, LocalDate startDate, LocalDate endDate){
         List<PagoUF> pagos = pagoUFRepository.findByIdConsorcioAndFechaBetween(idConsorcio, startDate, endDate);
@@ -106,11 +111,11 @@ public class PagoUFService {
         return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
     }
     // buscar por expensa
-//    public List<PagoUFDTO> getPagoUFByExpensa(Long idConsorcio, YearMonth periodo) {
-//        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
-//        List<PagoUF> pagos= pagoUFRepository.findByExpensa_idExpensa(exp.getIdExpensa());
-//        return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
-//    }
+    public List<PagoUFDTO> getPagoUFByExpensa(Long idConsorcio, YearMonth periodo) {
+        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        List<PagoUF> pagos= pagoUFRepository.findByExpensa_idExpensa(exp.getIdExpensa());
+        return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
+    }
 
     //  ACTUALIZAR INGRESO
 //    public void updatePagoUF(Long idPagoUf, PagoUFUpdateDTO dto) throws Exception{
@@ -164,14 +169,14 @@ public class PagoUFService {
             throw new Exception("El pago debe ser mayor a $0");
         }
     }
-//    private Expensa validateExpensa(Long idExpensa) throws Exception {
-//        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
-//        if(exp.isEmpty()){
-//            throw new Exception("Expensa no encontrado");
-//        }
-//
-//        return exp.get();
-//    }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
     private EstadoCuentaConsorcio obtenerEstadoCuentaConsorcio(Long idConsorcio) throws Exception {
         Consorcio consorcio = consorcioRepository.findById(idConsorcio)
                 .orElseThrow(() -> new Exception("Consorcio no encontrado."));
@@ -192,7 +197,7 @@ public class PagoUFService {
         validateNull(dto);
         UnidadFuncional uf = validateUf(dto.getIdUf());
         validateConsorcio(dto.getIdConsorcio());
-//        Expensa exp = validateExpensa(dto.getIdExpensa());
+        Expensa exp = validateExpensa(dto.getIdExpensa());
         PagoUF pagoUF = new PagoUF();
 
         pagoUF.setUnidadFuncional(uf);
@@ -201,26 +206,27 @@ public class PagoUFService {
         pagoUF.setValor(dto.getValor());
         pagoUF.setFormaPago(dto.getFormaPago());
         pagoUF.setDescripcion(dto.getDescripcion());
-//        pagoUF.setExpensa(exp);
+        pagoUF.setExpensa(exp);
+        pagoUF.setPeriodo(dto.getPeriodo());
 
         return pagoUF;
     }
-    private PagoUF mapToPagoUFEntityUpdate(PagoUFUpdateDTO dto) throws Exception {
-        validateNull(dto);
-        validateValor(dto.getValor());
-
-        PagoUF pagoUF = new PagoUF();
-
-        pagoUF.setFecha(dto.getFecha());
-        pagoUF.setValor(dto.getValor());
-        pagoUF.setFormaPago(dto.getFormaPago());
-        pagoUF.setDescripcion(dto.getDescripcion());
-
-        return pagoUF;
-    }
+//    private PagoUF mapToPagoUFEntityUpdate(PagoUFUpdateDTO dto) throws Exception {
+//        validateNull(dto);
+//        validateValor(dto.getValor());
+//
+//        PagoUF pagoUF = new PagoUF();
+//
+//        pagoUF.setFecha(dto.getFecha());
+//        pagoUF.setValor(dto.getValor());
+//        pagoUF.setFormaPago(dto.getFormaPago());
+//        pagoUF.setDescripcion(dto.getDescripcion());
+//
+//        return pagoUF;
+//    }
 
     // mapeo Entity a DTO
-    private PagoUFDTO mapToPagoUFDTO(PagoUF pagoUF) {
+    public PagoUFDTO mapToPagoUFDTO(PagoUF pagoUF) {
         PagoUFDTO dto = new PagoUFDTO();
 
         dto.setIdPagoUF(pagoUF.getIdPagoUF());
@@ -228,7 +234,8 @@ public class PagoUFService {
         dto.setValor(pagoUF.getValor());
         dto.setFormaPago(pagoUF.getFormaPago());
         dto.setDescripcion(pagoUF.getDescripcion());
-//        dto.setIdExpensa(pagoUF.getExpensa().getIdExpensa());
+        dto.setIdExpensa(pagoUF.getExpensa().getIdExpensa());
+        dto.setPeriodo(pagoUF.getPeriodo());
 
         return dto;
     }

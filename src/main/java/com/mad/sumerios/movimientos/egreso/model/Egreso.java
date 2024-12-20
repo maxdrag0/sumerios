@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -36,6 +37,8 @@ public class Egreso {
     @JoinColumn(name = "id_exp")
     @JsonBackReference
     private Expensa expensa;
+    @NotNull
+    private YearMonth periodo;
 
     //  DATOS DEL GASTO
     @NotNull

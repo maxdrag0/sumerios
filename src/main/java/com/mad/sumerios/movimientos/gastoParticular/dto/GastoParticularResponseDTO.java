@@ -4,6 +4,7 @@ import com.mad.sumerios.enums.FormaPago;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -13,6 +14,7 @@ public class GastoParticularResponseDTO {
     private Long idUf;
     private Long idConsorcio;
     private Long idExpensa;
+    private YearMonth periodo;
     private LocalDate fecha;
     private String titulo;
     private FormaPago formaPago;

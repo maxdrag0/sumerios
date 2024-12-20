@@ -59,6 +59,11 @@ public class IngresoService {
         List<Ingreso> ingresos = ingresoRepository.findByIdConsorcio(idConsorcio);
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
+    //  por consorcio
+    public List<IngresoResponseDTO> getIngresoByPeriodoAndConsorcio(YearMonth periodo, Long idConsorcio){
+        List<Ingreso> ingresos = ingresoRepository.findByPeriodoAndIdConsorcio(periodo, idConsorcio);
+        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
+    }
     //  por consorcio y fechas
     public List<IngresoResponseDTO> getIngresoByConsorcioYFecha(Long idConsorcio, LocalDate startDate, LocalDate endDate){
         List<Ingreso> ingresos = ingresoRepository.findByIdConsorcioAndFechaBetween(idConsorcio, startDate, endDate);
@@ -75,11 +80,11 @@ public class IngresoService {
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }
     // buscar por expensa
-//    public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
-//        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
-//        List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
-//        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
-//    }
+    public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
+        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
+        return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
+    }
 
     //  ACTUALIZAR INGRESO
     public void updateIngreso(Long idIngreso, IngresoUpdateDTO dto) throws Exception{
@@ -129,14 +134,14 @@ public class IngresoService {
             throw new Exception("El ingreso debe tener un valor mayor a $0");
         }
     }
-//    private Expensa validateExpensa(Long idExpensa) throws Exception {
-//        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
-//        if(exp.isEmpty()){
-//            throw new Exception("Expensa no encontrado");
-//        }
-//
-//        return exp.get();
-//    }
+    private Expensa validateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+
+        return exp.get();
+    }
 
     //  mapeo DTO a Entity
     private Ingreso mapToIngresoEntity(IngresoCreateDTO dto) throws Exception {
@@ -144,11 +149,12 @@ public class IngresoService {
         validateConsorcio(dto.getIdConsorcio());
         validateValor(dto.getValor());
         validateProveedor(dto.getIdProveedor());
-//        Expensa exp = validateExpensa(dto.getIdExpensa());
+        Expensa exp = validateExpensa(dto.getIdExpensa());
 
         Ingreso ingreso = new Ingreso();
 
-//        ingreso.setExpensa(exp);
+        ingreso.setExpensa(exp);
+        ingreso.setPeriodo(dto.getPeriodo());
         ingreso.setIdProveedor(dto.getIdProveedor());
         ingreso.setIdConsorcio(dto.getIdConsorcio());
         ingreso.setFecha(dto.getFecha());
@@ -170,6 +176,7 @@ public class IngresoService {
             throw new Exception("Ingreso con ID: "+dto.getIdIngreso()+" no encontrado.");
         }
 
+        ingreso.setPeriodo(dto.getPeriodo());
         ingreso.setIdProveedor(dto.getIdProveedor());
         ingreso.setFecha(dto.getFecha());
         ingreso.setValor(dto.getValor());
@@ -180,11 +187,13 @@ public class IngresoService {
         return ingreso;
     }
     //  mapeo Entity a DTO
-    private IngresoResponseDTO mapToIngresoResponseDTO (Ingreso ingreso) {
+    public IngresoResponseDTO mapToIngresoResponseDTO (Ingreso ingreso) {
         IngresoResponseDTO dto = new IngresoResponseDTO();
 
         dto.setIdIngreso(ingreso.getIdIngreso());
         dto.setIdProveedor(ingreso.getIdProveedor());
+        dto.setIdExpensa(ingreso.getExpensa().getIdExpensa());
+        dto.setPeriodo(ingreso.getPeriodo());
         dto.setFecha(ingreso.getFecha());
         dto.setValor(ingreso.getValor());
         dto.setTitulo(ingreso.getTitulo());

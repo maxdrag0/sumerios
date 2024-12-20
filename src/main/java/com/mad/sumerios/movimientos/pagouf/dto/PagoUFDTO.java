@@ -6,12 +6,14 @@ import jakarta.persistence.TemporalType;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
 public class PagoUFDTO {
     private Long idPagoUF;
-//    private Long IdExpensa;
+    private Long idExpensa;
+    private YearMonth periodo;
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;
     private double valor;

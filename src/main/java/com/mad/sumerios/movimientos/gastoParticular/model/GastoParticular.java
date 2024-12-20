@@ -11,6 +11,7 @@ import com.mad.sumerios.expensa.model.Expensa;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -38,6 +39,9 @@ public class  GastoParticular {
     @JoinColumn(name = "id_exp")
     @JsonBackReference
     private Expensa expensa;
+
+    @NotNull
+    private YearMonth periodo;
 
     //  DATOS DE PAGO
     @NotNull

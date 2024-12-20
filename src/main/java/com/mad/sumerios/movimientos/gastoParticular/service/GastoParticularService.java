@@ -121,6 +121,11 @@ public class GastoParticularService {
         List<GastoParticular> gastos = gastoParticularRepository.findByIdConsorcioAndFechaBetween(idConsorcio,startDate,endDate );
         return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
     }
+    // consorcio y periodo
+    public List<GastoParticularResponseDTO> findByPeriodoAndConsorcio (YearMonth periodo, Long idConsorcio) {
+        List<GastoParticular> gastos = gastoParticularRepository.findByPeriodoAndIdConsorcio(periodo, idConsorcio);
+        return gastos.stream().map(this::mapToGastoParticularResponse).collect(Collectors.toList());
+    }
     // uf
     public List<GastoParticularResponseDTO> findByUf (Long idUf) {
         List<GastoParticular> gastos = gastoParticularRepository.findByIdUf(idUf);
@@ -204,6 +209,7 @@ public class GastoParticularService {
         GastoParticular gastoParticular = new GastoParticular();
 
         gastoParticular.setExpensa(exp);
+        gastoParticular.setPeriodo(dto.getPeriodo());
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
         gastoParticular.setIdProveedor(dto.getIdProveedor());
         gastoParticular.setIdUf(dto.getIdUf());
@@ -228,6 +234,7 @@ public class GastoParticularService {
 
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
         gastoParticular.setExpensa(exp);
+        gastoParticular.setPeriodo(dto.getPeriodo());
         gastoParticular.setIdProveedor(dto.getIdProveedor());
         gastoParticular.setIdUf(dto.getIdUf());
         gastoParticular.setFecha(dto.getFecha());
@@ -249,6 +256,7 @@ public class GastoParticularService {
         dto.setIdUf(gp.getIdUf());
         dto.setIdConsorcio(gp.getIdConsorcio());
         dto.setIdExpensa(gp.getExpensa().getIdExpensa());
+        dto.setPeriodo(gp.getPeriodo());
         dto.setFecha(gp.getFecha());
         dto.setTitulo(gp.getTitulo());
         dto.setFormaPago(gp.getFormaPago());

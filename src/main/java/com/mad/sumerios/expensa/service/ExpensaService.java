@@ -16,7 +16,13 @@ import com.mad.sumerios.intermedioExpensaConsorcio.model.IntermediaExpensaConsor
 import com.mad.sumerios.intermedioExpensaConsorcio.repository.IIntermediaExpensaConsorcioRepository;
 import com.mad.sumerios.intermedioExpensaConsorcio.service.IntermediaExpensaConsorcioService;
 import com.mad.sumerios.movimientos.egreso.model.Egreso;
+import com.mad.sumerios.movimientos.egreso.service.EgresoService;
 import com.mad.sumerios.movimientos.gastoParticular.model.GastoParticular;
+import com.mad.sumerios.movimientos.gastoParticular.service.GastoParticularService;
+import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
+import com.mad.sumerios.movimientos.ingreso.service.IngresoService;
+import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
+import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +43,10 @@ public class ExpensaService {
     private final EstadoCuentaUfService estadoCuentaUfService;
     private final IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository;
     private final IntermediaExpensaConsorcioService intermediaExpensaConsorcioService;
-
+    private final EgresoService egresoService;
+    private final GastoParticularService gastoParticularService;
+    private final IngresoService ingresoService;
+    private final PagoUFService pagoUFService;
     @Autowired
     public ExpensaService (IExpensaRepository expensaRepository,
                            IConsorcioRepository consorcioRepository,
@@ -45,7 +54,11 @@ public class ExpensaService {
                            EstadoCuentaUfService estadoCuentaUfService,
                            IEstadoCuentaUfRepository estadoCuentaUfRepository,
                            IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository,
-                           IntermediaExpensaConsorcioService intermediaExpensaConsorcioService){
+                           IntermediaExpensaConsorcioService intermediaExpensaConsorcioService,
+                           EgresoService egresoService,
+                           GastoParticularService gastoParticularService,
+                           IngresoService ingresoService,
+                           PagoUFService pagoUFService){
         this.expensaRepository = expensaRepository;
         this.consorcioRepository = consorcioRepository;
         this.unidadFuncionalRepository = unidadFuncionalRepository;
@@ -53,6 +66,10 @@ public class ExpensaService {
         this.estadoCuentaUfRepository = estadoCuentaUfRepository;
         this.intermediaExpensaConsorcioRepository = intermediaExpensaConsorcioRepository;
         this.intermediaExpensaConsorcioService = intermediaExpensaConsorcioService;
+        this.egresoService = egresoService;
+        this.gastoParticularService = gastoParticularService;
+        this.ingresoService = ingresoService;
+        this.pagoUFService = pagoUFService;
     }
 
     @Transactional
@@ -60,7 +77,7 @@ public class ExpensaService {
         Expensa expensa = expensaRepository.findById(idExpensa)
                 .orElseThrow(()-> new Exception("Expensa no encontrado"));
         Consorcio consorcio = consorcioRepository.findById(idConsorcio)
-                .orElseThrow(()-> new Exception("Expensa no encontrado"));
+                .orElseThrow(()-> new Exception("Consorcio no encontrado"));
 
         List<UnidadFuncional> ufs = consorcio.getUnidadesFuncionales();
         List<EstadoCuentaUf> estadosDeCuentaUf = estadoCuentaUfRepository.findByUnidadFuncionalIn(ufs);
@@ -92,33 +109,50 @@ public class ExpensaService {
     @Transactional
     public void createExpensa(ExpensaCreateDTO dto) throws Exception {
         Expensa exp = mapToExpensaEntity(dto);
+        expensaRepository.save(exp);
+
         // CREA ENTIDAD INTERMEDIA PARA SABER LA ULTIMA EXPENSA LIQUIDADA DEL CONSORCIO
         IntermediaExpensaConsorcio intermedia = intermediaExpensaConsorcioRepository.findByIdConsorcio(dto.getIdConsorcio());
 
         if(intermedia == null){
-            System.out.println("ENTRE AL IF");
-
             IntermediaExpensaConsorcioCreateDto dtoIntermedia = new IntermediaExpensaConsorcioCreateDto();
             dtoIntermedia.setIdConsorcio(dto.getIdConsorcio());
             dtoIntermedia.setIdExpensa(exp.getIdExpensa());
+            dtoIntermedia.setPeriodo(exp.getPeriodo());
             intermediaExpensaConsorcioService.createIntermediaExpensaConsorcio(dtoIntermedia);
         } else {
             IntermediaExpensaConsorcioDto dtoIntermediaUpdate = new IntermediaExpensaConsorcioDto();
             dtoIntermediaUpdate.setIdIntermedia(intermedia.getIdIntermedia());
             dtoIntermediaUpdate.setIdExpensa(intermedia.getIdExpensa());
             dtoIntermediaUpdate.setIdConsorcio(intermedia.getIdConsorcio());
+            dtoIntermediaUpdate.setPeriodo(intermedia.getPeriodo());
             intermediaExpensaConsorcioService.updateIntermediaExpensaConsorcio(dtoIntermediaUpdate);
         }
 
-        expensaRepository.save(exp);
     }
 
+    // TODAS LAS EXPENSA
     public List<ExpensaResponseDto> getExpensas(){
         List<Expensa> expensas = expensaRepository.findAll();
         return expensas.stream().map(this::mapToExpensaResponse).collect(Collectors.toList());
     }
 
-
+    // POR ID
+    public ExpensaResponseDto getExpensasById(Long idExpensa) throws Exception {
+        Expensa expensa = expensaRepository.findById(idExpensa)
+                .orElseThrow(()-> new Exception("Expensa no encontrada"));
+        return mapToExpensaResponse(expensa);
+    }
+    // POR CONSORCIO
+    public List<ExpensaResponseDto> getExpensasByConsorcio(Long idConsorcio){
+        List<Expensa> expensas = expensaRepository.findByConsorcio_idConsorcio(idConsorcio);
+        return expensas.stream().map(this::mapToExpensaResponse).collect(Collectors.toList());
+    }
+    // POR CONSORCIO Y PERIODO
+    public ExpensaResponseDto getExpensasByConsorcioAndPeriodo(Long idConsorcio, YearMonth periodo){
+        Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        return mapToExpensaResponse(expensa);
+    }
 
     // Validates y metodos complementarios
     private Consorcio validateConsorcio(Long idConsorcio) throws Exception{
@@ -214,6 +248,25 @@ public class ExpensaService {
         dto.setPorcentajeIntereses(expensa.getPorcentajeIntereses());
         dto.setPorcentajeSegundoVencimiento(expensa.getPorcentajeSegundoVencimiento());
 
+        List<Egreso> egresos = expensa.getEgresos();
+        for(Egreso egreso : egresos){
+            dto.getEgresos().add(egresoService.mapToEgresoResponse(egreso));
+        }
+
+        List<GastoParticular> gps = expensa.getGastosParticulares();
+        for(GastoParticular gp : gps){
+            dto.getGp().add(gastoParticularService.mapToGastoParticularResponse(gp));
+        }
+
+        List<Ingreso> ingresos = expensa.getIngresos();
+        for(Ingreso ingreso : ingresos){
+            dto.getIngresos().add(ingresoService.mapToIngresoResponseDTO(ingreso));
+        }
+
+        List<PagoUF> pagoUfs = expensa.getPagoUFS();
+        for(PagoUF pagoUf : pagoUfs){
+            dto.getPagoUf().add(pagoUFService.mapToPagoUFDTO(pagoUf));
+        }
         return dto;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -81,6 +82,20 @@ public class PagoUFController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    //  por consorcio y periodo
+    @GetMapping("/consorcio/{idConsorcio}/periodo/{periodo}")
+    public ResponseEntity<List<PagoUFDTO>> getPagoUFByConsorcio (@PathVariable Long idConsorcio,
+                                                                 @PathVariable YearMonth periodo){
+        try{
+            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByPeriodoAndConsorcio(periodo, idConsorcio);
+            if(pagoUFS.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(pagoUFS);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     //  por consorcio y fecha
     @GetMapping("/consorcio/{idConsorcio}/dates")
     public ResponseEntity<List<PagoUFDTO>> getPagoUFByConsorcio (@PathVariable Long idConsorcio,
@@ -126,16 +141,16 @@ public class PagoUFController {
         }
     }
     //  por periodo
-//    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
-//    public ResponseEntity<List<PagoUFDTO>> getPagoUFByExpensa(@PathVariable Long idConsorcio,
-//                                                              @PathVariable YearMonth periodo){
-//        try{
-//            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByExpensa(idConsorcio, periodo);
-//            return ResponseEntity.ok(pagoUFS);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
+    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<PagoUFDTO>> getPagoUFByExpensa(@PathVariable Long idConsorcio,
+                                                              @PathVariable YearMonth periodo){
+        try{
+            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(pagoUFS);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
     //  ACTUALIZAR PAGO UF
 //    @PutMapping("/{idPagoUf}")

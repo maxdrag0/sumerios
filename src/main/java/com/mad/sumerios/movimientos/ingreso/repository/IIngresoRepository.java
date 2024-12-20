@@ -13,7 +13,8 @@ import java.util.List;
 public interface IIngresoRepository extends JpaRepository<Ingreso, Long> {
     List<Ingreso> findByIdConsorcioAndFechaBetween(Long idConsorcio, LocalDate startDate, LocalDate endDate);
     List<Ingreso> findByIdConsorcio (Long idConsorcio);
+    List<Ingreso> findByPeriodoAndIdConsorcio (YearMonth periodo, Long idConsorcio);
     List<Ingreso> findByIdProveedor (Long idProveedor);
     List<Ingreso> findByIdProveedorAndIdConsorcio (Long idProveedor, Long idConsorcio);
-//    List<Ingreso> findByExpensa_IdExpensa (Long idExpensa);
+    List<Ingreso> findByExpensa_IdExpensa (Long idExpensa);
 }

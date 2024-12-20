@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -17,6 +18,8 @@ public class IngresoUpdateDTO {
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;
     private Long idProveedor;
+    private Long idExpensa;
+    private YearMonth periodo;
     private double valor;
     private String titulo;
     private String descripcion;

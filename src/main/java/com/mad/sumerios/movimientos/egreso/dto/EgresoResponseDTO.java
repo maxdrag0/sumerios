@@ -6,6 +6,7 @@ import com.mad.sumerios.enums.TipoEgreso;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -14,6 +15,7 @@ public class EgresoResponseDTO {
     private Long idConsorcio;
     private Long idProveedor;
     private Long idExpensa;
+    private YearMonth periodo;
     private LocalDate fecha;
     private String titulo;
     private FormaPago formaPago;

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.time.YearMonth;
+
 @Data
 @RequiredArgsConstructor
 @Entity
@@ -21,4 +23,7 @@ public class IntermediaExpensaConsorcio {
 
     @NotNull
     private Long idExpensa;
+
+    @NotNull
+    private YearMonth periodo;
 }

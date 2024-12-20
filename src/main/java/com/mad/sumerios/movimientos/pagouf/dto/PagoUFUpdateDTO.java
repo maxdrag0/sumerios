@@ -6,6 +6,7 @@ import jakarta.persistence.TemporalType;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -17,5 +18,7 @@ public class PagoUFUpdateDTO {
     private double valor;
     private FormaPago formaPago;
     private String descripcion;
+    private Long idExpensa;
+    private YearMonth periodo;
 
 }

@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/intermedia_expensa_consorcio")
 public class IntermediaExpensaConsorcioController {
@@ -39,6 +43,21 @@ public class IntermediaExpensaConsorcioController {
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getIntermedias(){
+        try{
+            List<IntermediaExpensaConsorcioDto> intermedias = intermediaExpensaConsorcioService.getIntermedias();
+            if (intermedias.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No se encontraron clases intermedias.");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+            }
+            return ResponseEntity.ok(intermedias);
+        }   catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         }
     }
 

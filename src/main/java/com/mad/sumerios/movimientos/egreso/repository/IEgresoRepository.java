@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import java.util.Optional;
 public interface IEgresoRepository extends JpaRepository<Egreso, Long> {
     List<Egreso> findByIdConsorcio(Long idConsorcio);
     List<Egreso> findByIdConsorcioAndFechaBetween(Long idConsorcio, LocalDate startDate, LocalDate endDate);
+    List<Egreso> findByPeriodoAndIdConsorcio(YearMonth periodo, Long idConsorcio);
     List<Egreso> findByIdProveedor(Long idProveedor);
     List<Egreso> findByIdProveedorAndIdConsorcio(Long idProveedor, Long idConsorcio);
     List<Egreso> findByTotalFinal(Double totalFinal);

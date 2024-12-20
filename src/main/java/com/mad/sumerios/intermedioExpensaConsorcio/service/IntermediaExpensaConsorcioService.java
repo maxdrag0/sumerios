@@ -7,12 +7,17 @@ import com.mad.sumerios.intermedioExpensaConsorcio.model.IntermediaExpensaConsor
 import com.mad.sumerios.intermedioExpensaConsorcio.repository.IIntermediaExpensaConsorcioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class IntermediaExpensaConsorcioService {
 
     private final IIntermediaExpensaConsorcioRepository iIntermediaExpensaConsorcioRepository;
     private final IExpensaRepository expensaRepository;
+
     @Autowired
     public IntermediaExpensaConsorcioService (IIntermediaExpensaConsorcioRepository iIntermediaExpensaConsorcioRepository,
                                               IExpensaRepository expensaRepository){
@@ -20,7 +25,7 @@ public class IntermediaExpensaConsorcioService {
         this.expensaRepository = expensaRepository;
     }
 
-
+    @Transactional
     public void createIntermediaExpensaConsorcio(IntermediaExpensaConsorcioCreateDto dto) throws Exception{
         IntermediaExpensaConsorcio intermedia = mapToIntermediaExpensaConsorcioEntity(dto);
         iIntermediaExpensaConsorcioRepository.save(intermedia);
@@ -45,6 +50,11 @@ public class IntermediaExpensaConsorcioService {
         return mapToIntermediaExpensaConsorcioResponse(intermediaExpensaConsorcio);
     }
 
+    public List<IntermediaExpensaConsorcioDto> getIntermedias () throws Exception{
+        List<IntermediaExpensaConsorcio> intermedias = iIntermediaExpensaConsorcioRepository.findAll();
+        return intermedias.stream().map(this::mapToIntermediaExpensaConsorcioResponse).collect(Collectors.toList());
+    }
+
     public void deleteIntermedia (Long idIntermedia) throws Exception{
         IntermediaExpensaConsorcio intermedia = iIntermediaExpensaConsorcioRepository.findById(idIntermedia)
                 .orElseThrow(()-> new Exception("Intermedia no encontrada"));
@@ -58,11 +68,13 @@ public class IntermediaExpensaConsorcioService {
         dto.setIdIntermedia(intermediaExpensaConsorcio.getIdIntermedia());
         dto.setIdConsorcio(intermediaExpensaConsorcio.getIdConsorcio());
         dto.setIdExpensa(intermediaExpensaConsorcio.getIdExpensa());
+        dto.setPeriodo(intermediaExpensaConsorcio.getPeriodo());
 
         return dto;
     }
     private void mapToIntermediaExpensaConsorcioUpdate(IntermediaExpensaConsorcio intermedia, IntermediaExpensaConsorcioDto dto) {
         intermedia.setIdExpensa(dto.getIdExpensa());
+        intermedia.setPeriodo(dto.getPeriodo());
         iIntermediaExpensaConsorcioRepository.save(intermedia);
     }
     private IntermediaExpensaConsorcio mapToIntermediaExpensaConsorcioEntity(IntermediaExpensaConsorcioCreateDto dto) throws Exception {
@@ -75,6 +87,7 @@ public class IntermediaExpensaConsorcioService {
 
         intermediaNew.setIdConsorcio(dto.getIdConsorcio());
         intermediaNew.setIdExpensa(dto.getIdExpensa());
+        intermediaNew.setPeriodo(dto.getPeriodo());
 
         return intermediaNew;
     }

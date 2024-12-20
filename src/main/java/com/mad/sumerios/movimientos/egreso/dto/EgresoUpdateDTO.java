@@ -3,10 +3,10 @@ package com.mad.sumerios.movimientos.egreso.dto;
 import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 @Data
 public class EgresoUpdateDTO {
@@ -14,6 +14,7 @@ public class EgresoUpdateDTO {
     private Long idConsorcio;
     private Long idProveedor;
     private Long idExpensa;
+    private YearMonth periodo;
     private LocalDate fecha;
     private TipoEgreso tipoEgreso;
     private String titulo;

@@ -53,18 +53,18 @@ public class Expensa {
     @JsonManagedReference
     private List<GastoParticular> gastosParticulares;
 
-//    @OneToMany(mappedBy = "expensa",
-//               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-//               fetch = FetchType.LAZY)
-//    @JsonManagedReference
-//    private List<PagoUF> pagoUFS;
-//
-//    @OneToMany(mappedBy = "expensa",
-//               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-//               fetch = FetchType.LAZY)
-//    @JsonManagedReference
-//    private List<Ingreso> ingresos;
-//
+    @OneToMany(mappedBy = "expensa",
+               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+               fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Ingreso> ingresos;
+
+    @OneToMany(mappedBy = "expensa",
+               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+               fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<PagoUF> pagoUFS;
+
 
 
 }

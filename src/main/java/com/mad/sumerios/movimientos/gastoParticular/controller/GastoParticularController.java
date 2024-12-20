@@ -90,6 +90,19 @@ public class GastoParticularController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    // consorcio y periodo
+    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByPeriodoAndConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
+        try{
+            List<GastoParticularResponseDTO> gastos = gastoParticularService.findByPeriodoAndConsorcio(periodo, idConsorcio);
+            if(gastos.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(gastos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     // consorcio y fecha
     @GetMapping("/consorcios/{idConsorcio}/dates")
     public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByConsorcioAndDate (@PathVariable Long idConsorcio,

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 
 @Data
@@ -14,8 +15,10 @@ public class PagoUFCreateDTO {
     private Long idUf;
     @NotNull
     private Long idConsorcio;
-//    @NotNull
-//    private Long idExpensa;
+    @NotNull
+    private Long idExpensa;
+    @NotNull
+    private YearMonth periodo;
     @NotNull
     @Temporal(TemporalType.DATE)
     private LocalDate fecha;

@@ -66,6 +66,11 @@ public class EgresoService {
         List<Egreso> egresos= egresoRepository.findByIdConsorcio(idConsorcio);
         return egresos.stream().map(this::mapToEgresoResponse).collect(Collectors.toList());
     }
+    // listar por consorcio
+    public List<EgresoResponseDTO> getEgresosByPeriodoAndIdConsorcio(YearMonth periodo, Long idConsorcio) {
+        List<Egreso> egresos= egresoRepository.findByPeriodoAndIdConsorcio(periodo, idConsorcio);
+        return egresos.stream().map(this::mapToEgresoResponse).collect(Collectors.toList());
+    }
     // listar por proveedor
     public List<EgresoResponseDTO> getEgresosByProveedor(Long idProveedor) {
         List<Egreso> egresos= egresoRepository.findByIdProveedor(idProveedor);
@@ -150,7 +155,6 @@ public class EgresoService {
             throw new Exception("El n° de comprobante ya existe para otro egreso.");
         }
     }
-
     private void validateValor(Double totalFinal) throws Exception {
         if (totalFinal <= 0){
             throw new Exception(
@@ -173,10 +177,10 @@ public class EgresoService {
         validateComprobante(dto.getComprobante());
         validateValor(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
-
         Egreso egreso = new Egreso();
 
         egreso.setExpensa(exp);
+        egreso.setPeriodo(dto.getPeriodo());
         egreso.setIdConsorcio(dto.getIdConsorcio());
         egreso.setIdProveedor(dto.getIdProveedor());
         egreso.setFecha(dto.getFecha());
@@ -190,6 +194,9 @@ public class EgresoService {
 
         return egreso;
     }
+
+
+
     private Egreso mapToEgresoEntityUpdate(EgresoUpdateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
@@ -198,6 +205,7 @@ public class EgresoService {
 
         Egreso egreso = new Egreso();
 
+        egreso.setPeriodo(dto.getPeriodo());
         egreso.setIdConsorcio(dto.getIdConsorcio());
         egreso.setIdProveedor(dto.getIdProveedor());
         egreso.setFecha(dto.getFecha());
@@ -212,13 +220,14 @@ public class EgresoService {
         return egreso;
     }
     //  mapeo Entity a DTO
-    private EgresoResponseDTO mapToEgresoResponse(Egreso egreso){
+    public EgresoResponseDTO mapToEgresoResponse(Egreso egreso){
         EgresoResponseDTO dto = new EgresoResponseDTO();
 
         dto.setIdEgreso(egreso.getIdEgreso());
         dto.setIdConsorcio(egreso.getIdConsorcio());
         dto.setIdProveedor(egreso.getIdProveedor());
         dto.setIdExpensa(egreso.getExpensa().getIdExpensa());
+        dto.setPeriodo(egreso.getPeriodo());
         dto.setFecha(egreso.getFecha());
         dto.setTitulo(egreso.getTitulo());
         dto.setFormaPago(egreso.getFormaPago());

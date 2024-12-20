@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -65,7 +66,19 @@ public class EgresoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
+    //  por consorcio
+    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    public ResponseEntity<List<EgresoResponseDTO>> getEgresosByPeriodoAndIdConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
+        try{
+            List<EgresoResponseDTO> egresos = egresoService.getEgresosByPeriodoAndIdConsorcio(periodo, idConsorcio);
+            if(egresos.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(egresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     //  por proveedor
     @GetMapping("/proveedores/{idProveedor}")
     public ResponseEntity<List<EgresoResponseDTO>> getEgresosByProveedor (@PathVariable Long idProveedor){

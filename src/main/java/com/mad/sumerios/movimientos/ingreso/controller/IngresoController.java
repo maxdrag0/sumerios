@@ -54,6 +54,19 @@ public class IngresoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    // por consorcios
+    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByPeriodoAndConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
+        try{
+            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByPeriodoAndConsorcio(periodo, idConsorcio);
+            if(ingresos.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(ingresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     //  por consorcio y fechas
     @GetMapping("/consorcios/{idConsorcio}/dates")
     public ResponseEntity<List<IngresoResponseDTO>> getIngresoByConsorcioYFecha (@PathVariable Long idConsorcio,
@@ -97,16 +110,16 @@ public class IngresoController {
         }
     }
     //  por periodo
-//    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
-//    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByExpensa(@PathVariable Long idConsorcio,
-//                                                                       @PathVariable YearMonth periodo){
-//        try{
-//            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByExpensa(idConsorcio, periodo);
-//            return ResponseEntity.ok(ingresos);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
+    @GetMapping("/consorcio/{idConsorcio}/expensa/{periodo}")
+    public ResponseEntity<List<IngresoResponseDTO>> getIngresoByExpensa(@PathVariable Long idConsorcio,
+                                                                       @PathVariable YearMonth periodo){
+        try{
+            List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByExpensa(idConsorcio, periodo);
+            return ResponseEntity.ok(ingresos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
 
     //  ACTUALIZAR INGRESO

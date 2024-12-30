@@ -12,6 +12,7 @@ import java.util.Date;
 @Data
 public class PagoUFDTO {
     private Long idPagoUF;
+    private Long idUf;
     private Long idExpensa;
     private YearMonth periodo;
     @Temporal(TemporalType.DATE)

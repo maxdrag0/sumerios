@@ -1,6 +1,7 @@
 package com.mad.sumerios.consorcio.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.administracion.model.Administracion;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
@@ -49,7 +50,7 @@ public class Consorcio {
     private String alias;
 
     @OneToMany(mappedBy = "consorcio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonIgnore
     private List<UnidadFuncional> unidadesFuncionales;
 
     @OneToMany(mappedBy = "consorcio",

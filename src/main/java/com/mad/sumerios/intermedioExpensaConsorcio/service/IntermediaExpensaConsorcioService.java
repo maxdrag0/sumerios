@@ -34,6 +34,7 @@ public class IntermediaExpensaConsorcioService {
     public void updateIntermediaExpensaConsorcio(IntermediaExpensaConsorcioDto dto) throws Exception{
         IntermediaExpensaConsorcio intermedia = iIntermediaExpensaConsorcioRepository.findById(dto.getIdIntermedia())
                 .orElseThrow(() -> new Exception("Intermedia no encontrada"));
+
         if(!intermedia.getIdConsorcio().equals(dto.getIdConsorcio())){
             throw new Exception("La clase intermedia no se corresponde con el consorcio.");
         } else if(expensaRepository.findById(dto.getIdExpensa()).isEmpty()){

@@ -10,7 +10,6 @@ public class UnidadFuncionalResponseDTO {
     private String titulo;
     private String apellidoPropietario;
     private String nombrePropietario;
-    private Double totalFinal;
     private Double porcentajeUnidad;
     private UfConsorcioDTO consorcio;
     private EstadoCuentaUfDTO estadoCuentaUfDTO;

@@ -11,7 +11,6 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Date;
 
 @Data
 public class EgresoCreateDTO {

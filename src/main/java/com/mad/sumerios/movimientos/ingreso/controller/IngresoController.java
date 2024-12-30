@@ -55,7 +55,7 @@ public class IngresoController {
         }
     }
     // por consorcios
-    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    @GetMapping("/consorcio/{idConsorcio}/periodo/{periodo}")
     public ResponseEntity<List<IngresoResponseDTO>> getIngresoByPeriodoAndConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
         try{
             List<IngresoResponseDTO> ingresos = ingresoService.getIngresoByPeriodoAndConsorcio(periodo, idConsorcio);

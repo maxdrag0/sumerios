@@ -260,6 +260,7 @@ public class GastoParticularService {
         dto.setFecha(gp.getFecha());
         dto.setTitulo(gp.getTitulo());
         dto.setFormaPago(gp.getFormaPago());
+        dto.setTipoEgreso(gp.getTIPO_EGRESO());
         dto.setComprobante(gp.getComprobante());
         dto.setDescripcion(gp.getDescripcion());
         dto.setPagoConsorcio(gp.getPagoConsorcio());

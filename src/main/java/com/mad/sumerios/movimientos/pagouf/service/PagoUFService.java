@@ -230,6 +230,7 @@ public class PagoUFService {
         PagoUFDTO dto = new PagoUFDTO();
 
         dto.setIdPagoUF(pagoUF.getIdPagoUF());
+        dto.setIdUf(pagoUF.getUnidadFuncional().getIdUf());
         dto.setFecha(pagoUF.getFecha());
         dto.setValor(pagoUF.getValor());
         dto.setFormaPago(pagoUF.getFormaPago());

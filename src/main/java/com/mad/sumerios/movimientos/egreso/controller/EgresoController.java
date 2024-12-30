@@ -67,7 +67,7 @@ public class EgresoController {
         }
     }
     //  por consorcio
-    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    @GetMapping("/consorcio/{idConsorcio}/periodo/{periodo}")
     public ResponseEntity<List<EgresoResponseDTO>> getEgresosByPeriodoAndIdConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
         try{
             List<EgresoResponseDTO> egresos = egresoService.getEgresosByPeriodoAndIdConsorcio(periodo, idConsorcio);

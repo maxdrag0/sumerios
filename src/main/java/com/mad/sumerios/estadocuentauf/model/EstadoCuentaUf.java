@@ -1,5 +1,7 @@
 package com.mad.sumerios.estadocuentauf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
@@ -20,7 +22,8 @@ public class EstadoCuentaUf {
     @Column(name = "id_estado_cuenta_uf")
     private long idEstadoCuentaUf;
 
-    @OneToOne(mappedBy = "estadoCuentaUf")
+    @OneToOne(mappedBy = "estadoCuentaUf", fetch = FetchType.LAZY)
+    @JsonIgnore
     private UnidadFuncional unidadFuncional;
 
     @NotNull

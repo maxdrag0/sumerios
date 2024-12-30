@@ -1,6 +1,7 @@
 package com.mad.sumerios.movimientos.gastoParticular.dto;
 
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.enums.TipoEgreso;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class GastoParticularResponseDTO {
     private LocalDate fecha;
     private String titulo;
     private FormaPago formaPago;
+    private TipoEgreso tipoEgreso;
     private String comprobante;
     private String descripcion;
     private Boolean pagoConsorcio;

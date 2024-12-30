@@ -91,7 +91,7 @@ public class GastoParticularController {
         }
     }
     // consorcio y periodo
-    @GetMapping("/consorcios/{idConsorcio}/periodo/{periodo}")
+    @GetMapping("/consorcio/{idConsorcio}/periodo/{periodo}")
     public ResponseEntity<List<GastoParticularResponseDTO>> getGastoParticularByPeriodoAndConsorcio (@PathVariable Long idConsorcio, @PathVariable YearMonth periodo){
         try{
             List<GastoParticularResponseDTO> gastos = gastoParticularService.findByPeriodoAndConsorcio(periodo, idConsorcio);

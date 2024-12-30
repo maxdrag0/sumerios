@@ -7,12 +7,16 @@ import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
 import com.mad.sumerios.copiaestadocuentauf.service.CopiaEstadoCuentaUfService;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EstadoCuentaUfService {
@@ -57,9 +61,24 @@ public class EstadoCuentaUfService {
     }
 
     //  GET
+    //  BY id
+    public EstadoCuentaUfDTO getEstadoCuentaUfById (Long idEstadoCuentaUf) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()-> new Exception("Estado de cuenta de UF no encontrado."));
+        return mapToEstadoCuentaUfDTO(estadoCuentaUf);
+    }
     //  BY UF
     public EstadoCuentaUfDTO getEstadoCuentaUf (Long idUf){
         return mapToEstadoCuentaUfDTO(estadoCuentaUfRepository.findByUnidadFuncional_idUf(idUf));
+    }
+
+    // by ufs
+    public List<EstadoCuentaUfDTO> getEstadoCuentaUfs(List<UnidadFuncionalResponseDTO> unidadFuncionalList){
+        List<EstadoCuentaUfDTO> ecufs = new ArrayList<>();
+        for(UnidadFuncionalResponseDTO dto : unidadFuncionalList){
+            ecufs.add(dto.getEstadoCuentaUfDTO());
+        }
+        return ecufs;
     }
 
     // VALIDACIONES Y AUX
@@ -90,14 +109,49 @@ public class EstadoCuentaUfService {
                              double porcentajeUf,
                              double total,
                              CategoriaEgreso categoria) throws Exception {
-        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
-                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+        EstadoCuentaUfDTO dto = this.getEstadoCuentaUfById(idEstadoCuentaUf);
 
-        double totalAAplicar = (total*porcentajeUf)/100;
+        System.out.println("ESTADO DE CUENTA ANTES DE APLICAR VALOR A CATEGORA"+ categoria);
+        System.out.println(dto.getDeuda());
+        System.out.println(dto.getIntereses());
+        System.out.println(dto.getTotalA());
+        System.out.println(dto.getTotalB());
+        System.out.println(dto.getTotalC());
+        System.out.println(dto.getTotalD());
+        System.out.println(dto.getTotalE());
+        System.out.println(dto.getGastoParticular());
+        System.out.println(dto.getTotalFinal());
+        System.out.println(dto.getSaldoIntereses());
+        System.out.println(dto.getSaldoExpensa());
+        System.out.println("ESTADO DE CUENTA ANTES DE APLICAR VALOR A CATEGORA"+ categoria);
 
-        categoria.aplicar(estadoCuentaUf, totalAAplicar);
+        double totalAAplicar = (total > 0) ? (total * porcentajeUf) / 100 : 0;
 
-        estadoCuentaUfRepository.save(estadoCuentaUf);
+        if (totalAAplicar>0){
+            EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                    .orElseThrow(()-> new Exception("Estado de cuenta no encotnrado."));
+            categoria.aplicar(estadoCuentaUf, totalAAplicar);
+            estadoCuentaUfRepository.save(estadoCuentaUf);
+        }
+
+        EstadoCuentaUfDTO dto2 = this.getEstadoCuentaUfById(idEstadoCuentaUf);
+
+        System.out.println("ESTADO DE CUENTA DESPUES DE APLICAR VALOR "+totalAAplicar+"A CATEGORA"+ categoria);
+        System.out.println(totalAAplicar);
+        System.out.println(dto2.getDeuda());
+        System.out.println(dto2.getIntereses());
+        System.out.println(dto2.getTotalA());
+        System.out.println(dto2.getTotalB());
+        System.out.println(dto2.getTotalC());
+        System.out.println(dto2.getTotalD());
+        System.out.println(dto2.getTotalE());
+        System.out.println(dto2.getGastoParticular());
+        System.out.println(dto2.getTotalFinal());
+        System.out.println(dto2.getSaldoIntereses());
+        System.out.println(dto2.getSaldoExpensa());
+        System.out.println(categoria);
+        System.out.println("ESTADO DE CUENTA DESPUES DE APLICAR VALOR "+totalAAplicar+"A CATEGORA"+ categoria);
+
     }
     public void aplicarValorGastoParticular(long idEstadoCuentaUf, double valor) throws Exception {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
@@ -111,14 +165,20 @@ public class EstadoCuentaUfService {
     public void aplicarDeudaEIntereses(long idEstadoCuentaUf, double porcentajeIntereses) throws Exception {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
-        double deuda = estadoCuentaUf.getSaldoExpensa();
+
+
+        double deuda = estadoCuentaUf.getTotalFinal() - estadoCuentaUf.getSaldoIntereses();
         double intereses = (deuda*porcentajeIntereses)/100;
+
         estadoCuentaUf.setDeuda(deuda);
         estadoCuentaUf.setIntereses(intereses);
         // Modifico saldo expensa e saldo intereses
         estadoCuentaUf.setTotalFinal(0.0);
         estadoCuentaUf.setSaldoExpensa(0.0);
         estadoCuentaUf.setSaldoIntereses(intereses);
+
+        System.out.println(deuda);
+        System.out.println(intereses);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
@@ -132,9 +192,15 @@ public class EstadoCuentaUfService {
                                 estadoCuentaUf.getTotalD() +
                                 estadoCuentaUf.getTotalE() +
                                 estadoCuentaUf.getGastoParticular();
+
         double valorDeudaEIntereses = estadoCuentaUf.getDeuda() + estadoCuentaUf.getIntereses();
 
-        estadoCuentaUf.setSaldoExpensa(valorDeExpensa);
+        if(estadoCuentaUf.getDeuda()>=0){
+            estadoCuentaUf.setSaldoExpensa(valorDeExpensa);
+        } else {
+            estadoCuentaUf.setSaldoExpensa(valorDeExpensa - estadoCuentaUf.getDeuda());
+        }
+
         estadoCuentaUf.setTotalFinal(valorDeExpensa+valorDeudaEIntereses);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
@@ -223,9 +289,11 @@ public class EstadoCuentaUfService {
         return dto;
     }
     // CREAR COPIA DE ESTADO DE CUENTA
-    public void createCopiaEstadoCuentaUf(EstadoCuentaUf estadoCuentaUf) throws Exception {
+    public void createCopiaEstadoCuentaUf(EstadoCuentaUfDTO dto) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf())
+                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado"));
         copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
-        System.out.println("Estado cuenta copiado antes de limpiar "+estadoCuentaUf);
+
         // LIMPIA VALORES
         estadoCuentaUf.setTotalA(0.0);
         estadoCuentaUf.setTotalB(0.0);
@@ -233,10 +301,9 @@ public class EstadoCuentaUfService {
         estadoCuentaUf.setTotalD(0.0);
         estadoCuentaUf.setTotalE(0.0);
         estadoCuentaUf.setGastoParticular(0.0);
-        System.out.println("Estado cuenta copiado limpio "+estadoCuentaUf);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
-        System.out.println("Estado cuenta guardado "+estadoCuentaUf);
+        System.out.println("Estado cuenta guardado ");
 
     }
 

@@ -7,6 +7,7 @@ import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import lombok.Data;
 
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -16,8 +17,8 @@ public class ExpensaResponseDto {
     private YearMonth periodo;
     private Double porcentajeIntereses;
     private Double porcentajeSegundoVencimiento;
-    private List<EgresoResponseDTO> egresos;
-    private List<IngresoResponseDTO> ingresos;
-    private List<GastoParticularResponseDTO> gp;
-    private List<PagoUFDTO> pagoUf;
+    private List<EgresoResponseDTO> egresos = new ArrayList<>();
+    private List<IngresoResponseDTO> ingresos = new ArrayList<>();
+    private List<GastoParticularResponseDTO> gp = new ArrayList<>();
+    private List<PagoUFDTO> pagoUf = new ArrayList<>();
 }

@@ -1,6 +1,7 @@
 package com.mad.sumerios.unidadfuncional.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.appuser.appuservecino.model.AppUserVecino;
 import com.mad.sumerios.consorcio.model.Consorcio;
@@ -30,7 +31,7 @@ public class UnidadFuncional {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_consorcio")
     @NotNull
-    @JsonBackReference
+    @JsonIgnore
     private Consorcio consorcio;
 
     @NotNull
@@ -60,8 +61,9 @@ public class UnidadFuncional {
     private String telefonoInquilino;
 
     // ESTADO DE CUENTA
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "id_estado_cuenta_uf", referencedColumnName = "id_estado_cuenta_uf")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_estado_cuenta_uf")
+    @JsonIgnore
     private EstadoCuentaUf estadoCuentaUf;
 
     @OneToMany(mappedBy = "unidadFuncional",
@@ -70,8 +72,8 @@ public class UnidadFuncional {
     @JsonManagedReference
     private List<PagoUF> pagoUFS;
 
-    @ManyToMany(mappedBy = "unidadesFuncionales")
-    @JsonBackReference
-    private List<AppUserVecino> appUsers;
+//    @ManyToMany(mappedBy = "unidadesFuncionales")
+//    @JsonBackReference
+//    private List<AppUserVecino> appUsers;
 
 }

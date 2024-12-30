@@ -61,7 +61,6 @@ public class ConsorcioService {
                 .orElseThrow(() -> new Exception("Consorcio no encontrado"));
         return mapToConsorcioResponseDTO(consorcio);
     }
-
     //  ACTUALIZAR CONSORCIO
     public void updateConsorcio(Long idAdm, Long idConsorcio, ConsorcioUpdateDTO dto) throws Exception {
         Consorcio cons = consorcioRepository.findById(idConsorcio)

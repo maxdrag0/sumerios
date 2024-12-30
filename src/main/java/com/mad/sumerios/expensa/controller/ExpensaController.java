@@ -4,7 +4,7 @@ import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.expensa.dto.ExpensaCreateDTO;
 import com.mad.sumerios.expensa.dto.ExpensaResponseDto;
-import com.mad.sumerios.expensa.model.Expensa;
+import com.mad.sumerios.expensa.dto.LiquidarExpensaRequest;
 import com.mad.sumerios.expensa.service.ExpensaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -92,6 +92,17 @@ public class ExpensaController {
             return ResponseEntity.ok(expensa);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/consorcio/{idConsorcio}")
+    public ResponseEntity<?> liquidarExpensa (@PathVariable Long idConsorcio,
+                                              @RequestBody LiquidarExpensaRequest request){
+        try{
+            expensaService.liquidarExpensaMesVencido(idConsorcio, request.getIdExpensa(), request.getExpensaCreateDTO());
+            return ResponseEntity.status(HttpStatus.CREATED).body("Expensa liquidada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

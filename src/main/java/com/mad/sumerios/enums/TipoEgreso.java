@@ -13,6 +13,7 @@ public enum TipoEgreso {
     GASTOS_BANCARIOS("Gastos bancarios"),
     GASTOS_PARTICULARES("Gastos particulares"),
     MANTENIMIENTO("Mantenimiento de partes comunes"),
+    REMUNERACION_AL_PERSONAL("Remuneración al personal"),
     SEGURO("Pago de seguro"),
     SERVICIOS_PUBLICOS("Servicios públicos"),
     OTROS("Otros");

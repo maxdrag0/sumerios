@@ -53,6 +53,20 @@ public class PagoUFController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    //  por uf y periodo
+    @GetMapping("/unidadFuncional/{IdUf}/periodo/{periodo}")
+    public ResponseEntity<List<PagoUFDTO>> getPagoUFByUFAndPeriodo (@PathVariable Long IdUf,
+                                                                    @PathVariable YearMonth periodo){
+        try{
+            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByUnidadFuncionalAndPeriodo(IdUf, periodo);
+            if(pagoUFS.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(pagoUFS);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     //  por uf y fecha
     @GetMapping("unidadFuncional/{ufId}/dates")
     public ResponseEntity<List<PagoUFDTO>> getPagoUFByUFAndFecha (@PathVariable Long ufId,

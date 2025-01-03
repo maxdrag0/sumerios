@@ -76,6 +76,10 @@ public class PagoUFService {
         List<PagoUF> pagos = pagoUFRepository.findByUnidadFuncional_idUf(idUf);
         return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
     }
+    public List<PagoUFDTO> getPagoUFByUnidadFuncionalAndPeriodo(Long idUf, YearMonth periodo) {
+        List<PagoUF> pagos = pagoUFRepository.findByUnidadFuncional_idUfAndPeriodo(idUf,periodo);
+        return pagos.stream().map(this::mapToPagoUFDTO).collect(Collectors.toList());
+    }
     //  por unidad funcional y fechas
     public List<PagoUFDTO> getPagosByUnidadFuncionalAndFecha(Long unidadFuncionalId, LocalDate startDate, LocalDate endDate) throws Exception {
         if(ufRepository.findById(unidadFuncionalId).isEmpty()){

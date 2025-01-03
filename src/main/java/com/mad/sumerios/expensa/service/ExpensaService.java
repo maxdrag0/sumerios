@@ -88,7 +88,7 @@ public class ExpensaService {
     @Transactional
     public void liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto) throws Exception{
         validateConsorcio(idConsorcio);
-//        validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
+        validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
 
         List<UnidadFuncionalResponseDTO> ufs = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
@@ -132,8 +132,6 @@ public class ExpensaService {
         createExpensa(dto);
     }
 
-
-
     @Transactional
     public void createExpensa(ExpensaCreateDTO dto) throws Exception {
         expensaRepository.save(mapToExpensaEntity(dto));
@@ -167,7 +165,6 @@ public class ExpensaService {
         List<Expensa> expensas = expensaRepository.findAll();
         return expensas.stream().map(this::mapToExpensaResponse).collect(Collectors.toList());
     }
-
     // POR ID
     public ExpensaResponseDto getExpensasById(Long idExpensa) throws Exception {
         Expensa expensa = expensaRepository.findById(idExpensa)
@@ -185,6 +182,8 @@ public class ExpensaService {
         return mapToExpensaResponse(expensa);
     }
 
+    // BORRAR EXPENSA
+
     // Validates y metodos complementarios
     private Consorcio validateConsorcio(Long idConsorcio) throws Exception{
         return consorcioRepository.findById(idConsorcio)
@@ -196,12 +195,12 @@ public class ExpensaService {
             throw new Exception("El período "+ periodo + " ya existe en el consorcio.");
         }
     }
-        private void validateUltimoPeriodo(Long idConsorcio, YearMonth periodo) throws Exception{
-            Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo.plusMonths(1));
-            if(expensa != null){
-                throw new Exception("El período "+ periodo + " no es el último en el consorcio.");
-            }
+    private void validateUltimoPeriodo(Long idConsorcio, YearMonth periodo) throws Exception{
+        Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo.plusMonths(1));
+        if(expensa != null){
+            throw new Exception("El período "+ periodo + " no es el último en el consorcio.");
         }
+    }
     private void validatePorcentajeIntereses(Double porcentajeIntereses) throws Exception{
         if (porcentajeIntereses < 0){
             throw new Exception("El porcentaje de intereses debe ser igual o mayor a 0%");

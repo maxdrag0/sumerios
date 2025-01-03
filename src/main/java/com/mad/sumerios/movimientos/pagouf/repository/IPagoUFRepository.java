@@ -20,4 +20,5 @@ public interface IPagoUFRepository extends JpaRepository<PagoUF, Long> {
     List<PagoUF> findByIdConsorcioAndFormaPago(Long idConsorcio, FormaPago formaPago);
     List<PagoUF> findByFormaPago (FormaPago formaPago);
     List<PagoUF> findByExpensa_idExpensa(Long idExpensa);
+    List<PagoUF> findByUnidadFuncional_idUfAndPeriodo(Long idUf, YearMonth periodo);
 }

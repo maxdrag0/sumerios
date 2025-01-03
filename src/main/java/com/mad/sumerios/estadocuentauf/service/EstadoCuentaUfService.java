@@ -111,20 +111,6 @@ public class EstadoCuentaUfService {
                              CategoriaEgreso categoria) throws Exception {
         EstadoCuentaUfDTO dto = this.getEstadoCuentaUfById(idEstadoCuentaUf);
 
-        System.out.println("ESTADO DE CUENTA ANTES DE APLICAR VALOR A CATEGORA"+ categoria);
-        System.out.println(dto.getDeuda());
-        System.out.println(dto.getIntereses());
-        System.out.println(dto.getTotalA());
-        System.out.println(dto.getTotalB());
-        System.out.println(dto.getTotalC());
-        System.out.println(dto.getTotalD());
-        System.out.println(dto.getTotalE());
-        System.out.println(dto.getGastoParticular());
-        System.out.println(dto.getTotalFinal());
-        System.out.println(dto.getSaldoIntereses());
-        System.out.println(dto.getSaldoExpensa());
-        System.out.println("ESTADO DE CUENTA ANTES DE APLICAR VALOR A CATEGORA"+ categoria);
-
         double totalAAplicar = (total > 0) ? (total * porcentajeUf) / 100 : 0;
 
         if (totalAAplicar>0){
@@ -133,24 +119,6 @@ public class EstadoCuentaUfService {
             categoria.aplicar(estadoCuentaUf, totalAAplicar);
             estadoCuentaUfRepository.save(estadoCuentaUf);
         }
-
-        EstadoCuentaUfDTO dto2 = this.getEstadoCuentaUfById(idEstadoCuentaUf);
-
-        System.out.println("ESTADO DE CUENTA DESPUES DE APLICAR VALOR "+totalAAplicar+"A CATEGORA"+ categoria);
-        System.out.println(totalAAplicar);
-        System.out.println(dto2.getDeuda());
-        System.out.println(dto2.getIntereses());
-        System.out.println(dto2.getTotalA());
-        System.out.println(dto2.getTotalB());
-        System.out.println(dto2.getTotalC());
-        System.out.println(dto2.getTotalD());
-        System.out.println(dto2.getTotalE());
-        System.out.println(dto2.getGastoParticular());
-        System.out.println(dto2.getTotalFinal());
-        System.out.println(dto2.getSaldoIntereses());
-        System.out.println(dto2.getSaldoExpensa());
-        System.out.println(categoria);
-        System.out.println("ESTADO DE CUENTA DESPUES DE APLICAR VALOR "+totalAAplicar+"A CATEGORA"+ categoria);
 
     }
     public void aplicarValorGastoParticular(long idEstadoCuentaUf, double valor) throws Exception {
@@ -177,9 +145,6 @@ public class EstadoCuentaUfService {
         estadoCuentaUf.setSaldoExpensa(0.0);
         estadoCuentaUf.setSaldoIntereses(intereses);
 
-        System.out.println(deuda);
-        System.out.println(intereses);
-
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
     public void aplicarTotalFinal(long idEstadoCuentaUf) throws Exception {
@@ -196,7 +161,7 @@ public class EstadoCuentaUfService {
         double valorDeudaEIntereses = estadoCuentaUf.getDeuda() + estadoCuentaUf.getIntereses();
 
         if(estadoCuentaUf.getDeuda()>=0){
-            estadoCuentaUf.setSaldoExpensa(valorDeExpensa);
+            estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
         } else {
             estadoCuentaUf.setSaldoExpensa(valorDeExpensa - estadoCuentaUf.getDeuda());
         }
@@ -284,7 +249,6 @@ public class EstadoCuentaUfService {
         dto.setSaldoExpensa(ea.getSaldoExpensa());
         dto.setSaldoIntereses(ea.getSaldoIntereses());
 
-        System.out.println(dto);
 
         return dto;
     }
@@ -303,8 +267,6 @@ public class EstadoCuentaUfService {
         estadoCuentaUf.setGastoParticular(0.0);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
-        System.out.println("Estado cuenta guardado ");
-
     }
 
     // CHEQUEO INTERESES
@@ -337,26 +299,12 @@ public class EstadoCuentaUfService {
     // Pagos Uf
     public void restarPago (EstadoCuentaUf estadoCuentaUf, PagoUF pago){
         double pagoTotal = pago.getValor();
-        System.out.println(pagoTotal);
-        double diferenciaIntereses = verificarIntereses(estadoCuentaUf, pago);
-        System.out.println(diferenciaIntereses);
 
-        System.out.println("1---------------------ANTES DE MODIFICAR-------------------------");
-        System.out.println(estadoCuentaUf.getTotalFinal());
-        System.out.println(estadoCuentaUf.getSaldoExpensa());
-        System.out.println("1---------------------ANTES DE MODIFICAR-------------------------");
+        double diferenciaIntereses = verificarIntereses(estadoCuentaUf, pago);
+
         estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() - diferenciaIntereses);
-        System.out.println("1---------------------DESPU[ES DE MODIFICAR SALDO EXP------------");
-        System.out.println(diferenciaIntereses);
-        System.out.println(estadoCuentaUf.getTotalFinal());
-        System.out.println(estadoCuentaUf.getSaldoExpensa());
-        System.out.println("1---------------------DESPU[ES DE MODIFICAR SALDO EXP------------");
+
         estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() - pagoTotal);
-        System.out.println("1---------------------DESPU[ES DE MODIFICAR TOTAL FINAL----------");
-        System.out.println(pagoTotal);
-        System.out.println(estadoCuentaUf.getTotalFinal());
-        System.out.println(estadoCuentaUf.getSaldoExpensa());
-        System.out.println("1---------------------DESPU[ES DE MODIFICAR TOTAL FINAL----------");
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }

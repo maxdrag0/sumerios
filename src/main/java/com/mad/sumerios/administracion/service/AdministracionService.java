@@ -156,6 +156,7 @@ public class AdministracionService {
             AdminDto.setNombre(administrador.getNombre());
             AdminDto.setApellido(administrador.getApellido());
             AdminDto.setMatriculaAdministrador(administrador.getMatriculaAdministrador());
+            AdminDto.setCuit(administracion.getCuit());
             administracionDTO.setAdministrador(AdminDto);
         }
 

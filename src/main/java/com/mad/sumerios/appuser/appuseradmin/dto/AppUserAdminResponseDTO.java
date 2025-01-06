@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class AppUserAdminResponseDTO extends AppUserResponseDTO {
-    private String matriculaAdministrador;
     private Long idAdm;
+    private String matriculaAdministrador;
+    private String cuit;
 }

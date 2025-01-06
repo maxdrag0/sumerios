@@ -7,5 +7,6 @@ import lombok.Data;
 @Data
 public class AppUserAdminRegisterDTO extends AppUserRegisterDTO {
     private String matriculaAdministrador;
+    private String cuit;
 }
 

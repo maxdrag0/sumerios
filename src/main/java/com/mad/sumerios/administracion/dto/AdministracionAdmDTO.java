@@ -8,4 +8,5 @@ public class AdministracionAdmDTO  {
     private String nombre;
     private String apellido;
     private String matriculaAdministrador;
+    private String cuit;
 }

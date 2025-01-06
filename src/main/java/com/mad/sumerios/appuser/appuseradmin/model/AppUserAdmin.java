@@ -19,5 +19,6 @@ public class AppUserAdmin extends AppUser {
 
     private String matriculaAdministrador;
 
+    private String cuit;
 
 }

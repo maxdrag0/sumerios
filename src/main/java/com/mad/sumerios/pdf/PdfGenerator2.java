@@ -8,18 +8,16 @@ import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 
 import java.io.FileOutputStream;
-
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-public class PdfGenerator {
+public class PdfGenerator2 {
 
     public static void createPdfPago(PagoUFDTO pagoUF, double totalPago, AdministracionResponseDTO admDto,
                                      ConsorcioResponseDTO consorcioDto, UnidadFuncionalResponseDTO uf,
                                      String outputPath) {
-        // Crear el documento con tamaño personalizado (14 cm x 20 cm) y márgenes
-        Document document = new Document(new Rectangle(396, 567), 20, 20, 20, 20);
+        Document document = new Document(new Rectangle(360, 567), 20, 20, 20, 20);
 
         try {
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(outputPath));
@@ -30,44 +28,64 @@ public class PdfGenerator {
 
             // Configurar fuentes
             BaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.EMBEDDED);
-            Font boldFont = new Font(baseFont, 11, Font.BOLD);
+            Font titleFont = new Font(baseFont, 14, Font.BOLD);
+            Font boldFont = new Font(baseFont, 10, Font.BOLD);
             Font regularFont = new Font(baseFont, 10, Font.NORMAL);
             Font smallFont = new Font(baseFont, 8, Font.NORMAL);
 
             // Color de fondo para las tablas destacadas (gris claro)
             BaseColor grayBackground = new BaseColor(230, 230, 230);
 
+
             // Título principal
-            Paragraph title = new Paragraph("RECIBO DE EXPENSAS PROPIEDAD HORIZONTAL 1\n", boldFont);
+            Paragraph title = new Paragraph("RECIBO DE EXPENSAS PROPIEDAD HORIZONTAL 2\n", boldFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
 
             document.add(new Paragraph("\n"));
 
-            // Información de la administración con fondo gris
-            PdfPTable adminTable = new PdfPTable(2);
+            // Tabla de ADMINISTRACION
+            PdfPTable adminTable = new PdfPTable(1); // Cambiar a una sola columna
             adminTable.setWidthPercentage(100);
-            adminTable.setWidths(new int[]{30, 70});
-            adminTable.addCell(createCell("ADMINISTRACION", boldFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            adminTable.addCell(createCell(admDto.getNombre(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            adminTable.addCell(createCell(admDto.getAdministrador().getApellido() + ", " + admDto.getAdministrador().getNombre(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            adminTable.addCell(createCell("C.U.I.T: " + admDto.getAdministrador().getCuit(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            adminTable.addCell(createCell("" , regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
+
+            // Fila del título
+            adminTable.addCell(createCell("ADMINISTRACION", titleFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
+
+            // Filas de datos
+            PdfPTable adminDataTable = new PdfPTable(2); // Tabla interna para datos con dos columnas
+            adminDataTable.setWidthPercentage(100);
+            adminDataTable.setWidths(new int[]{30, 70});
+            adminDataTable.addCell(createCell("Nombre:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminDataTable.addCell(createCell(admDto.getNombre(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminDataTable.addCell(createCell("Administrador:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminDataTable.addCell(createCell(admDto.getAdministrador().getApellido() + ", " + admDto.getAdministrador().getNombre(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminDataTable.addCell(createCell("C.U.I.T:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminDataTable.addCell(createCell(admDto.getAdministrador().getCuit(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            adminTable.addCell(adminDataTable); // Agregar la tabla interna como celda
 
             document.add(adminTable);
 
-            // Información del consorcio con fondo gris
-            PdfPTable consorcioTable = new PdfPTable(2);
+            // Tabla de CONSORCIO
+            PdfPTable consorcioTable = new PdfPTable(1); // Cambiar a una sola columna
             consorcioTable.setWidthPercentage(100);
-            consorcioTable.setWidths(new int[]{30, 70});
-            consorcioTable.addCell(createCell("CONSORCIO", boldFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell(consorcioDto.getNombre() + " - " + consorcioDto.getDireccion(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell("Propietario:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell(uf.getApellidoPropietario() + ", " + uf.getNombrePropietario(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell("UF:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell(uf.getUnidadFuncional() + " - " + uf.getTitulo(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell("Período:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
-            consorcioTable.addCell(createCell(pagoUF.getPeriodo().format(DateTimeFormatter.ofPattern("MM/yyyy")), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
+
+// Fila del título
+            consorcioTable.addCell(createCell("CONSORCIO", titleFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground));
+
+// Filas de datos
+            PdfPTable consorcioDataTable = new PdfPTable(2); // Tabla interna para datos con dos columnas
+            consorcioDataTable.setWidthPercentage(100);
+            consorcioDataTable.setWidths(new int[]{30, 70});
+            consorcioDataTable.addCell(createCell("Nombre:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell(consorcioDto.getNombre() + " - " + consorcioDto.getDireccion(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell("Propietario:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell(uf.getApellidoPropietario() + ", " + uf.getNombrePropietario(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell("UF:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell(uf.getUnidadFuncional() + " - " + uf.getTitulo(), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell("Período:", regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioDataTable.addCell(createCell(pagoUF.getPeriodo().format(DateTimeFormatter.ofPattern("MM/yyyy")), regularFont, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null));
+            consorcioTable.addCell(consorcioDataTable); // Agregar la tabla interna como celda
+
             document.add(consorcioTable);
 
             // Detalles del pago (sin fondo gris)
@@ -82,7 +100,7 @@ public class PdfGenerator {
             detallesTable.addCell(createAlignedCell("Total D:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalD()), regularFont));
             detallesTable.addCell(createAlignedCell("Total E:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalE()), regularFont));
             detallesTable.addCell(createAlignedCell("Gasto Particular:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getGastoParticular()), regularFont));
-            detallesTable.addCell(createAlignedCell("Total pagado en el período:", "$" + formatCurrency(totalPago), regularFont));
+            detallesTable.addCell(createAlignedCell("Pagado en el período:", "$" + formatCurrency(totalPago), regularFont));
             detallesTable.addCell(createAlignedCell("Su pago:", "$" + formatCurrency(pagoUF.getValor()), boldFont));
             detallesTable.addCell(createAlignedCell("Saldo:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalFinal()), boldFont));
             document.add(detallesTable);
@@ -124,12 +142,12 @@ public class PdfGenerator {
         Image watermark = Image.getInstance(imagePath);
 
         // Dimensiones de la marca de agua
-        float watermarkWidth = 100; // Ancho ajustado de la marca de agua
-        float watermarkHeight = 100; // Alto ajustado de la marca de agua
+        float watermarkWidth = 80; // Ancho ajustado de la marca de agua
+        float watermarkHeight = 80; // Alto ajustado de la marca de agua
 
         // Posicionarla al centro de la página
         float x = (document.getPageSize().getWidth() - watermarkWidth) / 2;
-        float y = 310;
+        float y = 240;
 
         watermark.setAbsolutePosition(x, y);
         watermark.scaleAbsolute(watermarkWidth, watermarkHeight);

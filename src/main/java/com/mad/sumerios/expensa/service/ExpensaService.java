@@ -160,6 +160,10 @@ public class ExpensaService {
 
     }
 
+    @Transactional
+    public void deleteExpensa(Long idExpensa) throws Exception {
+        ExpensaResponseDto dto = this.getExpensasById(idExpensa);
+    }
     // TODAS LAS EXPENSA
     public List<ExpensaResponseDto> getExpensas(){
         List<Expensa> expensas = expensaRepository.findAll();

@@ -26,13 +26,13 @@ public class EmailSender {
         try {
             // Configurar los detalles del correo
             helper.setFrom(fromEmail);
-            helper.setTo("maxii.drago@gmail.com");
-            helper.setTo("sumerios.adm@gmail.com");
+            helper.addTo("maxii.drago@gmail.com");
+//            helper.addTo("sumerios.adm@gmail.com");
             if(pago.getUnidadFuncional().getMailPropietario() != null && !pago.getUnidadFuncional().getMailPropietario().isBlank()){
-                helper.setTo(pago.getUnidadFuncional().getMailPropietario());
+                helper.addTo(pago.getUnidadFuncional().getMailPropietario());
             }
             if(pago.getUnidadFuncional().getMailInquilino() != null && !pago.getUnidadFuncional().getMailInquilino().isBlank()){
-                helper.setTo(pago.getUnidadFuncional().getMailInquilino());
+                helper.addTo(pago.getUnidadFuncional().getMailInquilino());
             }
 
             helper.setSubject("Pago del Consorcio: "+nombreConsorcio+" - Unidad Funcional " + pago.getUnidadFuncional().getUnidadFuncional()+ " - " + pago.getUnidadFuncional().getTitulo());

@@ -119,7 +119,7 @@ public class AppUserAdminService {
         admin.setRol(dto.getRol());
 
         admin.setMatriculaAdministrador(dto.getMatriculaAdministrador());
-
+        admin.setCuit(dto.getCuit());
 
         return admin;
     }
@@ -134,6 +134,7 @@ public class AppUserAdminService {
         dto.setTelefono(admin.getTelefono());
         dto.setRol(admin.getRol());
         dto.setMatriculaAdministrador(admin.getMatriculaAdministrador());
+        dto.setCuit(admin.getCuit());
         if(admin.getAdministracion() != null){
             dto.setIdAdm(admin.getAdministracion().getIdAdm());
         }

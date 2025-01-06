@@ -197,7 +197,7 @@ public class UnidadFuncionalService {
 
         return uf;
     }
-    private UnidadFuncionalResponseDTO mapToUnidadFuncionalResponseDTO(UnidadFuncional uf){
+    public UnidadFuncionalResponseDTO mapToUnidadFuncionalResponseDTO(UnidadFuncional uf){
         UnidadFuncionalResponseDTO dto = new UnidadFuncionalResponseDTO();
 
         dto.setIdUf(uf.getIdUf());

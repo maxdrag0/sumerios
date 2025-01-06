@@ -232,7 +232,7 @@ public class EstadoCuentaUfService {
         return ec;
     }
     // MAP ENTITY TO DTO
-    private EstadoCuentaUfDTO mapToEstadoCuentaUfDTO(EstadoCuentaUf ea){
+    public EstadoCuentaUfDTO mapToEstadoCuentaUfDTO(EstadoCuentaUf ea){
         EstadoCuentaUfDTO dto = new EstadoCuentaUfDTO();
 
         dto.setIdEstadoCuentaUf(ea.getIdEstadoCuentaUf());
@@ -270,7 +270,9 @@ public class EstadoCuentaUfService {
     }
 
     // CHEQUEO INTERESES
-    private double verificarIntereses(EstadoCuentaUf estadoCuentaUf, PagoUF pago) {
+    private double verificarIntereses(EstadoCuentaUfDTO dto, PagoUF pago) {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf()).get();
+
         double saldoIntereses = estadoCuentaUf.getSaldoIntereses();
         double pagoTotal = pago.getValor();
         double diferencia;
@@ -297,14 +299,15 @@ public class EstadoCuentaUfService {
     }
 
     // Pagos Uf
-    public void restarPago (EstadoCuentaUf estadoCuentaUf, PagoUF pago){
+    public void restarPago (EstadoCuentaUfDTO dto, PagoUF pago){
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf()).get();
         double pagoTotal = pago.getValor();
 
-        double diferenciaIntereses = verificarIntereses(estadoCuentaUf, pago);
+        double diferenciaIntereses = verificarIntereses(dto, pago);
 
-        estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() - diferenciaIntereses);
+        estadoCuentaUf.setSaldoExpensa(dto.getSaldoExpensa() - diferenciaIntereses);
 
-        estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() - pagoTotal);
+        estadoCuentaUf.setTotalFinal(dto.getTotalFinal() - pagoTotal);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }

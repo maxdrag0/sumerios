@@ -1,10 +1,17 @@
 package com.mad.sumerios.movimientos.pagouf.service;
 
+import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
+import com.mad.sumerios.administracion.service.AdministracionService;
+import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.consorcio.service.ConsorcioService;
+import com.mad.sumerios.emailsender.EmailSender;
 import com.mad.sumerios.enums.FormaPago;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
 import com.mad.sumerios.expensa.model.Expensa;
@@ -14,12 +21,17 @@ import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.repository.IPagoUFRepository;
+import com.mad.sumerios.pdf.PdfGenerator;
+import com.mad.sumerios.printPdf.PrintPdf;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
+import com.mad.sumerios.unidadfuncional.service.UnidadFuncionalService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Date;
@@ -32,24 +44,36 @@ public class PagoUFService {
 
     private final IPagoUFRepository pagoUFRepository;
     private final IUnidadFuncionalRepository ufRepository;
+    private final AdministracionService administracionService;
     private final IConsorcioRepository consorcioRepository;
+    private final ConsorcioService consorcioService;
     private final IExpensaRepository expensaRepository;
     private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
     private final EstadoCuentaUfService estadoCuentaUfService;
+    private final UnidadFuncionalService unidadFuncionalService;
+    private final EmailSender emailSender;
 
     @Autowired
     public PagoUFService(IPagoUFRepository ingresoRepository,
                          IUnidadFuncionalRepository ufRepository,
+                         AdministracionService administracionService,
                          IConsorcioRepository consorcioRepository,
+                         ConsorcioService consorcioService,
                          IExpensaRepository expensaRepository,
                          EstadoCuentaConsorcioService estadoCuentaConsorcioService,
-                         EstadoCuentaUfService estadoCuentaUfService) {
+                         EstadoCuentaUfService estadoCuentaUfService,
+                         UnidadFuncionalService unidadFuncionalService,
+                         EmailSender emailSender) {
         this.pagoUFRepository  = ingresoRepository;
         this.ufRepository = ufRepository;
+        this.administracionService = administracionService;
         this.consorcioRepository = consorcioRepository;
+        this.consorcioService = consorcioService;
         this.expensaRepository = expensaRepository;
         this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
         this.estadoCuentaUfService = estadoCuentaUfService;
+        this.unidadFuncionalService = unidadFuncionalService;
+        this.emailSender = emailSender;
     }
 
     //  CREAR INGRESO
@@ -59,15 +83,42 @@ public class PagoUFService {
         PagoUF pago = mapToPagoUFEntity(dto);
 
         // Actualizar estado de cuenta del consorcio
-        EstadoCuentaConsorcio estadoCuentaConsorcio = obtenerEstadoCuentaConsorcio(pago.getIdConsorcio());
+        EstadoCuentaConsorcioDTO estadoCuentaConsorcio = estadoCuentaConsorcioService.mapToEstadoCuentaDTO(obtenerEstadoCuentaConsorcio(pago.getIdConsorcio()));
         estadoCuentaConsorcioService.sumarPagoUF(estadoCuentaConsorcio, pago);
 
         // Actualizar estado de cuenta de la unidad funcional
-        EstadoCuentaUf estadoCuentaUf = obtenerEstadoCuentaUf(pago.getUnidadFuncional().getIdUf());
+        EstadoCuentaUfDTO estadoCuentaUf = estadoCuentaUfService.mapToEstadoCuentaUfDTO(obtenerEstadoCuentaUf(pago.getUnidadFuncional().getIdUf()));
         estadoCuentaUfService.restarPago(estadoCuentaUf, pago);
 
         // Guardar el pago
         pagoUFRepository.save(pago);
+
+        // dtos para mail y pdf
+        UnidadFuncionalResponseDTO ufDto = unidadFuncionalService.mapToUnidadFuncionalResponseDTO(pago.getUnidadFuncional());
+        ConsorcioResponseDTO consorcioDto = consorcioService.getConsorcioById(ufDto.getConsorcio().getIdConsorcio());
+        AdministracionResponseDTO admDto = administracionService.getAdministracionById(consorcioDto.getAdministracion().getIdAdm());
+
+        Double totalPago = obtenerTotalPagoPeriodo(ufDto.getIdUf(), pago.getPeriodo()) - pago.getValor();
+
+        // Generar el PDF
+        String outputPath = "pago_uf_" + pago.getUnidadFuncional().getUnidadFuncional() + ".pdf";
+        PdfGenerator.createPdf(this.mapToPagoUFDTO(pago), totalPago ,admDto, consorcioDto, ufDto, outputPath);
+        PrintPdf.printPdf(outputPath);
+
+        // Enviar el PDF por correo
+        emailSender.enviarPagoPorCorreo(pago,consorcioDto.getNombre(), outputPath);
+
+        // Eliminar el archivo temporal
+        new File(outputPath).delete();
+    }
+
+    private Double obtenerTotalPagoPeriodo(long idUf, YearMonth periodo) {
+        double totalPago = 0;
+        List<PagoUFDTO> pagos = this.getPagoUFByUnidadFuncionalAndPeriodo(idUf, periodo);
+        for(PagoUFDTO pago : pagos){
+            totalPago += pago.getValor();
+        }
+        return totalPago;
     }
 
     //  LISTAR INGRESO

@@ -297,7 +297,9 @@ public class EstadoCuentaConsorcioService {
 
     // PagoUF
     // Sumar
-    public void sumarPagoUF(EstadoCuentaConsorcio estadoCuentaConsorcio, PagoUF pago){
+    public void sumarPagoUF(EstadoCuentaConsorcioDTO dto, PagoUF pago){
+        EstadoCuentaConsorcio estadoCuentaConsorcio = estadoCuentaRepository.findById(dto.getIdEstadoCuentaConsorcio()).get();
+
         estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + pago.getValor());
         if(pago.getFormaPago() == FormaPago.EFECTIVO){
             estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() + pago.getValor());
@@ -406,7 +408,7 @@ public class EstadoCuentaConsorcioService {
         return ec;
     }
     // MAP ENTITY TO DTO
-    private EstadoCuentaConsorcioDTO mapToEstadoCuentaDTO (EstadoCuentaConsorcio ea) {
+    public EstadoCuentaConsorcioDTO mapToEstadoCuentaDTO (EstadoCuentaConsorcio ea) {
         EstadoCuentaConsorcioDTO dto = new EstadoCuentaConsorcioDTO();
 
         dto.setIdEstadoCuentaConsorcio(ea.getIdEstadoCuentaConsorcio());

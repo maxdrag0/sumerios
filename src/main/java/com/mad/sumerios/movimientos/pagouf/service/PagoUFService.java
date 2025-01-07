@@ -18,10 +18,8 @@ import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
-import com.mad.sumerios.movimientos.pagouf.dto.PagoUFUpdateDTO;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.repository.IPagoUFRepository;
-import com.mad.sumerios.pdf.PdfGenerator;
 import com.mad.sumerios.pdf.PdfGenerator2;
 import com.mad.sumerios.printPdf.PrintPdf;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
@@ -35,7 +33,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -103,7 +100,7 @@ public class PagoUFService {
 
         // Generar el PDF
         String outputPath = "pago_uf_" + pago.getUnidadFuncional().getUnidadFuncional() + ".pdf";
-        PdfGenerator2.createPdfPago(this.mapToPagoUFDTO(pago), totalPago ,admDto, consorcioDto, ufDto, outputPath);
+        PdfGenerator2.createPdfPagoDuplicado(this.mapToPagoUFDTO(pago), totalPago ,admDto, consorcioDto, ufDto, outputPath);
         PrintPdf.printPdf(outputPath);
 
         // Enviar el PDF por correo

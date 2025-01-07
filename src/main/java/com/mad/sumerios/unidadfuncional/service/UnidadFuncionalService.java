@@ -207,6 +207,16 @@ public class UnidadFuncionalService {
         dto.setNombrePropietario(uf.getNombrePropietario());
         dto.setPorcentajeUnidad(uf.getPorcentajeUnidad());
 
+        dto.setNombrePropietario(uf.getNombrePropietario());
+        dto.setApellidoPropietario(uf.getApellidoPropietario());
+        dto.setMailPropietario(uf.getMailPropietario());
+        dto.setTelefonoPropietario(uf.getTelefonoPropietario());
+
+        dto.setNombreInquilino(uf.getNombreInquilino());
+        dto.setApellidoInquilino(uf.getApellidoInquilino());
+        dto.setMailInquilino(uf.getMailInquilino());
+        dto.setTelefonoInquilino(uf.getTelefonoInquilino());
+
         Consorcio cons = uf.getConsorcio();
         UfConsorcioDTO consDTO = new UfConsorcioDTO();
         consDTO.setIdConsorcio(cons.getIdConsorcio());

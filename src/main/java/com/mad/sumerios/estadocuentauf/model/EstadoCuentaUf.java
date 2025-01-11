@@ -26,6 +26,7 @@ public class EstadoCuentaUf {
     @JsonIgnore
     private UnidadFuncional unidadFuncional;
 
+    private YearMonth periodo = YearMonth.now();
     @NotNull
     private Double deuda;
     @NotNull
@@ -49,7 +50,6 @@ public class EstadoCuentaUf {
     @NotNull
     private Double saldoIntereses;
 
-    private YearMonth periodo = YearMonth.now();
 
 
     public void setSaldoInteresesCero(){

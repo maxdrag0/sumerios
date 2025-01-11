@@ -105,4 +105,15 @@ public class ExpensaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{idExpensa}")
+    public ResponseEntity<?> restablecerPeriodo(@PathVariable Long idExpensa){
+        try{
+            ExpensaResponseDto dto = expensaService.restablecerPeriodo(idExpensa);
+            return ResponseEntity.status(HttpStatus.OK).body("Periodo "+dto.getPeriodo()+" restablecido con éxito.");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }

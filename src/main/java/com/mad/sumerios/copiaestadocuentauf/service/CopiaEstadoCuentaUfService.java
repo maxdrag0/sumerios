@@ -7,6 +7,7 @@ import com.mad.sumerios.copiaestadocuentauf.repository.IEstadoCuentaUfCopiaRepos
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,13 @@ public class CopiaEstadoCuentaUfService {
         return copias.stream().map(this::mapToCopiaEstadoCuentaUfDTO).collect(Collectors.toList());
     }
 
+    public CopiaEstadoCuentaUfDTO getCopiasEstadoCuentaUfByIdEstadoCuentaUfAndPeriodo(Long idEstadoCuentaUf, YearMonth periodo) {
+        return mapToCopiaEstadoCuentaUfDTO(estadoCuentaUfCopiaRepository.findByIdEstadoCuentaUfAndPeriodo(idEstadoCuentaUf, periodo));
+    }
+
+    public void deleteCopiaEstadoCuentaUf(Long idCopiaEstadoCuentaUf){
+        estadoCuentaUfCopiaRepository.deleteById(idCopiaEstadoCuentaUf);
+    }
 
 
     // MAP TO ENTITY
@@ -50,6 +58,8 @@ public class CopiaEstadoCuentaUfService {
         copiaEstadoCuentaUf.setTotalE(estadoCuentaUf.getTotalD());
         copiaEstadoCuentaUf.setGastoParticular(estadoCuentaUf.getGastoParticular());
         copiaEstadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal());
+        copiaEstadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa());
+        copiaEstadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses());
 
         return copiaEstadoCuentaUf;
     }
@@ -71,6 +81,8 @@ public class CopiaEstadoCuentaUfService {
         dto.setTotalE(copiaEstadoCuentaUf.getTotalD());
         dto.setGastoParticular(copiaEstadoCuentaUf.getGastoParticular());
         dto.setTotalFinal(copiaEstadoCuentaUf.getTotalFinal());
+        dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());
+        dto.setSaldoIntereses(copiaEstadoCuentaUf.getSaldoIntereses());
 
         return dto;
     }

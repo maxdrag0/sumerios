@@ -101,10 +101,10 @@ public class PagoUFService {
         // Generar el PDF
         String outputPath = "pago_uf_" + pago.getUnidadFuncional().getUnidadFuncional() + ".pdf";
         PdfGenerator2.createPdfPagoDuplicado(this.mapToPagoUFDTO(pago), totalPago ,admDto, consorcioDto, ufDto, outputPath);
-        PrintPdf.printPdf(outputPath);
+//        PrintPdf.printPdf(outputPath);
 
         // Enviar el PDF por correo
-        emailSender.enviarPagoPorCorreo(pago,consorcioDto.getNombre(), outputPath);
+//        emailSender.enviarPagoPorCorreo(pago,consorcioDto.getNombre(), outputPath);
 
         // Eliminar el archivo temporal
         new File(outputPath).delete();

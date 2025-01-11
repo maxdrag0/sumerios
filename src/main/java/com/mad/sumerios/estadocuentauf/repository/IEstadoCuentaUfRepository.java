@@ -6,10 +6,10 @@ import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @Repository
 public interface IEstadoCuentaUfRepository extends JpaRepository<EstadoCuentaUf, Long> {
     EstadoCuentaUf findByUnidadFuncional_idUf(Long idUf);
-    List<EstadoCuentaUf> findByUnidadFuncionalIn(List<UnidadFuncional> unidadFuncionalList);
 }

@@ -30,6 +30,10 @@ public class CopiaEstadoCuentaConsorcioService {
         return mapToCopiaEstadoCuentaConsorcioDto(copia);
     }
 
+    public void deleteCopiaEstadoCuentaConsorcio(Long idEstadoCuentaConsorcio){
+        copiaEstadoCuentaConsorcioRepository.deleteById(idEstadoCuentaConsorcio);
+    }
+
     // MAPEOS
     private CopiaEstadoCuentaConsorcioDTO mapToCopiaEstadoCuentaConsorcioDto(CopiaEstadoCuentaConsorcio copia) {
         CopiaEstadoCuentaConsorcioDTO dto = new CopiaEstadoCuentaConsorcioDTO();

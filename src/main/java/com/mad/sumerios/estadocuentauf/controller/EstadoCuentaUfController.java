@@ -46,7 +46,7 @@ public class EstadoCuentaUfController {
     @GetMapping("/uf/{idUf}")
     public ResponseEntity<?> getEstadoCuentaUfByUf(@PathVariable Long idUf){
         try{
-            EstadoCuentaUfDTO dto = estadoCuentaUfService.getEstadoCuentaUf(idUf);
+            EstadoCuentaUfDTO dto = estadoCuentaUfService.getEstadoCuentaByUf(idUf);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());

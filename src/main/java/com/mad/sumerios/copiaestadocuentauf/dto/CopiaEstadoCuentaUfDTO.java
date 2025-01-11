@@ -1,5 +1,6 @@
 package com.mad.sumerios.copiaestadocuentauf.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.YearMonth;
@@ -19,4 +20,7 @@ public class CopiaEstadoCuentaUfDTO {
     private Double totalE;
     private Double gastoParticular;
     private Double totalFinal;
+    private Double saldoExpensa;
+    private Double saldoIntereses;
+
 }

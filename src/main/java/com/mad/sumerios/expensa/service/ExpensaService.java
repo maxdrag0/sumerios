@@ -5,6 +5,7 @@ import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import com.mad.sumerios.enums.CategoriaEgreso;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
@@ -24,8 +25,10 @@ import com.mad.sumerios.movimientos.egreso.service.EgresoService;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.model.GastoParticular;
 import com.mad.sumerios.movimientos.gastoParticular.service.GastoParticularService;
+import com.mad.sumerios.movimientos.ingreso.dto.IngresoResponseDTO;
 import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
 import com.mad.sumerios.movimientos.ingreso.service.IngresoService;
+import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
@@ -161,8 +164,50 @@ public class ExpensaService {
     }
 
     @Transactional
-    public void deleteExpensa(Long idExpensa) throws Exception {
-        ExpensaResponseDto dto = this.getExpensasById(idExpensa);
+    public ExpensaResponseDto restablecerPeriodo(Long idExpensa) throws Exception {
+        ExpensaResponseDto expensaUltima = this.getExpensasById(idExpensa);
+        System.out.println("1- Expensa ultima"+ expensaUltima);
+        ExpensaResponseDto expensaAnterior = this.getExpensasByConsorcioAndPeriodo(expensaUltima.getIdConsorcio(), expensaUltima.getPeriodo().minusMonths(1));
+        System.out.println("2- Expensa anterior"+ expensaAnterior);
+
+        if(expensaAnterior == null){
+            throw new Exception("No existe expensa previa");
+        }
+
+        // ELIMINA LOS MOVIMIENTOS
+        for(EgresoResponseDTO egreso : expensaUltima.getEgresos()){
+            egresoService.deleteEgreso(egreso.getIdEgreso());
+        }
+        for(IngresoResponseDTO ingreso : expensaUltima.getIngresos()){
+            ingresoService.deleteIngreso(ingreso.getIdIngreso());
+        }
+        for(GastoParticularResponseDTO gp : expensaUltima.getGp()){
+            gastoParticularService.deleteGastoParticular(gp.getIdGastoParticular());
+        }
+        for(PagoUFDTO pago : expensaUltima.getPagoUf()){
+            pagoUFService.deletePagoUF(pago.getIdPagoUF());
+        }
+
+        // REESTABLE LOS ESTADOS DE CUENTA
+        List<EstadoCuentaUfDTO> estadosDeCuentaUf = estadoCuentaUfService.getEstadoCuentaUfs(
+                unidadFuncionalService.getUnidadesPorConsorcio(expensaUltima.getIdConsorcio()));
+
+        for (EstadoCuentaUfDTO ecuf : estadosDeCuentaUf){
+            estadoCuentaUfService.restablecerPeriodoPrevio(ecuf.getIdEstadoCuentaUf());
+        }
+
+        // ACTUALIZA CLASE INTERMEDIA
+        IntermediaExpensaConsorcioDto intermedia = intermediaExpensaConsorcioService.getIntermediaByConsorcio(expensaUltima.getIdConsorcio());
+        System.out.println("9 INTERMEDIA ANTES DE ACTUALIZAR: "+ intermedia);
+
+        intermedia.setIdExpensa(expensaAnterior.getIdExpensa());
+        intermedia.setPeriodo(expensaAnterior.getPeriodo());
+        intermediaExpensaConsorcioService.updateIntermediaExpensaConsorcio(intermedia);
+        System.out.println("10 INTERMEDIA DESPUES DE ACTUALIZAR: "+ intermedia);
+
+        expensaRepository.deleteById(idExpensa);
+
+        return expensaAnterior;
     }
     // TODAS LAS EXPENSA
     public List<ExpensaResponseDto> getExpensas(){

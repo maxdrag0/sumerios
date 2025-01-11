@@ -1,5 +1,6 @@
 package com.mad.sumerios.estadocuentauf.service;
 
+import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
 import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
@@ -13,6 +14,7 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +70,7 @@ public class EstadoCuentaUfService {
         return mapToEstadoCuentaUfDTO(estadoCuentaUf);
     }
     //  BY UF
-    public EstadoCuentaUfDTO getEstadoCuentaUf (Long idUf){
+    public EstadoCuentaUfDTO getEstadoCuentaByUf (Long idUf){
         return mapToEstadoCuentaUfDTO(estadoCuentaUfRepository.findByUnidadFuncional_idUf(idUf));
     }
 
@@ -81,22 +83,60 @@ public class EstadoCuentaUfService {
         return ecufs;
     }
 
-    // VALIDACIONES Y AUX
-    private void validateValor(Double deuda,
-                               Double intereses,
-                               Double totalA,
-                               Double totalB,
-                               Double totalC,
-                               Double totalD,
-                               Double totalE,
-                               Double gastoParticular,
-                               Double totalFinal) throws Exception {
-        double suma = deuda+intereses+totalA+totalB+totalC+totalD+totalE+gastoParticular;
-        if(suma != totalFinal) {
-            throw new Exception(
-                    "El reparto valores es de $"+ suma +" mientras que el total es de $"+ totalFinal);
+    // METODO PARA RESTABLECER ESTADO DE CUENTA CUANDO SE ELIMINA UNA EXPENSA
+    public void restablecerPeriodoPrevio(Long idEstadoCuentaUf) throws Exception {
+        System.out.println("3 Dentro de restablecer periodo de ECUF: ");
+
+        EstadoCuentaUfDTO estadoActual = this.getEstadoCuentaUfById(idEstadoCuentaUf);
+        System.out.println("4 ECUF Periodo de estado actual: "+ estadoActual.getPeriodo());
+        System.out.println("5 ECUF Periodo de estado viejo: "+ estadoActual.getPeriodo().minusMonths(1));
+        CopiaEstadoCuentaUfDTO copiaEstadoPeriodoPrevio = copiaEstadoCuentaUfService.getCopiasEstadoCuentaUfByIdEstadoCuentaUfAndPeriodo(
+                idEstadoCuentaUf,
+                estadoActual.getPeriodo().minusMonths(1));
+        if(copiaEstadoPeriodoPrevio == null){
+            throw new Exception("Copia no encontrada");
         }
+        System.out.println("6 COPIA ECUF Periodo de estado VIEJO: "+ copiaEstadoPeriodoPrevio.getPeriodo());
+
+
+        // COPIO LOS DATOS VIEJOS AL ESTADO ACTUAL
+        System.out.println("7 ECUF ANTES DE ACTUALIZAR: "+ estadoActual);
+
+        estadoActual.setPeriodo(copiaEstadoPeriodoPrevio.getPeriodo());
+        estadoActual.setDeuda(copiaEstadoPeriodoPrevio.getDeuda());
+        estadoActual.setIntereses(copiaEstadoPeriodoPrevio.getIntereses());
+        estadoActual.setTotalA(copiaEstadoPeriodoPrevio.getTotalA());
+        estadoActual.setTotalB(copiaEstadoPeriodoPrevio.getTotalB());
+        estadoActual.setTotalC(copiaEstadoPeriodoPrevio.getTotalC());
+        estadoActual.setTotalD(copiaEstadoPeriodoPrevio.getTotalD());
+        estadoActual.setTotalE(copiaEstadoPeriodoPrevio.getTotalE());
+        estadoActual.setGastoParticular(copiaEstadoPeriodoPrevio.getGastoParticular());
+        estadoActual.setTotalFinal(copiaEstadoPeriodoPrevio.getTotalFinal());
+        estadoActual.setSaldoExpensa(copiaEstadoPeriodoPrevio.getSaldoExpensa());
+        estadoActual.setSaldoIntereses(copiaEstadoPeriodoPrevio.getSaldoIntereses());
+        System.out.println("8 ECUF DESPUES DE ACTUALIZAR: "+ estadoActual);
+
+        this.updateEstadoCuentaUf(idEstadoCuentaUf, estadoActual);
+        // ELIMINO LA COPIA
+        copiaEstadoCuentaUfService.deleteCopiaEstadoCuentaUf(copiaEstadoPeriodoPrevio.getIdCopiaEstadoCuentaUf());
     }
+
+    // VALIDACIONES Y AUX
+//    private void validateValor(Double deuda,
+//                               Double intereses,
+//                               Double totalA,
+//                               Double totalB,
+//                               Double totalC,
+//                               Double totalD,
+//                               Double totalE,
+//                               Double gastoParticular,
+//                               Double totalFinal) throws Exception {
+//        double suma = deuda+intereses+totalA+totalB+totalC+totalD+totalE+gastoParticular;
+//        if(suma != totalFinal) {
+//            throw new Exception(
+//                    "El reparto valores es de $"+ suma +" mientras que el total es de $"+ totalFinal);
+//        }
+//    }
     private UnidadFuncional validateUf(Long idUf) throws Exception {
         Optional<UnidadFuncional> uf = unidadFuncionalRepository.findById(idUf);
         if(uf.isEmpty()){
@@ -160,11 +200,7 @@ public class EstadoCuentaUfService {
 
         double valorDeudaEIntereses = estadoCuentaUf.getDeuda() + estadoCuentaUf.getIntereses();
 
-        if(estadoCuentaUf.getDeuda()>=0){
-            estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
-        } else {
-            estadoCuentaUf.setSaldoExpensa(valorDeExpensa - estadoCuentaUf.getDeuda());
-        }
+        estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
 
         estadoCuentaUf.setTotalFinal(valorDeExpensa+valorDeudaEIntereses);
 
@@ -198,15 +234,15 @@ public class EstadoCuentaUfService {
         return ec;
     }
     private EstadoCuentaUf mapToEstadoCuentaUfEntityUpdate(EstadoCuentaUfDTO dto) throws Exception {
-        validateValor(dto.getDeuda(),
-                dto.getIntereses(),
-                dto.getTotalA(),
-                dto.getTotalB(),
-                dto.getTotalC(),
-                dto.getTotalD(),
-                dto.getTotalE(),
-                dto.getGastoParticular(),
-                dto.getTotalFinal());
+//        validateValor(dto.getDeuda(),
+//                dto.getIntereses(),
+//                dto.getTotalA(),
+//                dto.getTotalB(),
+//                dto.getTotalC(),
+//                dto.getTotalD(),
+//                dto.getTotalE(),
+//                dto.getGastoParticular(),
+//                dto.getTotalFinal());
 
         if(unidadFuncionalRepository.findById(dto.getIdUf()).isEmpty()){
             throw new Exception("Unidad funcional no encontrada");
@@ -259,6 +295,7 @@ public class EstadoCuentaUfService {
         copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
 
         // LIMPIA VALORES
+        estadoCuentaUf.setPeriodo(estadoCuentaUf.getPeriodo().plusMonths(1));
         estadoCuentaUf.setTotalA(0.0);
         estadoCuentaUf.setTotalB(0.0);
         estadoCuentaUf.setTotalC(0.0);

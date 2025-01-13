@@ -222,30 +222,30 @@ public class ExpensaService {
     }
     // POR CONSORCIO
     public List<ExpensaResponseDto> getExpensasByConsorcio(Long idConsorcio){
-        List<Expensa> expensas = expensaRepository.findByConsorcio_idConsorcio(idConsorcio);
+        List<Expensa> expensas = expensaRepository.findByidConsorcio(idConsorcio);
         return expensas.stream().map(this::mapToExpensaResponse).collect(Collectors.toList());
     }
     // POR CONSORCIO Y PERIODO
     public ExpensaResponseDto getExpensasByConsorcioAndPeriodo(Long idConsorcio, YearMonth periodo){
-        Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        Expensa expensa = expensaRepository.findByidConsorcioAndPeriodo(idConsorcio, periodo);
         return mapToExpensaResponse(expensa);
     }
 
     // BORRAR EXPENSA
 
     // Validates y metodos complementarios
-    private Consorcio validateConsorcio(Long idConsorcio) throws Exception{
-        return consorcioRepository.findById(idConsorcio)
+    private void validateConsorcio(Long idConsorcio) throws Exception{
+        consorcioRepository.findById(idConsorcio)
                 .orElseThrow(()-> new Exception("Consorcio no encontrado"));
     }
     private void validatePeriodo(Long idConsorcio, YearMonth periodo) throws Exception {
-        Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        Expensa expensa = expensaRepository.findByidConsorcioAndPeriodo(idConsorcio, periodo);
         if(expensa != null){
             throw new Exception("El período "+ periodo + " ya existe en el consorcio.");
         }
     }
     private void validateUltimoPeriodo(Long idConsorcio, YearMonth periodo) throws Exception{
-        Expensa expensa = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo.plusMonths(1));
+        Expensa expensa = expensaRepository.findByidConsorcioAndPeriodo(idConsorcio, periodo.plusMonths(1));
         if(expensa != null){
             throw new Exception("El período "+ periodo + " no es el último en el consorcio.");
         }
@@ -316,12 +316,12 @@ public class ExpensaService {
     }
     // Mapeo a entidad
     private Expensa mapToExpensaEntity(ExpensaCreateDTO dto) throws Exception {
-        Consorcio consorcio = validateConsorcio(dto.getIdConsorcio());
+        validateConsorcio(dto.getIdConsorcio());
         validatePorcentajeIntereses(dto.getPorcentajeIntereses());
         Expensa expensa = new Expensa();
 
-        expensa.setConsorcio(consorcio);
-        if(expensaRepository.findByConsorcio_idConsorcio(dto.getIdConsorcio()).isEmpty()){
+        expensa.setIdConsorcio(dto.getIdConsorcio());
+        if(expensaRepository.findByidConsorcio(dto.getIdConsorcio()).isEmpty()){
             expensa.setPeriodo(dto.getPeriodo());
         } else {
             expensa.setPeriodo(dto.getPeriodo().plusMonths(1));
@@ -337,7 +337,7 @@ public class ExpensaService {
         ExpensaResponseDto dto = new ExpensaResponseDto();
 
         dto.setIdExpensa(expensa.getIdExpensa());
-        dto.setIdConsorcio(expensa.getConsorcio().getIdConsorcio());
+        dto.setIdConsorcio(expensa.getIdConsorcio());
         dto.setPeriodo(expensa.getPeriodo());
         dto.setPorcentajeIntereses(expensa.getPorcentajeIntereses());
         dto.setPorcentajeSegundoVencimiento(expensa.getPorcentajeSegundoVencimiento());

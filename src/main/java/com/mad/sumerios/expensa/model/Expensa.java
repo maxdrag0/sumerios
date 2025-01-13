@@ -27,10 +27,7 @@ public class Expensa {
     private long idExpensa;
 
     @NotNull
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_consorcio")
-    @JsonBackReference
-    private Consorcio consorcio;
+    private Long idConsorcio;
 
     @NotNull
     private YearMonth periodo;

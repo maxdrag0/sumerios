@@ -66,11 +66,11 @@ public class UnidadFuncional {
     @JsonIgnore
     private EstadoCuentaUf estadoCuentaUf;
 
-    @OneToMany(mappedBy = "unidadFuncional",
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-               fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<PagoUF> pagoUFS;
+//    @OneToMany(mappedBy = "unidadFuncional",
+//               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+//               fetch = FetchType.LAZY)
+//    @JsonManagedReference
+//    private List<PagoUF> pagoUFS;
 
 //    @ManyToMany(mappedBy = "unidadesFuncionales")
 //    @JsonBackReference

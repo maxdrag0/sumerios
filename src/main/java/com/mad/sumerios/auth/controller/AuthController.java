@@ -42,7 +42,7 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
-    @PostMapping(value = "/registerAdmin", consumes = "application/json")
+    @PostMapping("/registerAdmin")
     public ResponseEntity<String> createAdmin(@RequestBody AppUserAdminRegisterDTO admin) {
         try{
             appUserAdminService.createAdmin(admin);
@@ -52,7 +52,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping(value = "/registerVecino", consumes = "application/json")
+    @PostMapping("/registerVecino")
     public ResponseEntity<String> createVecino(@RequestBody AppUserVecinoRegisterDTO admin) {
         try{
             appUserVecinoService.createVecino(admin);

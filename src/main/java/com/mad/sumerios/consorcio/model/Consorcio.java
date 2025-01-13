@@ -53,10 +53,10 @@ public class Consorcio {
     @JsonIgnore
     private List<UnidadFuncional> unidadesFuncionales;
 
-    @OneToMany(mappedBy = "consorcio",
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-            fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Expensa> expensas;
+//    @OneToMany(mappedBy = "consorcio",
+//            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+//            fetch = FetchType.LAZY)
+//    @JsonManagedReference
+//    private List<Expensa> expensas;
 
 }

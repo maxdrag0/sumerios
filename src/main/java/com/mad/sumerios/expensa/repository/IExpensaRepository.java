@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface IExpensaRepository extends JpaRepository<Expensa, Long> {
-    Expensa findByConsorcio_idConsorcioAndPeriodo(Long idConsorcio, YearMonth periodo);
-    List<Expensa> findByConsorcio_idConsorcio(Long idConsorcio);
+    Expensa findByidConsorcioAndPeriodo(Long idConsorcio, YearMonth periodo);
+    List<Expensa> findByidConsorcio(Long idConsorcio);
 }

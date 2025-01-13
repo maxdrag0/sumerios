@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.mad</groupId>
 	<artifactId>sumerios</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>sumerios</name>
 	<description>Software Sumerios</description>
 	<url/>

@@ -29,7 +29,6 @@ public class AppUserAdminService {
     //    CREATE ADMINISTRADOR
     public void createAdmin(AppUserAdminRegisterDTO dto) throws Exception {
         AppUserAdmin admin = mapToEntity(dto);
-        validateAdmin(admin);
         appUserAdminRepository.save(admin);
     }
 
@@ -85,13 +84,13 @@ public class AppUserAdminService {
     }
 
     // VALIDACIONES
-    private void validateAdmin (AppUserAdmin admin) throws Exception{
-        if(appUserAdminRepository.findByMail(admin.getMail()).isPresent()){
-            throw new Exception("El mail "+admin.getMail()+" ya se encuentra registrado");
-        } else if (appUserAdminRepository.findByUsername(admin.getUsername()).isPresent()){
-            throw new Exception("El usuario "+admin.getUsername()+" ya se encuentra registrado");
-        } else if (admin.getRol() == RolUser.VECINO){
-            throw new Exception("El Rol no puede ser "+admin.getRol()+" a la hora de crear un administrador");
+    private void validateAdmin (AppUserAdminRegisterDTO dto) throws Exception{
+        if(appUserAdminRepository.findByMail(dto.getMail()).isPresent()){
+            throw new Exception("El mail "+dto.getMail()+" ya se encuentra registrado");
+        } else if (appUserAdminRepository.findByUsername(dto.getUsername()).isPresent()){
+            throw new Exception("El usuario "+dto.getUsername()+" ya se encuentra registrado");
+        } else if (dto.getRol() == RolUser.VECINO){
+            throw new Exception("El Rol no puede ser "+dto.getRol()+" a la hora de crear un administrador");
         }
     }
 
@@ -108,8 +107,11 @@ public class AppUserAdminService {
     }
 
     // MAPEO DE DTOs
-    private AppUserAdmin mapToEntity(AppUserAdminRegisterDTO dto){
+    private AppUserAdmin mapToEntity(AppUserAdminRegisterDTO dto) throws Exception {
+        validateAdmin(dto);
+
         AppUserAdmin admin = new AppUserAdmin();
+
         admin.setNombre(dto.getNombre());
         admin.setApellido(dto.getApellido());
         admin.setUsername(dto.getUsername());
@@ -130,6 +132,7 @@ public class AppUserAdminService {
         dto.setIdAppUser(admin.getIdAppUser());
         dto.setNombre(admin.getNombre());
         dto.setApellido(admin.getApellido());
+        dto.setUsername(admin.getUsername());
         dto.setMail(admin.getMail());
         dto.setTelefono(admin.getTelefono());
         dto.setRol(admin.getRol());

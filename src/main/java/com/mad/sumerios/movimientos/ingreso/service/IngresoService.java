@@ -81,7 +81,7 @@ public class IngresoService {
     }
     // buscar por expensa
     public List<IngresoResponseDTO> getIngresoByExpensa(Long idConsorcio, YearMonth periodo) {
-        Expensa exp = expensaRepository.findByConsorcio_idConsorcioAndPeriodo(idConsorcio, periodo);
+        Expensa exp = expensaRepository.findByidConsorcioAndPeriodo(idConsorcio, periodo);
         List<Ingreso> ingresos= ingresoRepository.findByExpensa_IdExpensa(exp.getIdExpensa());
         return ingresos.stream().map(this::mapToIngresoResponseDTO).collect(Collectors.toList());
     }

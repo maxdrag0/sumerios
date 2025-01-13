@@ -24,10 +24,8 @@ public class PagoUF {
     @Column(name = "id_pago_uf")
     private Long idPagoUF;
 
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_uf")
-    @JsonBackReference
-    private UnidadFuncional unidadFuncional;
+    @NotNull
+    private Long idUf;
 
     @NotNull
     private Long idConsorcio;

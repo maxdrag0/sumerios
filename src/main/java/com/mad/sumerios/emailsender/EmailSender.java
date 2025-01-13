@@ -1,6 +1,7 @@
 package com.mad.sumerios.emailsender;
 
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -19,7 +20,7 @@ public class EmailSender {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void enviarPagoPorCorreo(PagoUF pago,String nombreConsorcio, String pdfPath) throws Exception {
+    public void enviarPagoPorCorreo(PagoUF pago, UnidadFuncionalResponseDTO ufDto, String nombreConsorcio, String pdfPath) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -28,14 +29,14 @@ public class EmailSender {
             helper.setFrom(fromEmail);
             helper.addBcc("maxii.drago@gmail.com");
 
-            if(pago.getUnidadFuncional().getMailPropietario() != null && !pago.getUnidadFuncional().getMailPropietario().isBlank()){
-                helper.addBcc(pago.getUnidadFuncional().getMailPropietario());
+            if(ufDto.getMailPropietario() != null && !ufDto.getMailPropietario().isBlank()){
+                helper.addBcc(ufDto.getMailPropietario());
             }
-            if(pago.getUnidadFuncional().getMailInquilino() != null && !pago.getUnidadFuncional().getMailInquilino().isBlank()){
-                helper.addBcc(pago.getUnidadFuncional().getMailInquilino());
+            if(ufDto.getMailInquilino() != null && !ufDto.getMailInquilino().isBlank()){
+                helper.addBcc(ufDto.getMailInquilino());
             }
 
-            helper.setSubject("Pago del Consorcio: "+nombreConsorcio+" - Unidad Funcional " + pago.getUnidadFuncional().getUnidadFuncional()+ " - " + pago.getUnidadFuncional().getTitulo());
+            helper.setSubject("Pago del Consorcio: "+nombreConsorcio+" - Unidad Funcional " + ufDto.getUnidadFuncional()+ " - " + ufDto.getTitulo());
             helper.setText("Estimado vecino,\n\nAdjunto encontrará el comprobante de su pago.\n\nSaludos,\nSumerios.");
 
             // Adjuntar el archivo PDF

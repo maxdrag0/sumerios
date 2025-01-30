@@ -239,7 +239,8 @@ public class UnidadFuncionalService {
         ecDto.setTotalD(ec.getTotalD());
         ecDto.setTotalE(ec.getTotalE());
         ecDto.setGastoParticular(ec.getGastoParticular());
-        ecDto.setTotalFinal(ec.getTotalFinal());
+        ecDto.setTotalExpensa(ec.getTotalExpensa());
+        ecDto.setSaldoFinal(ec.getSaldoFinal());
         ecDto.setSaldoExpensa(ec.getSaldoExpensa());
         ecDto.setSaldoIntereses(ec.getSaldoIntereses());
         dto.setEstadoCuentaUfDTO(ecDto);

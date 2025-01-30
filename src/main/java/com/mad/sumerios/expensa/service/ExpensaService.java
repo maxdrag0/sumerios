@@ -1,11 +1,8 @@
 package com.mad.sumerios.expensa.service;
 
-import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
-import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import com.mad.sumerios.enums.CategoriaEgreso;
-import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
@@ -295,7 +292,7 @@ public class ExpensaService {
     }
     private void aplicarDeudaEIntereses(List<EstadoCuentaUfDTO> estadosDeCuentaUf, double porcentajeIntereses) throws Exception {
         for (EstadoCuentaUfDTO estadoActual : estadosDeCuentaUf) {
-            if(estadoActual.getTotalFinal() > 0){
+            if(estadoActual.getSaldoFinal() > 0){
                 estadoCuentaUfService.aplicarDeudaEIntereses(estadoActual.getIdEstadoCuentaUf(), porcentajeIntereses);
             } else {
                 EstadoCuentaUf ecuf = estadoCuentaUfRepository.findById(estadoActual.getIdEstadoCuentaUf())
@@ -303,7 +300,7 @@ public class ExpensaService {
 
                 ecuf.setDeuda(ecuf.getSaldoExpensa());
                 ecuf.setIntereses(0.0);
-                ecuf.setTotalFinal(0.0);
+                ecuf.setSaldoFinal(0.0);
                 ecuf.setSaldoExpensa(0.0);
                 ecuf.setSaldoIntereses(0.0);
             }

@@ -17,7 +17,8 @@ public class EstadoCuentaUfDTO {
     private Double totalD;
     private Double totalE;
     private Double gastoParticular;
-    private Double totalFinal;
+    private Double totalExpensa;
+    private Double saldoFinal;
     private Double saldoExpensa;
     private Double saldoIntereses;
 }

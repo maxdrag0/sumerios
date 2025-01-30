@@ -106,7 +106,7 @@ public class PdfGenerator2 {
             detallesTable.addCell(createAlignedCell("Gasto Particular:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getGastoParticular()), regularFont));
             detallesTable.addCell(createAlignedCell("Pagado en el período:", "$" + formatCurrency(totalPago), regularFont)).setPaddingBottom(2f);
             detallesTable.addCell(createAlignedCell("Su pago:", "$" + formatCurrency(pagoUF.getValor()), boldFont)).setBorder(PdfPCell.TOP);
-            detallesTable.addCell(createAlignedCell("Saldo:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalFinal()), boldFont)).setBorder(PdfPCell.BOTTOM);
+            detallesTable.addCell(createAlignedCell("Saldo:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getSaldoFinal()), boldFont)).setBorder(PdfPCell.BOTTOM);
 
             document.add(detallesTable);
 
@@ -297,7 +297,7 @@ public class PdfGenerator2 {
                 detallesTable.addCell(createAlignedCell("Gasto Particular:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getGastoParticular()), regularFont));
                 detallesTable.addCell(createAlignedCell("Pagado en el período:", "$" + formatCurrency(totalPago), regularFont)).setPaddingBottom(2f);
                 detallesTable.addCell(createAlignedCell("Su pago:", "$" + formatCurrency(pagoUF.getValor()), boldFont)).setBorder(PdfPCell.TOP);
-                detallesTable.addCell(createAlignedCell("Saldo:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalFinal()), boldFont)).setBorder(PdfPCell.BOTTOM);
+                detallesTable.addCell(createAlignedCell("Saldo:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getSaldoFinal()), boldFont)).setBorder(PdfPCell.BOTTOM);
 
                 reciboTable.addCell(detallesTable);
 

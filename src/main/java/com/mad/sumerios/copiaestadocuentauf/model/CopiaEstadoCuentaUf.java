@@ -40,7 +40,9 @@ public class CopiaEstadoCuentaUf {
     @NotNull
     private Double gastoParticular;
     @NotNull
-    private Double totalFinal;
+    private Double totalExpensa;
+    @NotNull
+    private Double saldoFinal;
     @NotNull
     private Double saldoExpensa;
     @NotNull

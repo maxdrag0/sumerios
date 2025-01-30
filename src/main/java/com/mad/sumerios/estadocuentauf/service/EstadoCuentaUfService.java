@@ -14,11 +14,9 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class EstadoCuentaUfService {
@@ -55,7 +53,8 @@ public class EstadoCuentaUfService {
         ec.setTotalD(ecUpdated.getTotalD());
         ec.setTotalE(ecUpdated.getTotalE());
         ec.setGastoParticular(ecUpdated.getGastoParticular());
-        ec.setTotalFinal(ecUpdated.getTotalFinal());
+        ec.setTotalExpensa(ecUpdated.getTotalExpensa());
+        ec.setSaldoFinal(ecUpdated.getSaldoFinal());
         ec.setSaldoExpensa(dto.getSaldoExpensa());
         ec.setSaldoIntereses(dto.getSaldoIntereses());
 
@@ -111,7 +110,8 @@ public class EstadoCuentaUfService {
         estadoActual.setTotalD(copiaEstadoPeriodoPrevio.getTotalD());
         estadoActual.setTotalE(copiaEstadoPeriodoPrevio.getTotalE());
         estadoActual.setGastoParticular(copiaEstadoPeriodoPrevio.getGastoParticular());
-        estadoActual.setTotalFinal(copiaEstadoPeriodoPrevio.getTotalFinal());
+        estadoActual.setTotalExpensa(copiaEstadoPeriodoPrevio.getTotalExpensa());
+        estadoActual.setSaldoFinal(copiaEstadoPeriodoPrevio.getSaldoFinal());
         estadoActual.setSaldoExpensa(copiaEstadoPeriodoPrevio.getSaldoExpensa());
         estadoActual.setSaldoIntereses(copiaEstadoPeriodoPrevio.getSaldoIntereses());
         System.out.println("8 ECUF DESPUES DE ACTUALIZAR: "+ estadoActual);
@@ -122,6 +122,7 @@ public class EstadoCuentaUfService {
     }
 
     // VALIDACIONES Y AUX
+
 //    private void validateValor(Double deuda,
 //                               Double intereses,
 //                               Double totalA,
@@ -155,7 +156,7 @@ public class EstadoCuentaUfService {
 
         if (totalAAplicar>0){
             EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
-                    .orElseThrow(()-> new Exception("Estado de cuenta no encotnrado."));
+                    .orElseThrow(()-> new Exception("Estado de cuenta no encontrado."));
             categoria.aplicar(estadoCuentaUf, totalAAplicar);
             estadoCuentaUfRepository.save(estadoCuentaUf);
         }
@@ -175,13 +176,13 @@ public class EstadoCuentaUfService {
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
 
 
-        double deuda = estadoCuentaUf.getTotalFinal() - estadoCuentaUf.getSaldoIntereses();
+        double deuda = estadoCuentaUf.getSaldoFinal() - estadoCuentaUf.getSaldoIntereses();
         double intereses = (deuda*porcentajeIntereses)/100;
 
         estadoCuentaUf.setDeuda(deuda);
         estadoCuentaUf.setIntereses(intereses);
         // Modifico saldo expensa e saldo intereses
-        estadoCuentaUf.setTotalFinal(0.0);
+        estadoCuentaUf.setSaldoFinal(0.0);
         estadoCuentaUf.setSaldoExpensa(0.0);
         estadoCuentaUf.setSaldoIntereses(intereses);
 
@@ -202,7 +203,8 @@ public class EstadoCuentaUfService {
 
         estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
 
-        estadoCuentaUf.setTotalFinal(valorDeExpensa+valorDeudaEIntereses);
+        estadoCuentaUf.setSaldoFinal(valorDeExpensa+valorDeudaEIntereses);
+        estadoCuentaUf.setTotalExpensa(valorDeExpensa+valorDeudaEIntereses);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
@@ -225,7 +227,8 @@ public class EstadoCuentaUfService {
         ec.setTotalD(0.0);
         ec.setTotalE(0.0);
         ec.setGastoParticular(0.0);
-        ec.setTotalFinal(0.0);
+        ec.setTotalExpensa(0.0);
+        ec.setSaldoFinal(0.0);
         ec.setSaldoExpensa(0.0);
         ec.setSaldoIntereses(0.0);
 
@@ -234,16 +237,6 @@ public class EstadoCuentaUfService {
         return ec;
     }
     private EstadoCuentaUf mapToEstadoCuentaUfEntityUpdate(EstadoCuentaUfDTO dto) throws Exception {
-//        validateValor(dto.getDeuda(),
-//                dto.getIntereses(),
-//                dto.getTotalA(),
-//                dto.getTotalB(),
-//                dto.getTotalC(),
-//                dto.getTotalD(),
-//                dto.getTotalE(),
-//                dto.getGastoParticular(),
-//                dto.getTotalFinal());
-
         if(unidadFuncionalRepository.findById(dto.getIdUf()).isEmpty()){
             throw new Exception("Unidad funcional no encontrada");
 
@@ -261,7 +254,8 @@ public class EstadoCuentaUfService {
         ec.setTotalD(dto.getTotalD());
         ec.setTotalE(dto.getTotalE());
         ec.setGastoParticular(dto.getGastoParticular());
-        ec.setTotalFinal(dto.getTotalFinal());
+        ec.setTotalExpensa(dto.getTotalExpensa());
+        ec.setSaldoFinal(dto.getSaldoFinal());
         ec.setSaldoExpensa(dto.getSaldoExpensa());
         ec.setSaldoIntereses(dto.getSaldoIntereses());
 
@@ -281,7 +275,8 @@ public class EstadoCuentaUfService {
         dto.setTotalD(ea.getTotalD());
         dto.setTotalE(ea.getTotalE());
         dto.setGastoParticular(ea.getGastoParticular());
-        dto.setTotalFinal(ea.getTotalFinal());
+        dto.setTotalExpensa(ea.getTotalExpensa());
+        dto.setSaldoFinal(ea.getSaldoFinal());
         dto.setSaldoExpensa(ea.getSaldoExpensa());
         dto.setSaldoIntereses(ea.getSaldoIntereses());
 
@@ -344,7 +339,7 @@ public class EstadoCuentaUfService {
 
         estadoCuentaUf.setSaldoExpensa(dto.getSaldoExpensa() - diferenciaIntereses);
 
-        estadoCuentaUf.setTotalFinal(dto.getTotalFinal() - pagoTotal);
+        estadoCuentaUf.setSaldoFinal(dto.getSaldoFinal() - pagoTotal);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
@@ -354,7 +349,7 @@ public class EstadoCuentaUfService {
         double intereses = pago.getInteresesPagos();
         double diferenciaTotalIntereses = pagoTotal - intereses;
 
-        estadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal() + pagoTotal);
+        estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() + pagoTotal);
         if(intereses == 0){
             estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() + pagoTotal);
         } else{

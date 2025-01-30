@@ -1,8 +1,6 @@
 package com.mad.sumerios.estadocuentauf.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +8,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.YearMonth;
-import java.util.List;
 
 @Data
 @RequiredArgsConstructor
@@ -44,7 +41,9 @@ public class EstadoCuentaUf {
     @NotNull
     private Double gastoParticular;
     @NotNull
-    private Double totalFinal;
+    private Double totalExpensa;
+    @NotNull
+    private Double saldoFinal;
     @NotNull
     private Double saldoExpensa;
     @NotNull

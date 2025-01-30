@@ -53,11 +53,25 @@ public class CopiaEstadoCuentaUfService {
         copiaEstadoCuentaUf.setIntereses(estadoCuentaUf.getIntereses());
         copiaEstadoCuentaUf.setTotalA(estadoCuentaUf.getTotalA());
         copiaEstadoCuentaUf.setTotalB(estadoCuentaUf.getTotalB());
-        copiaEstadoCuentaUf.setTotalC(estadoCuentaUf.getTotalB());
-        copiaEstadoCuentaUf.setTotalD(estadoCuentaUf.getTotalC());
-        copiaEstadoCuentaUf.setTotalE(estadoCuentaUf.getTotalD());
+        copiaEstadoCuentaUf.setTotalC(estadoCuentaUf.getTotalC());
+        copiaEstadoCuentaUf.setTotalD(estadoCuentaUf.getTotalD());
+        copiaEstadoCuentaUf.setTotalE(estadoCuentaUf.getTotalE());
         copiaEstadoCuentaUf.setGastoParticular(estadoCuentaUf.getGastoParticular());
-        copiaEstadoCuentaUf.setTotalFinal(estadoCuentaUf.getTotalFinal());
+
+        if(estadoCuentaUf.getTotalExpensa() != null){
+            copiaEstadoCuentaUf.setTotalExpensa(estadoCuentaUf.getTotalExpensa());
+        } else {
+            copiaEstadoCuentaUf.setTotalExpensa(estadoCuentaUf.getDeuda()+
+                    estadoCuentaUf.getIntereses()+
+                    estadoCuentaUf.getTotalA()+
+                    estadoCuentaUf.getTotalB()+
+                    estadoCuentaUf.getTotalC()+
+                    estadoCuentaUf.getTotalD()+
+                    estadoCuentaUf.getTotalE()+
+                    estadoCuentaUf.getGastoParticular());
+        }
+
+        copiaEstadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal());
         copiaEstadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa());
         copiaEstadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses());
 
@@ -80,7 +94,7 @@ public class CopiaEstadoCuentaUfService {
         dto.setTotalD(copiaEstadoCuentaUf.getTotalC());
         dto.setTotalE(copiaEstadoCuentaUf.getTotalD());
         dto.setGastoParticular(copiaEstadoCuentaUf.getGastoParticular());
-        dto.setTotalFinal(copiaEstadoCuentaUf.getTotalFinal());
+        dto.setSaldoFinal(copiaEstadoCuentaUf.getSaldoFinal());
         dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());
         dto.setSaldoIntereses(copiaEstadoCuentaUf.getSaldoIntereses());
 

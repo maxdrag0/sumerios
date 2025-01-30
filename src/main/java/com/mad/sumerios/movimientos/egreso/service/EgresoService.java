@@ -109,7 +109,7 @@ public class EgresoService {
         }
 
         egreso.setIdConsorcio(egresoUpdated.getIdConsorcio());
-        egreso.setIdProveedor(egreso.getIdProveedor());
+        egreso.setIdProveedor(egresoUpdated.getIdProveedor());
         egreso.setFecha(egresoUpdated.getFecha());
         egreso.setTipoEgreso(egresoUpdated.getTipoEgreso());
         egreso.setFormaPago(egresoUpdated.getFormaPago());

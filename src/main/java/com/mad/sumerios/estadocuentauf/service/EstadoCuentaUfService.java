@@ -4,6 +4,7 @@ import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
 import com.mad.sumerios.enums.CategoriaEgreso;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfUpdatePeriodo;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
 import com.mad.sumerios.copiaestadocuentauf.service.CopiaEstadoCuentaUfService;
@@ -14,6 +15,7 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +47,7 @@ public class EstadoCuentaUfService {
 
         EstadoCuentaUf ecUpdated = mapToEstadoCuentaUfEntityUpdate(dto);
         System.out.println();
+        ec.setPeriodo(ecUpdated.getPeriodo());
         ec.setDeuda(ecUpdated.getDeuda());
         ec.setIntereses(ecUpdated.getIntereses());
         ec.setTotalA(ecUpdated.getTotalA());
@@ -61,6 +64,19 @@ public class EstadoCuentaUfService {
         estadoCuentaUfRepository.save(ec);
     }
 
+    public void updatePeriodos (EstadoCuentaUfUpdatePeriodo dto) throws Exception {
+        List<EstadoCuentaUfDTO> ecufs = this.getEstadoCuentaUfs(dto.getUnidadFuncionalList());
+
+        for(EstadoCuentaUfDTO ecuf : ecufs){
+            EstadoCuentaUf ec = estadoCuentaUfRepository.findById(ecuf.getIdEstadoCuentaUf())
+                    .orElseThrow(() -> new Exception("Estado de cuenta no encontrado para ID: " + ecuf.getIdEstadoCuentaUf()));
+
+            ec.setPeriodo(dto.getPeriodo());
+
+            estadoCuentaUfRepository.save(ec);
+        }
+
+    }
     //  GET
     //  BY id
     public EstadoCuentaUfDTO getEstadoCuentaUfById (Long idEstadoCuentaUf) throws Exception {
@@ -147,12 +163,13 @@ public class EstadoCuentaUfService {
         return uf.get();
     }
     public void aplicarValorCategoria(long idEstadoCuentaUf,
-                             double porcentajeUf,
+                             double porcentaje,
                              double total,
                              CategoriaEgreso categoria) throws Exception {
+
         EstadoCuentaUfDTO dto = this.getEstadoCuentaUfById(idEstadoCuentaUf);
 
-        double totalAAplicar = (total > 0) ? (total * porcentajeUf) / 100 : 0;
+        double totalAAplicar = (porcentaje > 0) ? (total * porcentaje) / 100 : 0;
 
         if (totalAAplicar>0){
             EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
@@ -219,6 +236,9 @@ public class EstadoCuentaUfService {
         EstadoCuentaUf ec = new EstadoCuentaUf();
 
         ec.setUnidadFuncional(uf);
+        if(dto.getPeriodo() != null)  {
+            ec.setPeriodo(dto.getPeriodo());
+        }
         ec.setDeuda(0.0);
         ec.setIntereses(0.0);
         ec.setTotalA(0.0);
@@ -269,6 +289,7 @@ public class EstadoCuentaUfService {
         dto.setIdUf(ea.getUnidadFuncional().getIdUf());
         dto.setPeriodo(ea.getPeriodo());
         dto.setDeuda(ea.getDeuda());
+        dto.setIntereses(ea.getIntereses());
         dto.setTotalA(ea.getTotalA());
         dto.setTotalB(ea.getTotalB());
         dto.setTotalC(ea.getTotalC());
@@ -285,20 +306,24 @@ public class EstadoCuentaUfService {
     }
     // CREAR COPIA DE ESTADO DE CUENTA
     public void createCopiaEstadoCuentaUf(EstadoCuentaUfDTO dto) throws Exception {
-        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf())
-                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado"));
-        copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
+
+        if(estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf()).isEmpty()){
+            throw new Exception("Estado de cuenta no encontrado");
+        }
+
+        copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(dto);
+        Optional<EstadoCuentaUf> estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf());
 
         // LIMPIA VALORES
-        estadoCuentaUf.setPeriodo(estadoCuentaUf.getPeriodo().plusMonths(1));
-        estadoCuentaUf.setTotalA(0.0);
-        estadoCuentaUf.setTotalB(0.0);
-        estadoCuentaUf.setTotalC(0.0);
-        estadoCuentaUf.setTotalD(0.0);
-        estadoCuentaUf.setTotalE(0.0);
-        estadoCuentaUf.setGastoParticular(0.0);
+        estadoCuentaUf.get().setPeriodo(estadoCuentaUf.get().getPeriodo().plusMonths(1));
+        estadoCuentaUf.get().setTotalA(0.0);
+        estadoCuentaUf.get().setTotalB(0.0);
+        estadoCuentaUf.get().setTotalC(0.0);
+        estadoCuentaUf.get().setTotalD(0.0);
+        estadoCuentaUf.get().setTotalE(0.0);
+        estadoCuentaUf.get().setGastoParticular(0.0);
 
-        estadoCuentaUfRepository.save(estadoCuentaUf);
+        estadoCuentaUfRepository.save(estadoCuentaUf.get());
     }
 
     // CHEQUEO INTERESES

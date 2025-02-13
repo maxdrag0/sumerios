@@ -35,6 +35,16 @@ public class UnidadFuncionalRestController {
         }
     }
 
+    @PostMapping("/list")
+    public ResponseEntity<String> createUnidadesFuncionales(@RequestBody List<UnidadFuncionalCreateDTO> dtos) {
+        try{
+            unidadFuncionalService.createUnidadesFuncionales(dtos);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Unidades Funcionales creadas exitosamente");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     //  LISTAR UFs
     @GetMapping
     public ResponseEntity<?> getUnidadesFuncionales(@PathVariable Long idConsorcio) {

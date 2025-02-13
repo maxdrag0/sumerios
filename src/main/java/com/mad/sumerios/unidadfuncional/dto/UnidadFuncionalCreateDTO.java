@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.YearMonth;
+
 @Data
 public class UnidadFuncionalCreateDTO {
     @NotNull
@@ -19,7 +21,18 @@ public class UnidadFuncionalCreateDTO {
     @NotNull
     @Min(0)
     private Double porcentajeUnidad;
-
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadB;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadC;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadD;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadE;
     // DATOS PERSONAS
     // PROPIETARIO
     @NotNull
@@ -34,4 +47,5 @@ public class UnidadFuncionalCreateDTO {
     private String mailInquilino;
     private String telefonoInquilino;
 
+    private YearMonth periodo;
 }

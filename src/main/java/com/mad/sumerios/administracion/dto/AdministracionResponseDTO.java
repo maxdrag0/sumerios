@@ -15,6 +15,5 @@ public class AdministracionResponseDTO {
     private String telefono;
     private String direccion;
     private AdministracionAdmDTO administrador;
-    private List<AdministracionConsorcioDTO> consorcios;
 }
 

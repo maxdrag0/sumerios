@@ -8,13 +8,13 @@ import java.time.YearMonth;
 import java.util.Date;
 
 @Data
-public class IngresoResponseDTO extends IngresoUpdateDTO{
+public class IngresoResponseDTO {
 
     private Long idIngreso;
+    private LocalDate fecha;
     private Long idProveedor;
     private Long idExpensa;
     private YearMonth periodo;
-    private LocalDate fecha;
     private double valor;
     private String titulo;
     private String descripcion;

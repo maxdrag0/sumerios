@@ -83,18 +83,16 @@ public class PagoUFService {
         // Actualizar estado de cuenta del consorcio
         EstadoCuentaConsorcioDTO estadoCuentaConsorcio = estadoCuentaConsorcioService.mapToEstadoCuentaDTO(obtenerEstadoCuentaConsorcio(pago.getIdConsorcio()));
         estadoCuentaConsorcioService.sumarPagoUF(estadoCuentaConsorcio, pago);
-
         // Actualizar estado de cuenta de la unidad funcional
         EstadoCuentaUfDTO estadoCuentaUf = estadoCuentaUfService.mapToEstadoCuentaUfDTO(obtenerEstadoCuentaUf(pago.getIdUf()));
         estadoCuentaUfService.restarPago(estadoCuentaUf, pago);
-
         // Guardar el pago
         pagoUFRepository.save(pago);
 
         // dtos para mail y pdf
         UnidadFuncionalResponseDTO ufDto = unidadFuncionalService.getUnidadFuncionalById(pago.getIdUf());
-        ConsorcioResponseDTO consorcioDto = consorcioService.getConsorcioById(ufDto.getConsorcio().getIdConsorcio());
-        AdministracionResponseDTO admDto = administracionService.getAdministracionById(consorcioDto.getAdministracion().getIdAdm());
+        ConsorcioResponseDTO consorcioDto = consorcioService.getConsorcioById(dto.getIdConsorcio());
+        AdministracionResponseDTO admDto = administracionService.getAdministracionById(consorcioDto.getIdAdm());
 
         Double totalPago = obtenerTotalPagoPeriodo(ufDto.getIdUf(), pago.getPeriodo()) - pago.getValor();
 

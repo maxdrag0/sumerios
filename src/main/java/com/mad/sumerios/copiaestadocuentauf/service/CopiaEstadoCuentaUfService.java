@@ -1,5 +1,6 @@
 package com.mad.sumerios.copiaestadocuentauf.service;
 
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
 import com.mad.sumerios.copiaestadocuentauf.model.CopiaEstadoCuentaUf;
@@ -22,8 +23,9 @@ public class CopiaEstadoCuentaUfService {
     }
 
     //  CREATE ESTADO CUENTA
-    public void createCopiaEstadoCuentaUf (EstadoCuentaUf estadoCuentaUf) throws Exception{
-        estadoCuentaUfCopiaRepository.save(mapToCopiaEstadoCuentaUfEntity(estadoCuentaUf));
+    public void createCopiaEstadoCuentaUf (EstadoCuentaUfDTO dto) throws Exception{
+        CopiaEstadoCuentaUf copia = mapToCopiaEstadoCuentaUfEntity(dto);
+        estadoCuentaUfCopiaRepository.save(copia);
     }
 
     public List<CopiaEstadoCuentaUfDTO> getCopiasEstadoCuentaUf(Long idUf) {
@@ -41,39 +43,39 @@ public class CopiaEstadoCuentaUfService {
 
 
     // MAP TO ENTITY
-    private CopiaEstadoCuentaUf mapToCopiaEstadoCuentaUfEntity(EstadoCuentaUf estadoCuentaUf) throws Exception {
+    private CopiaEstadoCuentaUf mapToCopiaEstadoCuentaUfEntity(EstadoCuentaUfDTO dto) throws Exception {
 
 
         CopiaEstadoCuentaUf copiaEstadoCuentaUf = new CopiaEstadoCuentaUf();
 
-        copiaEstadoCuentaUf.setIdEstadoCuentaUf(estadoCuentaUf.getIdEstadoCuentaUf());
-        copiaEstadoCuentaUf.setIdUf(estadoCuentaUf.getUnidadFuncional().getIdUf());
-        copiaEstadoCuentaUf.setPeriodo(estadoCuentaUf.getPeriodo());
-        copiaEstadoCuentaUf.setDeuda(estadoCuentaUf.getDeuda());
-        copiaEstadoCuentaUf.setIntereses(estadoCuentaUf.getIntereses());
-        copiaEstadoCuentaUf.setTotalA(estadoCuentaUf.getTotalA());
-        copiaEstadoCuentaUf.setTotalB(estadoCuentaUf.getTotalB());
-        copiaEstadoCuentaUf.setTotalC(estadoCuentaUf.getTotalC());
-        copiaEstadoCuentaUf.setTotalD(estadoCuentaUf.getTotalD());
-        copiaEstadoCuentaUf.setTotalE(estadoCuentaUf.getTotalE());
-        copiaEstadoCuentaUf.setGastoParticular(estadoCuentaUf.getGastoParticular());
+        copiaEstadoCuentaUf.setIdEstadoCuentaUf(dto.getIdEstadoCuentaUf());
+        copiaEstadoCuentaUf.setIdUf(dto.getIdUf());
+        copiaEstadoCuentaUf.setPeriodo(dto.getPeriodo());
+        copiaEstadoCuentaUf.setDeuda(dto.getDeuda());
+        copiaEstadoCuentaUf.setIntereses(dto.getIntereses());
+        copiaEstadoCuentaUf.setTotalA(dto.getTotalA());
+        copiaEstadoCuentaUf.setTotalB(dto.getTotalB());
+        copiaEstadoCuentaUf.setTotalC(dto.getTotalC());
+        copiaEstadoCuentaUf.setTotalD(dto.getTotalD());
+        copiaEstadoCuentaUf.setTotalE(dto.getTotalE());
+        copiaEstadoCuentaUf.setGastoParticular(dto.getGastoParticular());
 
-        if(estadoCuentaUf.getTotalExpensa() != null){
-            copiaEstadoCuentaUf.setTotalExpensa(estadoCuentaUf.getTotalExpensa());
+        if(dto.getTotalExpensa() != null){
+            copiaEstadoCuentaUf.setTotalExpensa(dto.getTotalExpensa());
         } else {
-            copiaEstadoCuentaUf.setTotalExpensa(estadoCuentaUf.getDeuda()+
-                    estadoCuentaUf.getIntereses()+
-                    estadoCuentaUf.getTotalA()+
-                    estadoCuentaUf.getTotalB()+
-                    estadoCuentaUf.getTotalC()+
-                    estadoCuentaUf.getTotalD()+
-                    estadoCuentaUf.getTotalE()+
-                    estadoCuentaUf.getGastoParticular());
+            copiaEstadoCuentaUf.setTotalExpensa(dto.getDeuda()+
+                    dto.getIntereses()+
+                    dto.getTotalA()+
+                    dto.getTotalB()+
+                    dto.getTotalC()+
+                    dto.getTotalD()+
+                    dto.getTotalE()+
+                    dto.getGastoParticular());
         }
 
-        copiaEstadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal());
-        copiaEstadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa());
-        copiaEstadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses());
+        copiaEstadoCuentaUf.setSaldoFinal(dto.getSaldoFinal());
+        copiaEstadoCuentaUf.setSaldoExpensa(dto.getSaldoExpensa());
+        copiaEstadoCuentaUf.setSaldoIntereses(dto.getSaldoIntereses());
 
         return copiaEstadoCuentaUf;
     }
@@ -94,6 +96,7 @@ public class CopiaEstadoCuentaUfService {
         dto.setTotalD(copiaEstadoCuentaUf.getTotalC());
         dto.setTotalE(copiaEstadoCuentaUf.getTotalD());
         dto.setGastoParticular(copiaEstadoCuentaUf.getGastoParticular());
+        dto.setTotalExpensa(copiaEstadoCuentaUf.getTotalExpensa());
         dto.setSaldoFinal(copiaEstadoCuentaUf.getSaldoFinal());
         dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());
         dto.setSaldoIntereses(copiaEstadoCuentaUf.getSaldoIntereses());

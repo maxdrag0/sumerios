@@ -20,7 +20,6 @@ public class ConsorcioResponseDTO {
     private String cbu;
     private String numCuenta;
     private String alias;
-    private ConsorcioAdmDTO administracion;
-    private List<ConsorcioUfDTO> unidades;
+    private Long idAdm;
     private EstadoCuentaConsorcioDTO estadoCuentaConsorcioDTO;
 }

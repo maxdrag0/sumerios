@@ -1,5 +1,7 @@
 package com.mad.sumerios.expensa.service;
 
+import com.mad.sumerios.administracion.service.AdministracionService;
+import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import com.mad.sumerios.enums.CategoriaEgreso;
@@ -28,6 +30,7 @@ import com.mad.sumerios.movimientos.ingreso.service.IngresoService;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
+import com.mad.sumerios.pdf.PdfGeneratorExpensa;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
@@ -37,7 +40,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +61,7 @@ public class ExpensaService {
     private final GastoParticularService gastoParticularService;
     private final IngresoService ingresoService;
     private final PagoUFService pagoUFService;
+    private final AdministracionService administracionService;
     @Autowired
     public ExpensaService (IExpensaRepository expensaRepository,
                            IConsorcioRepository consorcioRepository,
@@ -69,7 +75,8 @@ public class ExpensaService {
                            EgresoService egresoService,
                            GastoParticularService gastoParticularService,
                            IngresoService ingresoService,
-                           PagoUFService pagoUFService){
+                           PagoUFService pagoUFService,
+                           AdministracionService administracionService){
         this.expensaRepository = expensaRepository;
         this.consorcioRepository = consorcioRepository;
         this.consorcioService = consorcioService;
@@ -83,14 +90,15 @@ public class ExpensaService {
         this.gastoParticularService = gastoParticularService;
         this.ingresoService = ingresoService;
         this.pagoUFService = pagoUFService;
+        this.administracionService = administracionService;
     }
 
     @Transactional
-    public void liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto) throws Exception{
+    public void liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, boolean repetirEgresos) throws Exception{
         validateConsorcio(idConsorcio);
         validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
-
+        ConsorcioResponseDTO consorcio = consorcioService.getConsorcioById(idConsorcio);
         List<UnidadFuncionalResponseDTO> ufs = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
         List<EstadoCuentaUfDTO> estadosDeCuentaUf = estadoCuentaUfService.getEstadoCuentaUfs(ufs);
 
@@ -99,37 +107,37 @@ public class ExpensaService {
         // ECUF -> TOMA EL SALDO EXPENSAS Y LO TRANSFORMA EN DEUDA Y CALCULA EL INTERES
         aplicarDeudaEIntereses(estadosDeCuentaUf, expensa.getPorcentajeIntereses());
 
-    // SUMA GASTOS A, B, C, D Y E
-        double totalA = totalGastos(expensa.getEgresos(),CategoriaEgreso.A);
-        double totalB = totalGastos(expensa.getEgresos(),CategoriaEgreso.B);
-        double totalC = totalGastos(expensa.getEgresos(),CategoriaEgreso.C);
-        double totalD = totalGastos(expensa.getEgresos(),CategoriaEgreso.D);
-        double totalE = totalGastos(expensa.getEgresos(),CategoriaEgreso.E);
+        // Aplicar gastos por categoría
+        Map<CategoriaEgreso, Double> totalGastosPorCategoria = Arrays.stream(CategoriaEgreso.values())
+                .collect(Collectors.toMap(categoria -> categoria, categoria -> totalGastos(expensa.getEgresos(), categoria)));
 
-    // ECUF -> APLICA A ESTADO DE CUENTA UF POR PORCENTAJE SUMATORIA DE CADA GASTO
-
-        if (totalA > 0) {
-            aplicarTotal(estadosDeCuentaUf, totalA, CategoriaEgreso.A);
-        }
-        if (totalB > 0) {
-            aplicarTotal(estadosDeCuentaUf, totalB, CategoriaEgreso.B);
-        }
-        if (totalC > 0) {
-            aplicarTotal(estadosDeCuentaUf, totalC, CategoriaEgreso.C);
-        }
-        if (totalD > 0) {
-            aplicarTotal(estadosDeCuentaUf, totalD, CategoriaEgreso.D);
-        }
-        if (totalE > 0) {
-            aplicarTotal(estadosDeCuentaUf, totalE, CategoriaEgreso.E);
-        }
+        totalGastosPorCategoria.forEach((categoria, total) -> {
+            if (total > 0) {
+                try {
+                    aplicarTotal(estadosDeCuentaUf, total, categoria);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
     // ECUF -> APLICA VALOR POR GASTOS PARTICULARES O APLICA 0
-        aplicarGastosParticulares(expensa.getGp());
+        if(!expensa.getGp().isEmpty()){
+            aplicarGastosParticulares(expensa.getGp());
+        }
     // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL, APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES
         aplicarValorTotal(estadosDeCuentaUf);
+
+        // CREAR PDF
+        PdfGeneratorExpensa.crearPdfExpensa(administracionService.getAdministracionById(consorcio.getIdAdm()),consorcio, expensa, ufs, estadosDeCuentaUf);
+
     // CREA NUEVA EXPENSA  VACIA E INTNERMEDIA
         createExpensa(dto);
+
+        if(repetirEgresos){
+            ExpensaResponseDto expNueva = this.getExpensasByConsorcioAndPeriodo(idConsorcio,expensa.getPeriodo().plusMonths(1));
+            egresoService.createEgresosNuevaExpensa(expNueva.getIdExpensa(),expensa.getEgresos());
+        }
     }
 
     @Transactional
@@ -163,9 +171,9 @@ public class ExpensaService {
     @Transactional
     public ExpensaResponseDto restablecerPeriodo(Long idExpensa) throws Exception {
         ExpensaResponseDto expensaUltima = this.getExpensasById(idExpensa);
-        System.out.println("1- Expensa ultima"+ expensaUltima);
+        System.out.println("1- Expensa ultima"+ expensaUltima.getPeriodo());
         ExpensaResponseDto expensaAnterior = this.getExpensasByConsorcioAndPeriodo(expensaUltima.getIdConsorcio(), expensaUltima.getPeriodo().minusMonths(1));
-        System.out.println("2- Expensa anterior"+ expensaAnterior);
+        System.out.println("2- Expensa anterior"+ expensaAnterior.getIdExpensa());
 
         if(expensaAnterior == null){
             throw new Exception("No existe expensa previa");
@@ -273,11 +281,26 @@ public class ExpensaService {
         for (EstadoCuentaUfDTO estadoActual : estadoCuentaUfs) {
             UnidadFuncionalResponseDTO uf = unidadFuncionalService.getUnidadFuncionalById(estadoActual.getIdUf());
 
-            estadoCuentaUfService.aplicarValorCategoria(estadoActual.getIdEstadoCuentaUf(),
-                                                        uf.getPorcentajeUnidad(),
-                                                        total,
-                                                        categoria);
+            // Mapa que asocia cada categoría con su porcentaje correspondiente
+            Map<CategoriaEgreso, Double> porcentajes = Map.of(
+                    CategoriaEgreso.A, uf.getPorcentajeUnidad(),
+                    CategoriaEgreso.B, uf.getPorcentajeUnidadB(),
+                    CategoriaEgreso.C, uf.getPorcentajeUnidadC(),
+                    CategoriaEgreso.D, uf.getPorcentajeUnidadD(),
+                    CategoriaEgreso.E, uf.getPorcentajeUnidadE()
+            );
 
+            // Obtener el porcentaje de la categoría dada
+            Double porcentaje = porcentajes.get(categoria);
+
+            if (porcentaje != null) {
+                estadoCuentaUfService.aplicarValorCategoria(
+                        estadoActual.getIdEstadoCuentaUf(),
+                        porcentaje,
+                        total,
+                        categoria
+                );
+            }
         }
     }
     private void aplicarGastosParticulares(List<GastoParticularResponseDTO> gastosParticulares) throws Exception {

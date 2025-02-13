@@ -2,6 +2,8 @@ package com.mad.sumerios.movimientos.egreso.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.enums.CategoriaEgreso;
+import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
@@ -156,7 +158,7 @@ public class EgresoService {
         }
     }
     private void validateValor(Double totalFinal) throws Exception {
-        if (totalFinal <= 0){
+        if (totalFinal < 0){
             throw new Exception(
                     "El valor del egreso debe ser mayor de $0");
         }
@@ -174,7 +176,7 @@ public class EgresoService {
     private Egreso mapToEgresoEntity(EgresoCreateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateComprobante(dto.getComprobante());
+//        validateComprobante(dto.getComprobante());
         validateValor(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
         Egreso egreso = new Egreso();
@@ -200,7 +202,7 @@ public class EgresoService {
     private Egreso mapToEgresoEntityUpdate(EgresoUpdateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateComprobanteUpdate(dto.getIdEgreso(), dto.getComprobante());
+//        validateComprobanteUpdate(dto.getIdEgreso(), dto.getComprobante());
         validateValor(dto.getTotalFinal());
 
         Egreso egreso = new Egreso();
@@ -238,5 +240,31 @@ public class EgresoService {
         dto.setCategoriaEgreso(egreso.getCategoriaEgreso());
 
         return dto;
+    }
+
+    public void createEgresosNuevaExpensa(Long idExpensa, List<EgresoResponseDTO> egresos) throws Exception {
+        for(EgresoResponseDTO dto : egresos){
+            EgresoCreateDTO dtoCreate = mapToEgresoCreate(idExpensa, dto);
+            this.createEgreso(dtoCreate);
+        }
+    }
+
+    private EgresoCreateDTO mapToEgresoCreate(Long idExpensa, EgresoResponseDTO dto) {
+        EgresoCreateDTO createDto = new EgresoCreateDTO();
+
+        createDto.setIdConsorcio(dto.getIdConsorcio());
+        createDto.setIdProveedor(dto.getIdProveedor());
+        createDto.setIdExpensa(idExpensa);
+        createDto.setPeriodo(dto.getPeriodo().plusMonths(1));
+        createDto.setFecha(dto.getFecha().plusMonths(1));
+        createDto.setTitulo(dto.getTitulo());
+        createDto.setTipoEgreso(dto.getTipoEgreso());
+        createDto.setFormaPago(dto.getFormaPago());
+        createDto.setComprobante(dto.getComprobante());
+        createDto.setDescripcion(dto.getDescripcion());
+        createDto.setCategoriaEgreso(dto.getCategoriaEgreso());
+        createDto.setTotalFinal(0.0);
+
+        return createDto;
     }
 }

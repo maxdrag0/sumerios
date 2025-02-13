@@ -1,7 +1,9 @@
 package com.mad.sumerios.estadocuentauf.dto;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.time.YearMonth;
 
@@ -11,10 +13,15 @@ public class EstadoCuentaUfCreateDTO {
     @NotNull
     private Long idUf;
 
-    private YearMonth periodo = YearMonth.now();
+    private YearMonth periodo;
 
 
     public EstadoCuentaUfCreateDTO (Long idUf){
         this.idUf = idUf;
+    }
+
+    public EstadoCuentaUfCreateDTO (Long idUf, YearMonth periodo){
+        this.idUf = idUf;
+        this.periodo = periodo;
     }
 }

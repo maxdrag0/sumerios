@@ -35,29 +35,43 @@ public class UnidadFuncional {
     private Consorcio consorcio;
 
     @NotNull
-    @Min(1)
+    @Min(0)
     private int unidadFuncional;
 
     @NotBlank
-    @Size(max = 5)
     private String titulo;
 
     @NotNull
     @Min(0)
     private Double porcentajeUnidad;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadB;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadC;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadD;
+    @NotNull
+    @Min(0)
+    private Double porcentajeUnidadE;
 
     // DATOS PERSONAS
     // PROPIETARIO
     @NotNull
     private String apellidoPropietario;
-    @NotNull
     private String nombrePropietario;
     private String mailPropietario;
+    //    String[] correos = mailPropietario.split(",");
+    //    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL, orphanRemoval = true)
+    //    private List<MailPropietario> mails = new ArrayList<>();
     private String telefonoPropietario;
     // INQUILINO
     private String apellidoInquilino;
     private String nombreInquilino;
     private String mailInquilino;
+
     private String telefonoInquilino;
 
     // ESTADO DE CUENTA
@@ -65,12 +79,6 @@ public class UnidadFuncional {
     @JoinColumn(name = "id_estado_cuenta_uf")
     @JsonIgnore
     private EstadoCuentaUf estadoCuentaUf;
-
-//    @OneToMany(mappedBy = "unidadFuncional",
-//               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-//               fetch = FetchType.LAZY)
-//    @JsonManagedReference
-//    private List<PagoUF> pagoUFS;
 
 //    @ManyToMany(mappedBy = "unidadesFuncionales")
 //    @JsonBackReference

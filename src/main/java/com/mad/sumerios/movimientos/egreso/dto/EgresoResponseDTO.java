@@ -18,10 +18,11 @@ public class EgresoResponseDTO {
     private YearMonth periodo;
     private LocalDate fecha;
     private String titulo;
+    private TipoEgreso tipoEgreso;
     private FormaPago formaPago;
     private String comprobante;
     private String descripcion;
-    private Double totalFinal;
-    private TipoEgreso tipoEgreso;
     private CategoriaEgreso categoriaEgreso;
+    private Double totalFinal;
+
 }

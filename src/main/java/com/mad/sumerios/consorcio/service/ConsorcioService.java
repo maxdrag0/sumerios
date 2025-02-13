@@ -191,27 +191,10 @@ public class ConsorcioService {
         // FIN MAPEO
 
         // MAPEO DATOS ADMINISTRACION
-        Administracion adm = consorcio.getAdministracion();
-        ConsorcioAdmDTO admDTO = new ConsorcioAdmDTO();
-        admDTO.setIdAdm(adm.getIdAdm());
-        admDTO.setNombre(adm.getNombre());
-        consorcioDTO.setAdministracion(admDTO);
-
+        consorcioDTO.setIdAdm(consorcio.getAdministracion().getIdAdm());
         // FIN MAPEO
 
         // MAPEO DATOs UFs
-        List<ConsorcioUfDTO> ufDTOList = consorcio.getUnidadesFuncionales().stream()
-                .map(uf ->{
-                    ConsorcioUfDTO ufDTO = new ConsorcioUfDTO();
-                    ufDTO.setIdUf(uf.getIdUf());
-                    ufDTO.setUnidadFuncional(uf.getUnidadFuncional());
-                    ufDTO.setTitulo(uf.getTitulo());
-                    ufDTO.setApellidoPropietario(uf.getApellidoPropietario());
-                    ufDTO.setNombrePropietario(uf.getNombrePropietario());
-
-                    return ufDTO;
-                }).collect(Collectors.toList());
-        consorcioDTO.setUnidades(ufDTOList);
         // FIN MAPEO
 
         // MAPEO ESTADO CUENTA

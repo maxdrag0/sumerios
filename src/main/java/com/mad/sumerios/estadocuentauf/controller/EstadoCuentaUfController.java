@@ -2,11 +2,17 @@ package com.mad.sumerios.estadocuentauf.controller;
 
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfUpdatePeriodo;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
+import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.YearMonth;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/estado_cuenta_uf")
@@ -37,6 +43,16 @@ public class EstadoCuentaUfController {
         try{
             estadoCuentaUfService.updateEstadoCuentaUf(idEstadoCuentaUf, dto);
             return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/update_periodo")
+    public ResponseEntity<String> updatePeriodos(@RequestBody EstadoCuentaUfUpdatePeriodo dto){
+        try{
+            estadoCuentaUfService.updatePeriodos(dto);
+            return ResponseEntity.status(HttpStatus.OK).body("Periodos de cuentas modificado exitosamente.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

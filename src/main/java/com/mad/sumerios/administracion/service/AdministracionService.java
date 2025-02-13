@@ -161,15 +161,6 @@ public class AdministracionService {
         }
 
         // Mapear la lista de consorcios usando ConsorcioResponseDTO
-        List<AdministracionConsorcioDTO> consorcioDTOList = administracion.getConsorcios().stream()
-                .map(consorcio -> {
-                    AdministracionConsorcioDTO consorcioDTO = new AdministracionConsorcioDTO();
-                    consorcioDTO.setIdConsorcio(consorcio.getIdConsorcio());
-                    consorcioDTO.setNombre(consorcio.getNombre());
-                    consorcioDTO.setDireccion(consorcio.getDireccion());
-                    return consorcioDTO;
-                }).collect(Collectors.toList());
-        administracionDTO.setConsorcios(consorcioDTOList);
 
         return administracionDTO;
     }

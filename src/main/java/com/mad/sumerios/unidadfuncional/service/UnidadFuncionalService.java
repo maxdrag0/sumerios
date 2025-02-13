@@ -6,13 +6,13 @@ import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
-import com.mad.sumerios.unidadfuncional.dto.UfConsorcioDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalCreateDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalUpdateDTO;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,16 +42,26 @@ public class UnidadFuncionalService {
         UnidadFuncional uf = mapToUnidadFuncionalEntity(dto);
         unidadFuncionalRepository.save(uf);
 
-        EstadoCuentaUfCreateDTO eaDTO = new EstadoCuentaUfCreateDTO(uf.getIdUf());
+        EstadoCuentaUfCreateDTO eaDTO = new EstadoCuentaUfCreateDTO(uf.getIdUf(), dto.getPeriodo());
         estadoCuentaUfService.createEstadoCuentaUf(eaDTO);
 
     }
 
+    @Transactional
+    public void createUnidadesFuncionales(List<UnidadFuncionalCreateDTO> dtos) throws Exception{
+        for(UnidadFuncionalCreateDTO dto : dtos){
+            this.createUnidadFuncional(dto);
+        }
+    }
+
     //  LISTAR UF
     public List<UnidadFuncionalResponseDTO> getUnidadesPorConsorcio(Long idConsorcio) {
+
         List<UnidadFuncional> ufs = unidadFuncionalRepository.findByConsorcio_IdConsorcio(idConsorcio);
+        actualizarPorcentajes(ufs);
         return ufs.stream().map(this::mapToUnidadFuncionalResponseDTO).collect(Collectors.toList());
     }
+
 
     // get by id
     public UnidadFuncionalResponseDTO getUnidadFuncionalById(Long idUf) throws Exception {
@@ -62,9 +72,9 @@ public class UnidadFuncionalService {
     }
 
     //  ACTUALIZAR UF
-    public void updateUnidadFuncional(Long idConsorcio, Long idUnidadFuncional, UnidadFuncionalUpdateDTO dto) throws Exception{
+    public void updateUnidadFuncional(Long idConsorcio, Long idUf, UnidadFuncionalUpdateDTO dto) throws Exception{
         // Verifica si la unidad funcional existe
-        UnidadFuncional ufExistente = unidadFuncionalRepository.findById(idUnidadFuncional)
+        UnidadFuncional ufExistente = unidadFuncionalRepository.findById(idUf)
                 .orElseThrow(() -> new Exception("Unidad Funcional no encontrada"));
 
         // Verifica que la unidad funcional pertenece al consorcio correcto
@@ -73,8 +83,8 @@ public class UnidadFuncionalService {
         }
 
         // Validaciones
-        verificarTituloUnicoUpdate(idUnidadFuncional,dto.getTitulo(),idConsorcio);
-        verificarNumeroUnidadUnicoUpdate(idUnidadFuncional,dto.getUnidadFuncional(),idConsorcio);
+        verificarTituloUnicoUpdate(idUf,dto.getTitulo(),idConsorcio);
+        verificarNumeroUnidadUnicoUpdate(idUf,dto.getUnidadFuncional(),idConsorcio);
         // Mapeo a entidad
         UnidadFuncional ufUpdated = mapToUnidadFuncionalEntityUpdate(dto);
 
@@ -82,6 +92,11 @@ public class UnidadFuncionalService {
         ufExistente.setUnidadFuncional(ufUpdated.getUnidadFuncional());
         ufExistente.setTitulo(ufUpdated.getTitulo());
         ufExistente.setPorcentajeUnidad(ufUpdated.getPorcentajeUnidad());
+        ufExistente.setPorcentajeUnidadB(ufUpdated.getPorcentajeUnidadB());
+        ufExistente.setPorcentajeUnidadC(ufUpdated.getPorcentajeUnidadC());
+        ufExistente.setPorcentajeUnidadD(ufUpdated.getPorcentajeUnidadD());
+        ufExistente.setPorcentajeUnidadE(ufUpdated.getPorcentajeUnidadE());
+
         // DATOS PROP
         ufExistente.setApellidoPropietario(ufUpdated.getApellidoPropietario());
         ufExistente.setNombrePropietario(ufUpdated.getNombrePropietario());
@@ -97,8 +112,8 @@ public class UnidadFuncionalService {
     }
 
     //  ELIMINAR UF
-    public void deleteUnidadFuncional(Long idConsorcio, Long idUnidadFuncional) throws Exception {
-        UnidadFuncional uf = unidadFuncionalRepository.findById(idUnidadFuncional)
+    public void deleteUnidadFuncional(Long idConsorcio, Long idUf) throws Exception {
+        UnidadFuncional uf = unidadFuncionalRepository.findById(idUf)
                 .orElseThrow(() -> new Exception("Unidad Funcional no encontrada"));
 
         // Verifica que la unidad funcional pertenece al consorcio correcto
@@ -162,6 +177,10 @@ public class UnidadFuncionalService {
         uf.setUnidadFuncional(dto.getUnidadFuncional());
         uf.setTitulo(dto.getTitulo());
         uf.setPorcentajeUnidad(dto.getPorcentajeUnidad());
+        uf.setPorcentajeUnidadB(dto.getPorcentajeUnidadB());
+        uf.setPorcentajeUnidadC(dto.getPorcentajeUnidadC());
+        uf.setPorcentajeUnidadD(dto.getPorcentajeUnidadD());
+        uf.setPorcentajeUnidadE(dto.getPorcentajeUnidadE());
 
         uf.setApellidoPropietario(dto.getApellidoPropietario());
         uf.setNombrePropietario(dto.getNombrePropietario());
@@ -184,6 +203,11 @@ public class UnidadFuncionalService {
         uf.setUnidadFuncional(dto.getUnidadFuncional());
         uf.setTitulo(dto.getTitulo());
         uf.setPorcentajeUnidad(dto.getPorcentajeUnidad());
+        uf.setPorcentajeUnidadB(dto.getPorcentajeUnidadB());
+        uf.setPorcentajeUnidadC(dto.getPorcentajeUnidadC());
+        uf.setPorcentajeUnidadD(dto.getPorcentajeUnidadD());
+        uf.setPorcentajeUnidadE(dto.getPorcentajeUnidadE());
+
 
         uf.setApellidoPropietario(dto.getApellidoPropietario());
         uf.setNombrePropietario(dto.getNombrePropietario());
@@ -201,11 +225,16 @@ public class UnidadFuncionalService {
         UnidadFuncionalResponseDTO dto = new UnidadFuncionalResponseDTO();
 
         dto.setIdUf(uf.getIdUf());
+        dto.setIdConsorcio(uf.getConsorcio().getIdConsorcio());
         dto.setUnidadFuncional(uf.getUnidadFuncional());
         dto.setTitulo(uf.getTitulo());
         dto.setApellidoPropietario(uf.getApellidoPropietario());
         dto.setNombrePropietario(uf.getNombrePropietario());
         dto.setPorcentajeUnidad(uf.getPorcentajeUnidad());
+        dto.setPorcentajeUnidadB(uf.getPorcentajeUnidadB());
+        dto.setPorcentajeUnidadC(uf.getPorcentajeUnidadC());
+        dto.setPorcentajeUnidadD(uf.getPorcentajeUnidadD());
+        dto.setPorcentajeUnidadE(uf.getPorcentajeUnidadE());
 
         dto.setNombrePropietario(uf.getNombrePropietario());
         dto.setApellidoPropietario(uf.getApellidoPropietario());
@@ -217,13 +246,13 @@ public class UnidadFuncionalService {
         dto.setMailInquilino(uf.getMailInquilino());
         dto.setTelefonoInquilino(uf.getTelefonoInquilino());
 
-        Consorcio cons = uf.getConsorcio();
-        UfConsorcioDTO consDTO = new UfConsorcioDTO();
-        consDTO.setIdConsorcio(cons.getIdConsorcio());
-        consDTO.setNombre(cons.getNombre());
-        consDTO.setDireccion(cons.getDireccion());
-        dto.setConsorcio(consDTO);
+        EstadoCuentaUfDTO ecDto = getEstadoCuentaUfDTO(uf);
+        dto.setEstadoCuentaUfDTO(ecDto);
 
+        return dto;
+    }
+
+    private static EstadoCuentaUfDTO getEstadoCuentaUfDTO(UnidadFuncional uf) {
         EstadoCuentaUf ec = uf.getEstadoCuentaUf();
         EstadoCuentaUfDTO ecDto = new EstadoCuentaUfDTO();
 
@@ -243,10 +272,25 @@ public class UnidadFuncionalService {
         ecDto.setSaldoFinal(ec.getSaldoFinal());
         ecDto.setSaldoExpensa(ec.getSaldoExpensa());
         ecDto.setSaldoIntereses(ec.getSaldoIntereses());
-        dto.setEstadoCuentaUfDTO(ecDto);
-
-        return dto;
+        return ecDto;
     }
 
+    private void actualizarPorcentajes(List<UnidadFuncional> ufs) {
+        double valorInicial = 0;
+        for (UnidadFuncional uf : ufs){
+            if(uf.getPorcentajeUnidadB() == null){
+                uf.setPorcentajeUnidadB(valorInicial);
+            }
+            if(uf.getPorcentajeUnidadC() == null){
+                uf.setPorcentajeUnidadC(valorInicial);
+            }
+            if(uf.getPorcentajeUnidadB() == null){
+                uf.setPorcentajeUnidadD(valorInicial);
+            }
+            if(uf.getPorcentajeUnidadB() == null){
+                uf.setPorcentajeUnidadE(valorInicial);
+            }
+        }
+    }
 
 }

@@ -39,26 +39,31 @@ public class Expensa {
 
 //  MOVIMIENTOS
     @OneToMany(mappedBy = "expensa",
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-               fetch = FetchType.LAZY)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Egreso> egresos;
 
+
     @OneToMany(mappedBy = "expensa",
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-               fetch = FetchType.LAZY)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<GastoParticular> gastosParticulares;
 
     @OneToMany(mappedBy = "expensa",
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-               fetch = FetchType.LAZY)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Ingreso> ingresos;
 
     @OneToMany(mappedBy = "expensa",
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-               fetch = FetchType.LAZY)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<PagoUF> pagoUFS;
 

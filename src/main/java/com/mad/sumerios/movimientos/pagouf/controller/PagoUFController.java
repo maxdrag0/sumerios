@@ -41,10 +41,10 @@ public class PagoUFController {
 
     //  LISTAR
     //  por uf
-    @GetMapping("/unidadFuncional/{ufId}")
-    public ResponseEntity<List<PagoUFDTO>> getPagoUFByUF (@PathVariable Long ufId){
+    @GetMapping("/unidadFuncional/{idUf}")
+    public ResponseEntity<List<PagoUFDTO>> getPagoUFByUF (@PathVariable Long idUf){
         try{
-            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByUnidadFuncional(ufId);
+            List<PagoUFDTO> pagoUFS = pagoUFService.getPagoUFByUnidadFuncional(idUf);
             if(pagoUFS.isEmpty()){
                 return ResponseEntity.noContent().build();
             }

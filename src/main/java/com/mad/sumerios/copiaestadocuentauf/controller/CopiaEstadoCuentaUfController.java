@@ -1,5 +1,6 @@
 package com.mad.sumerios.copiaestadocuentauf.controller;
 
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.copiaestadocuentauf.dto.CopiaEstadoCuentaUfDTO;
 import com.mad.sumerios.copiaestadocuentauf.service.CopiaEstadoCuentaUfService;
@@ -23,9 +24,9 @@ public class CopiaEstadoCuentaUfController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<String> createCopiaEstadoCuentaUf(@RequestBody EstadoCuentaUf estadoCuentaUf){
+    public ResponseEntity<String> createCopiaEstadoCuentaUf(@RequestBody EstadoCuentaUfDTO dto){
         try {
-            copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(estadoCuentaUf);
+            copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body("Copia del cuenta creado exitosamente");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

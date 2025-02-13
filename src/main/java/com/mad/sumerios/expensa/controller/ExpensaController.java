@@ -99,7 +99,7 @@ public class ExpensaController {
     public ResponseEntity<?> liquidarExpensa (@PathVariable Long idConsorcio,
                                               @RequestBody LiquidarExpensaRequest request){
         try{
-            expensaService.liquidarExpensaMesVencido(idConsorcio, request.getIdExpensa(), request.getExpensaCreateDTO());
+            expensaService.liquidarExpensaMesVencido(idConsorcio, request.getIdExpensa(), request.getExpensaCreateDTO(), request.getRepetirEgresos());
             return ResponseEntity.status(HttpStatus.CREATED).body("Expensa liquidada correctamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

@@ -32,7 +32,6 @@ public class EgresoCreateDTO {
     private TipoEgreso tipoEgreso;
     @NotNull
     private FormaPago formaPago;
-    @NotNull
     private String Comprobante;
     private String descripcion;
 

@@ -7,8 +7,7 @@ import com.mad.sumerios.expensa.dto.ExpensaResponseDto;
 import com.mad.sumerios.expensa.dto.LiquidarExpensaRequest;
 import com.mad.sumerios.expensa.service.ExpensaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.YearMonth;
@@ -95,16 +94,45 @@ public class ExpensaController {
         }
     }
 
+//    @PostMapping("/consorcio/{idConsorcio}")
+//    public ResponseEntity<?> liquidarExpensa (@PathVariable Long idConsorcio,
+//                                              @RequestBody LiquidarExpensaRequest request){
+//        try{
+//            expensaService.liquidarExpensaMesVencido(idConsorcio, request.getIdExpensa(), request.getExpensaCreateDTO(), request.getRepetirEgresos());
+//            return ResponseEntity.status(HttpStatus.CREATED).body("Expensa liquidada correctamente");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        }
+//    }
+
     @PostMapping("/consorcio/{idConsorcio}")
-    public ResponseEntity<?> liquidarExpensa (@PathVariable Long idConsorcio,
-                                              @RequestBody LiquidarExpensaRequest request){
-        try{
-            expensaService.liquidarExpensaMesVencido(idConsorcio, request.getIdExpensa(), request.getExpensaCreateDTO(), request.getRepetirEgresos());
-            return ResponseEntity.status(HttpStatus.CREATED).body("Expensa liquidada correctamente");
+    public ResponseEntity<byte[]> liquidarExpensa(@PathVariable Long idConsorcio,
+                                                  @RequestBody LiquidarExpensaRequest request) {
+        try {
+            byte[] pdfBytes = expensaService.liquidarExpensaMesVencido(
+                    idConsorcio,
+                    request.getIdExpensa(),
+                    request.getExpensaCreateDTO(),
+                    request.getRepetirEgresos()
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(ContentDisposition
+                    .builder("attachment")
+                    .filename("Expensa_" + idConsorcio + ".pdf")
+                    .build());
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            // Devuelve el mensaje de error en el cuerpo
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                    .body(e.getMessage().getBytes());
         }
     }
+
 
     @DeleteMapping("/{idExpensa}")
     public ResponseEntity<?> restablecerPeriodo(@PathVariable Long idExpensa){

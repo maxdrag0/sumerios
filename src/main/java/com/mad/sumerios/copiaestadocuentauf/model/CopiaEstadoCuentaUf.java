@@ -23,6 +23,7 @@ public class CopiaEstadoCuentaUf {
     //
     @NotNull
     private YearMonth periodo;
+    private Double totalMesPrevio;
     @NotNull
     private Double deuda;
     @NotNull
@@ -39,6 +40,8 @@ public class CopiaEstadoCuentaUf {
     private Double totalE;
     @NotNull
     private Double gastoParticular;
+    @NotNull
+    private Double redondeo;
     @NotNull
     private Double totalExpensa;
     @NotNull

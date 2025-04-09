@@ -50,7 +50,6 @@ public class Egreso {
     private TipoEgreso tipoEgreso;
     @NotNull
     private FormaPago formaPago;
-    @NotNull
     private String comprobante;
     private String descripcion;
 

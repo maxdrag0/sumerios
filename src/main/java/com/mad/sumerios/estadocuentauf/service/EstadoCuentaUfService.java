@@ -48,6 +48,7 @@ public class EstadoCuentaUfService {
         EstadoCuentaUf ecUpdated = mapToEstadoCuentaUfEntityUpdate(dto);
         System.out.println();
         ec.setPeriodo(ecUpdated.getPeriodo());
+        ec.setTotalMesPrevio(ecUpdated.getTotalMesPrevio());
         ec.setDeuda(ecUpdated.getDeuda());
         ec.setIntereses(ecUpdated.getIntereses());
         ec.setTotalA(ecUpdated.getTotalA());
@@ -56,10 +57,11 @@ public class EstadoCuentaUfService {
         ec.setTotalD(ecUpdated.getTotalD());
         ec.setTotalE(ecUpdated.getTotalE());
         ec.setGastoParticular(ecUpdated.getGastoParticular());
+        ec.setRedondeo(ecUpdated.getRedondeo());
         ec.setTotalExpensa(ecUpdated.getTotalExpensa());
         ec.setSaldoFinal(ecUpdated.getSaldoFinal());
-        ec.setSaldoExpensa(dto.getSaldoExpensa());
-        ec.setSaldoIntereses(dto.getSaldoIntereses());
+        ec.setSaldoExpensa(ecUpdated.getSaldoExpensa());
+        ec.setSaldoIntereses(ecUpdated.getSaldoIntereses());
 
         estadoCuentaUfRepository.save(ec);
     }
@@ -100,24 +102,25 @@ public class EstadoCuentaUfService {
 
     // METODO PARA RESTABLECER ESTADO DE CUENTA CUANDO SE ELIMINA UNA EXPENSA
     public void restablecerPeriodoPrevio(Long idEstadoCuentaUf) throws Exception {
-        System.out.println("3 Dentro de restablecer periodo de ECUF: ");
 
         EstadoCuentaUfDTO estadoActual = this.getEstadoCuentaUfById(idEstadoCuentaUf);
-        System.out.println("4 ECUF Periodo de estado actual: "+ estadoActual.getPeriodo());
-        System.out.println("5 ECUF Periodo de estado viejo: "+ estadoActual.getPeriodo().minusMonths(1));
         CopiaEstadoCuentaUfDTO copiaEstadoPeriodoPrevio = copiaEstadoCuentaUfService.getCopiasEstadoCuentaUfByIdEstadoCuentaUfAndPeriodo(
                 idEstadoCuentaUf,
                 estadoActual.getPeriodo().minusMonths(1));
         if(copiaEstadoPeriodoPrevio == null){
             throw new Exception("Copia no encontrada");
         }
-        System.out.println("6 COPIA ECUF Periodo de estado VIEJO: "+ copiaEstadoPeriodoPrevio.getPeriodo());
 
 
         // COPIO LOS DATOS VIEJOS AL ESTADO ACTUAL
-        System.out.println("7 ECUF ANTES DE ACTUALIZAR: "+ estadoActual);
-
         estadoActual.setPeriodo(copiaEstadoPeriodoPrevio.getPeriodo());
+        if(copiaEstadoPeriodoPrevio.getTotalMesPrevio() == null){
+            estadoActual.setTotalMesPrevio(0.0);
+
+        } else{
+            estadoActual.setTotalMesPrevio(copiaEstadoPeriodoPrevio.getTotalMesPrevio());
+
+        }
         estadoActual.setDeuda(copiaEstadoPeriodoPrevio.getDeuda());
         estadoActual.setIntereses(copiaEstadoPeriodoPrevio.getIntereses());
         estadoActual.setTotalA(copiaEstadoPeriodoPrevio.getTotalA());
@@ -126,12 +129,16 @@ public class EstadoCuentaUfService {
         estadoActual.setTotalD(copiaEstadoPeriodoPrevio.getTotalD());
         estadoActual.setTotalE(copiaEstadoPeriodoPrevio.getTotalE());
         estadoActual.setGastoParticular(copiaEstadoPeriodoPrevio.getGastoParticular());
+        if(copiaEstadoPeriodoPrevio.getRedondeo() == null){
+            estadoActual.setRedondeo(0.0);
+
+        } else{
+            estadoActual.setRedondeo(copiaEstadoPeriodoPrevio.getRedondeo());
+        }
         estadoActual.setTotalExpensa(copiaEstadoPeriodoPrevio.getTotalExpensa());
         estadoActual.setSaldoFinal(copiaEstadoPeriodoPrevio.getSaldoFinal());
         estadoActual.setSaldoExpensa(copiaEstadoPeriodoPrevio.getSaldoExpensa());
         estadoActual.setSaldoIntereses(copiaEstadoPeriodoPrevio.getSaldoIntereses());
-        System.out.println("8 ECUF DESPUES DE ACTUALIZAR: "+ estadoActual);
-
         this.updateEstadoCuentaUf(idEstadoCuentaUf, estadoActual);
         // ELIMINO LA COPIA
         copiaEstadoCuentaUfService.deleteCopiaEstadoCuentaUf(copiaEstadoPeriodoPrevio.getIdCopiaEstadoCuentaUf());
@@ -162,6 +169,24 @@ public class EstadoCuentaUfService {
 
         return uf.get();
     }
+    public void aplicarDeudaEIntereses(long idEstadoCuentaUf, double porcentajeIntereses) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(() -> new Exception("Estado de cuenta no encontrado"));
+
+
+        double deuda = estadoCuentaUf.getSaldoFinal() - estadoCuentaUf.getSaldoIntereses();
+        double intereses = (deuda * porcentajeIntereses) / 100;
+
+        estadoCuentaUf.setTotalMesPrevio(estadoCuentaUf.getTotalExpensa());
+        estadoCuentaUf.setDeuda(deuda);
+        estadoCuentaUf.setIntereses(intereses);
+        // Modifico saldo expensa e saldo intereses
+        estadoCuentaUf.setSaldoFinal(0.0);
+        estadoCuentaUf.setSaldoExpensa(0.0);
+        estadoCuentaUf.setSaldoIntereses(intereses);
+
+        estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
     public void aplicarValorCategoria(long idEstadoCuentaUf,
                              double porcentaje,
                              double total,
@@ -188,23 +213,7 @@ public class EstadoCuentaUfService {
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
-    public void aplicarDeudaEIntereses(long idEstadoCuentaUf, double porcentajeIntereses) throws Exception {
-        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
-                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
 
-
-        double deuda = estadoCuentaUf.getSaldoFinal() - estadoCuentaUf.getSaldoIntereses();
-        double intereses = (deuda*porcentajeIntereses)/100;
-
-        estadoCuentaUf.setDeuda(deuda);
-        estadoCuentaUf.setIntereses(intereses);
-        // Modifico saldo expensa e saldo intereses
-        estadoCuentaUf.setSaldoFinal(0.0);
-        estadoCuentaUf.setSaldoExpensa(0.0);
-        estadoCuentaUf.setSaldoIntereses(intereses);
-
-        estadoCuentaUfRepository.save(estadoCuentaUf);
-    }
     public void aplicarTotalFinal(long idEstadoCuentaUf) throws Exception {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
@@ -217,14 +226,22 @@ public class EstadoCuentaUfService {
                                 estadoCuentaUf.getGastoParticular();
 
         double valorDeudaEIntereses = estadoCuentaUf.getDeuda() + estadoCuentaUf.getIntereses();
+        double valorFinal = valorDeExpensa+valorDeudaEIntereses;
+        double redondeo = diferenciaRedondeo(valorFinal);
 
+        estadoCuentaUf.setRedondeo(redondeo);
         estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
-
-        estadoCuentaUf.setSaldoFinal(valorDeExpensa+valorDeudaEIntereses);
-        estadoCuentaUf.setTotalExpensa(valorDeExpensa+valorDeudaEIntereses);
+        estadoCuentaUf.setSaldoFinal(valorFinal+redondeo);
+        estadoCuentaUf.setTotalExpensa(valorFinal+redondeo);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
     }
+
+    private double diferenciaRedondeo(double numero) {
+        double numeroRedondeado = Math.ceil(numero);
+        return numeroRedondeado - numero;
+    }
+
     // MAP DTO TO ENTITY
     private EstadoCuentaUf mapToEstadoCuentaUfEntity(EstadoCuentaUfCreateDTO dto) throws Exception {
         UnidadFuncional uf = validateUf(dto.getIdUf());
@@ -239,6 +256,7 @@ public class EstadoCuentaUfService {
         if(dto.getPeriodo() != null)  {
             ec.setPeriodo(dto.getPeriodo());
         }
+        ec.setTotalMesPrevio(0.0);
         ec.setDeuda(0.0);
         ec.setIntereses(0.0);
         ec.setTotalA(0.0);
@@ -247,6 +265,7 @@ public class EstadoCuentaUfService {
         ec.setTotalD(0.0);
         ec.setTotalE(0.0);
         ec.setGastoParticular(0.0);
+        ec.setRedondeo(0.0);
         ec.setTotalExpensa(0.0);
         ec.setSaldoFinal(0.0);
         ec.setSaldoExpensa(0.0);
@@ -266,6 +285,7 @@ public class EstadoCuentaUfService {
 
 
         ec.setPeriodo(dto.getPeriodo());
+        ec.setTotalMesPrevio(dto.getTotalMesPrevio());
         ec.setDeuda(dto.getDeuda());
         ec.setIntereses(dto.getIntereses());
         ec.setTotalA(dto.getTotalA());
@@ -274,6 +294,7 @@ public class EstadoCuentaUfService {
         ec.setTotalD(dto.getTotalD());
         ec.setTotalE(dto.getTotalE());
         ec.setGastoParticular(dto.getGastoParticular());
+        ec.setRedondeo(dto.getRedondeo());
         ec.setTotalExpensa(dto.getTotalExpensa());
         ec.setSaldoFinal(dto.getSaldoFinal());
         ec.setSaldoExpensa(dto.getSaldoExpensa());
@@ -288,6 +309,7 @@ public class EstadoCuentaUfService {
         dto.setIdEstadoCuentaUf(ea.getIdEstadoCuentaUf());
         dto.setIdUf(ea.getUnidadFuncional().getIdUf());
         dto.setPeriodo(ea.getPeriodo());
+        dto.setTotalMesPrevio(ea.getTotalMesPrevio());
         dto.setDeuda(ea.getDeuda());
         dto.setIntereses(ea.getIntereses());
         dto.setTotalA(ea.getTotalA());
@@ -296,6 +318,7 @@ public class EstadoCuentaUfService {
         dto.setTotalD(ea.getTotalD());
         dto.setTotalE(ea.getTotalE());
         dto.setGastoParticular(ea.getGastoParticular());
+        dto.setRedondeo(ea.getRedondeo());
         dto.setTotalExpensa(ea.getTotalExpensa());
         dto.setSaldoFinal(ea.getSaldoFinal());
         dto.setSaldoExpensa(ea.getSaldoExpensa());
@@ -306,7 +329,6 @@ public class EstadoCuentaUfService {
     }
     // CREAR COPIA DE ESTADO DE CUENTA
     public void createCopiaEstadoCuentaUf(EstadoCuentaUfDTO dto) throws Exception {
-
         if(estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf()).isEmpty()){
             throw new Exception("Estado de cuenta no encontrado");
         }
@@ -314,14 +336,17 @@ public class EstadoCuentaUfService {
         copiaEstadoCuentaUfService.createCopiaEstadoCuentaUf(dto);
         Optional<EstadoCuentaUf> estadoCuentaUf = estadoCuentaUfRepository.findById(dto.getIdEstadoCuentaUf());
 
+
         // LIMPIA VALORES
         estadoCuentaUf.get().setPeriodo(estadoCuentaUf.get().getPeriodo().plusMonths(1));
+        estadoCuentaUf.get().setTotalMesPrevio(estadoCuentaUf.get().getTotalExpensa());
         estadoCuentaUf.get().setTotalA(0.0);
         estadoCuentaUf.get().setTotalB(0.0);
         estadoCuentaUf.get().setTotalC(0.0);
         estadoCuentaUf.get().setTotalD(0.0);
         estadoCuentaUf.get().setTotalE(0.0);
         estadoCuentaUf.get().setGastoParticular(0.0);
+        estadoCuentaUf.get().setRedondeo(0.0);
 
         estadoCuentaUfRepository.save(estadoCuentaUf.get());
     }

@@ -146,17 +146,6 @@ public class EgresoService {
             throw new Exception("Proveedor no encontrado");
         }
     }
-    private void validateComprobante(String comprobante) throws Exception {
-        if(egresoRepository.findByComprobante(comprobante) != null){
-            throw new Exception("El n° de comprobante ya existe");
-        }
-    }
-    private void validateComprobanteUpdate(Long idEgreso, String comprobante) throws Exception {
-        Egreso egresoExistente = egresoRepository.findByComprobante(comprobante);
-        if (egresoExistente != null && !egresoExistente.getIdEgreso().equals(idEgreso)) {
-            throw new Exception("El n° de comprobante ya existe para otro egreso.");
-        }
-    }
     private void validateValor(Double totalFinal) throws Exception {
         if (totalFinal < 0){
             throw new Exception(
@@ -176,7 +165,6 @@ public class EgresoService {
     private Egreso mapToEgresoEntity(EgresoCreateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-//        validateComprobante(dto.getComprobante());
         validateValor(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
         Egreso egreso = new Egreso();
@@ -202,7 +190,6 @@ public class EgresoService {
     private Egreso mapToEgresoEntityUpdate(EgresoUpdateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-//        validateComprobanteUpdate(dto.getIdEgreso(), dto.getComprobante());
         validateValor(dto.getTotalFinal());
 
         Egreso egreso = new Egreso();
@@ -267,4 +254,6 @@ public class EgresoService {
 
         return createDto;
     }
+
+
 }

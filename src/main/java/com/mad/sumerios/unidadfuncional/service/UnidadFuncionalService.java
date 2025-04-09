@@ -259,6 +259,7 @@ public class UnidadFuncionalService {
         ecDto.setIdEstadoCuentaUf(ec.getIdEstadoCuentaUf());
         ecDto.setIdUf(uf.getIdUf());
         ecDto.setPeriodo(ec.getPeriodo());
+        ecDto.setTotalMesPrevio(ec.getTotalMesPrevio());
         ecDto.setDeuda(ec.getDeuda());
         ecDto.setIntereses(ec.getIntereses());
         ecDto.setTotalA(ec.getTotalA());
@@ -268,6 +269,7 @@ public class UnidadFuncionalService {
         ecDto.setTotalD(ec.getTotalD());
         ecDto.setTotalE(ec.getTotalE());
         ecDto.setGastoParticular(ec.getGastoParticular());
+        ecDto.setRedondeo(ec.getRedondeo());
         ecDto.setTotalExpensa(ec.getTotalExpensa());
         ecDto.setSaldoFinal(ec.getSaldoFinal());
         ecDto.setSaldoExpensa(ec.getSaldoExpensa());

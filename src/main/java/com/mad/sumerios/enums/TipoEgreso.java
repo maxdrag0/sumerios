@@ -5,18 +5,19 @@ import lombok.Getter;
 
 @Getter
 public enum TipoEgreso {
-
-    ABONOS_SERVICIOS("Abonos de servicios"),
-    CARGAS_SOCIALES("Cargas sociales"),
-    FONDO_ADM("Fondo de administración"),
-    GASTOS_ADM("Gastos de administración"),
-    GASTOS_BANCARIOS("Gastos bancarios"),
-    GASTOS_PARTICULARES("Gastos particulares"),
-    MANTENIMIENTO("Mantenimiento de partes comunes"),
     REMUNERACION_AL_PERSONAL("Remuneración al personal"),
-    SEGURO("Pago de seguro"),
+    CARGAS_SOCIALES("Cargas sociales"),
     SERVICIOS_PUBLICOS("Servicios públicos"),
-    OTROS("Otros");
+    ABONOS_SERVICIOS("Abonos de servicios"),
+    MANTENIMIENTO("Mantenimiento de partes comunes"),
+    TRABAJO_EN_UNIDAD("Trabajo de reparaciones en unidades"),
+    GASTOS_BANCARIOS("Gastos bancarios"),
+    GASTOS_DE_LIMPIEZA("Gastos de limpieza"),
+    GASTOS_ADM("Gastos de administración"),
+    SEGURO("Pago de seguro"),
+    OTROS("Otros"),
+    GASTOS_PARTICULARES("Gastos particulares"),
+    FONDO_ADM("Fondo de administración");
 
     private final String descripcion;
 

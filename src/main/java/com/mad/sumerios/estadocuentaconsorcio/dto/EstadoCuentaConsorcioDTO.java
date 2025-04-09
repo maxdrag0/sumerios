@@ -9,4 +9,6 @@ public class EstadoCuentaConsorcioDTO {
     private Double efectivo;
     private Double banco;
     private Double fondoAdm;
+    private Double totalAlCierre;
+
 }

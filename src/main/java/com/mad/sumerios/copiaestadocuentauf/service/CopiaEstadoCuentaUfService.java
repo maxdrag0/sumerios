@@ -51,6 +51,11 @@ public class CopiaEstadoCuentaUfService {
         copiaEstadoCuentaUf.setIdEstadoCuentaUf(dto.getIdEstadoCuentaUf());
         copiaEstadoCuentaUf.setIdUf(dto.getIdUf());
         copiaEstadoCuentaUf.setPeriodo(dto.getPeriodo());
+        if(dto.getTotalMesPrevio() == null) {
+            copiaEstadoCuentaUf.setTotalMesPrevio(0.0);
+        } else{
+            copiaEstadoCuentaUf.setTotalMesPrevio(dto.getTotalMesPrevio());
+        }
         copiaEstadoCuentaUf.setDeuda(dto.getDeuda());
         copiaEstadoCuentaUf.setIntereses(dto.getIntereses());
         copiaEstadoCuentaUf.setTotalA(dto.getTotalA());
@@ -59,6 +64,12 @@ public class CopiaEstadoCuentaUfService {
         copiaEstadoCuentaUf.setTotalD(dto.getTotalD());
         copiaEstadoCuentaUf.setTotalE(dto.getTotalE());
         copiaEstadoCuentaUf.setGastoParticular(dto.getGastoParticular());
+
+        if(dto.getRedondeo() == null) {
+            copiaEstadoCuentaUf.setRedondeo(0.0);
+        } else{
+            copiaEstadoCuentaUf.setRedondeo(dto.getTotalMesPrevio());
+        }
 
         if(dto.getTotalExpensa() != null){
             copiaEstadoCuentaUf.setTotalExpensa(dto.getTotalExpensa());
@@ -88,6 +99,11 @@ public class CopiaEstadoCuentaUfService {
         dto.setIdEstadoCuentaUf(copiaEstadoCuentaUf.getIdEstadoCuentaUf());
         dto.setIdUf(copiaEstadoCuentaUf.getIdUf());
         dto.setPeriodo(copiaEstadoCuentaUf.getPeriodo());
+        if(copiaEstadoCuentaUf.getTotalMesPrevio() != null){
+            dto.setTotalMesPrevio(copiaEstadoCuentaUf.getTotalMesPrevio());
+        } else {
+            dto.setTotalMesPrevio(0.0);
+        }
         dto.setDeuda(copiaEstadoCuentaUf.getDeuda());
         dto.setIntereses(copiaEstadoCuentaUf.getIntereses());
         dto.setTotalA(copiaEstadoCuentaUf.getTotalA());
@@ -96,6 +112,11 @@ public class CopiaEstadoCuentaUfService {
         dto.setTotalD(copiaEstadoCuentaUf.getTotalC());
         dto.setTotalE(copiaEstadoCuentaUf.getTotalD());
         dto.setGastoParticular(copiaEstadoCuentaUf.getGastoParticular());
+        if(copiaEstadoCuentaUf.getRedondeo() == null) {
+            dto.setRedondeo(0.0);
+        } else{
+            dto.setRedondeo(copiaEstadoCuentaUf.getRedondeo());
+        }
         dto.setTotalExpensa(copiaEstadoCuentaUf.getTotalExpensa());
         dto.setSaldoFinal(copiaEstadoCuentaUf.getSaldoFinal());
         dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());

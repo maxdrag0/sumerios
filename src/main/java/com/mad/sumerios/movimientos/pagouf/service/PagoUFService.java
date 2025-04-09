@@ -18,6 +18,7 @@ import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
+import com.mad.sumerios.movimientos.pagouf.dto.PagoUFRequest;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.repository.IPagoUFRepository;
 import com.mad.sumerios.pdf.PdfGenerator2;
@@ -31,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -76,9 +79,9 @@ public class PagoUFService {
 
     //  CREAR INGRESO
     @Transactional
-    public void createPagoUF(PagoUFCreateDTO dto) throws Exception {
+    public void createPagoUF(PagoUFRequest request) throws Exception {
         // Mapeo del DTO a la entidad PagoUF
-        PagoUF pago = mapToPagoUFEntity(dto);
+        PagoUF pago = mapToPagoUFEntity(request.getPago());
 
         // Actualizar estado de cuenta del consorcio
         EstadoCuentaConsorcioDTO estadoCuentaConsorcio = estadoCuentaConsorcioService.mapToEstadoCuentaDTO(obtenerEstadoCuentaConsorcio(pago.getIdConsorcio()));
@@ -91,18 +94,33 @@ public class PagoUFService {
 
         // dtos para mail y pdf
         UnidadFuncionalResponseDTO ufDto = unidadFuncionalService.getUnidadFuncionalById(pago.getIdUf());
-        ConsorcioResponseDTO consorcioDto = consorcioService.getConsorcioById(dto.getIdConsorcio());
+        ConsorcioResponseDTO consorcioDto = consorcioService.getConsorcioById(pago.getIdConsorcio());
         AdministracionResponseDTO admDto = administracionService.getAdministracionById(consorcioDto.getIdAdm());
 
         Double totalPago = obtenerTotalPagoPeriodo(ufDto.getIdUf(), pago.getPeriodo()) - pago.getValor();
 
         // Generar el PDF
-        String outputPath = "pago_uf_" + ufDto.getUnidadFuncional() + ".pdf";
-//        PdfGenerator2.createPdfPagoDuplicado(this.mapToPagoUFDTO(pago),totalPago ,admDto, consorcioDto, ufDto, outputPath);
-//        PrintPdf.printPdf(outputPath);
+        Path tempFile = Files.createTempFile("pago_uf_" + ufDto.getUnidadFuncional(), ".pdf");
+        String outputPath = tempFile.toAbsolutePath().toString();
 
+        PdfGenerator2.createPdfPago(this.mapToPagoUFDTO(pago),totalPago ,admDto, consorcioDto, ufDto, outputPath);
+
+        // Verificar archivo generado
+        File pdfFile = tempFile.toFile();
+        if (pdfFile.exists()) {
+            System.out.println("PDF generado en: " + pdfFile.getAbsolutePath());
+            System.out.println("Tamaño del PDF: " + pdfFile.length() + " bytes");
+        }
+
+        // Imprimir pdf
+        if(request.getImprimir()){
+            PrintPdf.printPdf(outputPath);
+        }
         // Enviar el PDF por correo
-//        emailSender.enviarPagoPorCorreo(pago,ufDto, consorcioDto.getNombre(), outputPath);
+        if(request.getEnviarMail()){
+            emailSender.enviarPagoPorCorreo(request.getMails(),ufDto, consorcioDto.getNombre(), outputPath);
+        }
+
 
         // Eliminar el archivo temporal
         new File(outputPath).delete();

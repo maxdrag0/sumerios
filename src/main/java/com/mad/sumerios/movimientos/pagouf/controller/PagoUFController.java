@@ -5,6 +5,7 @@ import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
+import com.mad.sumerios.movimientos.pagouf.dto.PagoUFRequest;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -30,7 +31,7 @@ public class PagoUFController {
 
     //  CREAR PAGO UF
     @PostMapping
-    public ResponseEntity<String> createPagoUF(@RequestBody PagoUFCreateDTO pagoUF) {
+    public ResponseEntity<String> createPagoUF(@RequestBody PagoUFRequest pagoUF) {
         try {
             pagoUFService.createPagoUF(pagoUF);
             return ResponseEntity.status(HttpStatus.CREATED).body("Pago creado exitosamente");

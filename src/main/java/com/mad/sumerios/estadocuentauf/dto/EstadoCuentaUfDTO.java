@@ -9,6 +9,7 @@ public class EstadoCuentaUfDTO {
     private Long idEstadoCuentaUf;
     private Long idUf;
     private YearMonth periodo;
+    private Double totalMesPrevio;
     private Double deuda;
     private Double intereses;
     private Double totalA;
@@ -17,6 +18,7 @@ public class EstadoCuentaUfDTO {
     private Double totalD;
     private Double totalE;
     private Double gastoParticular;
+    private Double redondeo;
     private Double totalExpensa;
     private Double saldoFinal;
     private Double saldoExpensa;

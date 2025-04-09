@@ -63,9 +63,6 @@ public class UnidadFuncional {
     private String apellidoPropietario;
     private String nombrePropietario;
     private String mailPropietario;
-    //    String[] correos = mailPropietario.split(",");
-    //    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL, orphanRemoval = true)
-    //    private List<MailPropietario> mails = new ArrayList<>();
     private String telefonoPropietario;
     // INQUILINO
     private String apellidoInquilino;
@@ -80,8 +77,5 @@ public class UnidadFuncional {
     @JsonIgnore
     private EstadoCuentaUf estadoCuentaUf;
 
-//    @ManyToMany(mappedBy = "unidadesFuncionales")
-//    @JsonBackReference
-//    private List<AppUserVecino> appUsers;
 
 }

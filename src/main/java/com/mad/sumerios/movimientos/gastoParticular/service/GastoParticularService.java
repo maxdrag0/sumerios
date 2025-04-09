@@ -167,18 +167,7 @@ public class GastoParticularService {
             throw new Exception("Proveedor no encontrado.");
         }
     }
-    //  comprobante
-    private void validateComprobante(String comprobante) throws Exception {
-        if(gastoParticularRepository.findByComprobante(comprobante) != null){
-            throw new Exception("El n° de comprobante ya existe");
-        }
-    }
-    private void validateComprobanteUpdate(Long idGastoParticular, String comprobante) throws Exception {
-        GastoParticular gp = gastoParticularRepository.findByComprobante(comprobante);
-        if (gp != null && !gp.getIdGastoParticular().equals(idGastoParticular)) {
-            throw new Exception("El n° de comprobante ya existe para otro gasto particular.");
-        }
-    }
+
 
     //  total final
     private void validateTotalFinal(Double totalFinal) throws Exception {
@@ -202,7 +191,6 @@ public class GastoParticularService {
     public GastoParticular mapToGastoParticularEntity(GastoParticularCreateDTO dto) throws Exception {
         validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateComprobante(dto.getComprobante());
         Expensa exp = validateExpensa(dto.getIdExpensa());
         validateTotalFinal(dto.getTotalFinal());
 
@@ -226,7 +214,6 @@ public class GastoParticularService {
     public GastoParticular mapToGastoParticularEntityUpdate(GastoParticularUpdateDTO dto) throws Exception{
         validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateComprobanteUpdate(dto.getIdGastoParticular(), dto.getComprobante());
         validateTotalFinal(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
 

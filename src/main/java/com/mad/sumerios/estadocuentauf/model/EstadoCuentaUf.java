@@ -24,6 +24,7 @@ public class EstadoCuentaUf {
     private UnidadFuncional unidadFuncional;
 
     private YearMonth periodo = YearMonth.now();
+    private Double totalMesPrevio;
     @NotNull
     private Double deuda;
     @NotNull
@@ -40,6 +41,7 @@ public class EstadoCuentaUf {
     private Double totalE;
     @NotNull
     private Double gastoParticular;
+    private Double redondeo;
     @NotNull
     private Double totalExpensa;
     @NotNull

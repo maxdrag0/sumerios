@@ -47,6 +47,7 @@ public class EstadoCuentaConsorcioService {
         ea.setBanco(eaUpdated.getBanco());
         ea.setFondoAdm(eaUpdated.getFondoAdm());
         ea.setTotal(eaUpdated.getTotal());
+        ea.setTotalAlCierre(eaUpdated.getTotalAlCierre());
 
         estadoCuentaRepository.save(ea);
     }
@@ -389,6 +390,7 @@ public class EstadoCuentaConsorcioService {
         ec.setBanco(0.0);
         ec.setFondoAdm(0.0);
         ec.setTotal(0.0);
+        ec.setTotalAlCierre(0.0);
 
         consorcio.setEstadoCuentaConsorcio(ec);
 
@@ -404,6 +406,7 @@ public class EstadoCuentaConsorcioService {
         ec.setBanco(dto.getBanco());
         ec.setFondoAdm(dto.getFondoAdm());
         ec.setTotal(dto.getTotal());
+        ec.setTotalAlCierre(dto.getTotalAlCierre());
 
         return ec;
     }
@@ -416,10 +419,18 @@ public class EstadoCuentaConsorcioService {
         dto.setBanco(ea.getBanco());
         dto.setFondoAdm(ea.getFondoAdm());
         dto.setTotal(ea.getTotal());
+        dto.setTotalAlCierre(ea.getTotalAlCierre());
 
         return dto;
     }
 
 
+    public void actualizarTotalAlCierre(Long idEstadoCuentaConsorcio, Double total) throws Exception {
+        EstadoCuentaConsorcio ecc = estadoCuentaRepository.findById(idEstadoCuentaConsorcio)
+                .orElseThrow(()-> new Exception("Estado de cuenta del consorcio no encontrado"));
 
+        ecc.setTotalAlCierre(total);
+
+        estadoCuentaRepository.save(ecc);
+    }
 }

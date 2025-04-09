@@ -10,6 +10,7 @@ public class CopiaEstadoCuentaUfDTO {
     private long idEstadoCuentaUf;
     private long idUf;
     private YearMonth periodo;
+    private Double totalMesPrevio;
     private Double deuda;
     private Double intereses;
     private Double totalA;
@@ -18,6 +19,7 @@ public class CopiaEstadoCuentaUfDTO {
     private Double totalD;
     private Double totalE;
     private Double gastoParticular;
+    private Double redondeo;
     private Double totalExpensa;
     private Double saldoFinal;
     private Double saldoExpensa;

@@ -31,7 +31,6 @@ public class GastoParticularCreateDTO {
     private String titulo;
     @NotNull
     private FormaPago formaPago;
-    @NotNull
     private String comprobante;
     private String descripcion;
     @NotNull

@@ -27,4 +27,5 @@ public class EstadoCuentaConsorcio {
     private Double fondoAdm;
     @NotNull
     private Double total;
+    private Double totalAlCierre;
 }

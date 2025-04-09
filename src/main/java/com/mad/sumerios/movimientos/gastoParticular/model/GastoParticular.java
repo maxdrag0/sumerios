@@ -52,7 +52,6 @@ public class  GastoParticular {
 
     @NotNull
     private FormaPago formaPago;
-    @NotNull
     private String comprobante;
     private String descripcion;
 

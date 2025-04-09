@@ -5,6 +5,7 @@ import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import com.mad.sumerios.enums.CategoriaEgreso;
+import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
 import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
@@ -53,6 +54,7 @@ public class ExpensaService {
     private final ConsorcioService consorcioService;
     private final IUnidadFuncionalRepository unidadFuncionalRepository;
     private final UnidadFuncionalService unidadFuncionalService;
+    private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
     private final IEstadoCuentaUfRepository estadoCuentaUfRepository;
     private final EstadoCuentaUfService estadoCuentaUfService;
     private final IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository;
@@ -62,12 +64,14 @@ public class ExpensaService {
     private final IngresoService ingresoService;
     private final PagoUFService pagoUFService;
     private final AdministracionService administracionService;
+
     @Autowired
     public ExpensaService (IExpensaRepository expensaRepository,
                            IConsorcioRepository consorcioRepository,
                            ConsorcioService consorcioService,
                            IUnidadFuncionalRepository unidadFuncionalRepository,
                            UnidadFuncionalService unidadFuncionalService,
+                           EstadoCuentaConsorcioService estadoCuentaConsorcioService,
                            EstadoCuentaUfService estadoCuentaUfService,
                            IEstadoCuentaUfRepository estadoCuentaUfRepository,
                            IIntermediaExpensaConsorcioRepository intermediaExpensaConsorcioRepository,
@@ -82,6 +86,7 @@ public class ExpensaService {
         this.consorcioService = consorcioService;
         this.unidadFuncionalRepository = unidadFuncionalRepository;
         this.unidadFuncionalService = unidadFuncionalService;
+        this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
         this.estadoCuentaUfService = estadoCuentaUfService;
         this.estadoCuentaUfRepository = estadoCuentaUfRepository;
         this.intermediaExpensaConsorcioRepository = intermediaExpensaConsorcioRepository;
@@ -94,7 +99,7 @@ public class ExpensaService {
     }
 
     @Transactional
-    public void liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, boolean repetirEgresos) throws Exception{
+    public byte[] liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, boolean repetirEgresos) throws Exception{
         validateConsorcio(idConsorcio);
         validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
@@ -104,6 +109,7 @@ public class ExpensaService {
 
         // CREA COPIA DE ECUF ACTUAL
         createCopiasEstadoDeCuentaUf(estadosDeCuentaUf);
+
         // ECUF -> TOMA EL SALDO EXPENSAS Y LO TRANSFORMA EN DEUDA Y CALCULA EL INTERES
         aplicarDeudaEIntereses(estadosDeCuentaUf, expensa.getPorcentajeIntereses());
 
@@ -125,11 +131,9 @@ public class ExpensaService {
         if(!expensa.getGp().isEmpty()){
             aplicarGastosParticulares(expensa.getGp());
         }
+
     // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL, APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES
         aplicarValorTotal(estadosDeCuentaUf);
-
-        // CREAR PDF
-        PdfGeneratorExpensa.crearPdfExpensa(administracionService.getAdministracionById(consorcio.getIdAdm()),consorcio, expensa, ufs, estadosDeCuentaUf);
 
     // CREA NUEVA EXPENSA  VACIA E INTNERMEDIA
         createExpensa(dto);
@@ -138,6 +142,17 @@ public class ExpensaService {
             ExpensaResponseDto expNueva = this.getExpensasByConsorcioAndPeriodo(idConsorcio,expensa.getPeriodo().plusMonths(1));
             egresoService.createEgresosNuevaExpensa(expNueva.getIdExpensa(),expensa.getEgresos());
         }
+
+        List<UnidadFuncionalResponseDTO> ufsUpdate = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
+        List<EstadoCuentaUfDTO> estadosDeCuentaUfUpdate = estadoCuentaUfService.getEstadoCuentaUfs(ufsUpdate);
+
+//      CREO PDF Y LO DEVUELV
+        byte[] pdfBytes = PdfGeneratorExpensa.crearPdfExpensa(administracionService.getAdministracionById(consorcio.getIdAdm()), consorcio, expensa, ufsUpdate, estadosDeCuentaUfUpdate);
+
+        // ACTUALIZO EL TOTAL AL INICIO DEL PERIODO
+        estadoCuentaConsorcioService.actualizarTotalAlCierre(consorcio.getEstadoCuentaConsorcioDTO().getIdEstadoCuentaConsorcio(),consorcio.getEstadoCuentaConsorcioDTO().getTotal());
+//        // Retornar el PDF
+        return pdfBytes;
     }
 
     @Transactional
@@ -171,9 +186,7 @@ public class ExpensaService {
     @Transactional
     public ExpensaResponseDto restablecerPeriodo(Long idExpensa) throws Exception {
         ExpensaResponseDto expensaUltima = this.getExpensasById(idExpensa);
-        System.out.println("1- Expensa ultima"+ expensaUltima.getPeriodo());
         ExpensaResponseDto expensaAnterior = this.getExpensasByConsorcioAndPeriodo(expensaUltima.getIdConsorcio(), expensaUltima.getPeriodo().minusMonths(1));
-        System.out.println("2- Expensa anterior"+ expensaAnterior.getIdExpensa());
 
         if(expensaAnterior == null){
             throw new Exception("No existe expensa previa");
@@ -203,12 +216,10 @@ public class ExpensaService {
 
         // ACTUALIZA CLASE INTERMEDIA
         IntermediaExpensaConsorcioDto intermedia = intermediaExpensaConsorcioService.getIntermediaByConsorcio(expensaUltima.getIdConsorcio());
-        System.out.println("9 INTERMEDIA ANTES DE ACTUALIZAR: "+ intermedia);
 
         intermedia.setIdExpensa(expensaAnterior.getIdExpensa());
         intermedia.setPeriodo(expensaAnterior.getPeriodo());
         intermediaExpensaConsorcioService.updateIntermediaExpensaConsorcio(intermedia);
-        System.out.println("10 INTERMEDIA DESPUES DE ACTUALIZAR: "+ intermedia);
 
         expensaRepository.deleteById(idExpensa);
 
@@ -322,10 +333,13 @@ public class ExpensaService {
                                 .orElseThrow(()-> new Exception("Estado de cuenta no encontrado"));
 
                 ecuf.setDeuda(ecuf.getSaldoExpensa());
+                ecuf.setTotalMesPrevio(ecuf.getTotalMesPrevio());
                 ecuf.setIntereses(0.0);
                 ecuf.setSaldoFinal(0.0);
                 ecuf.setSaldoExpensa(0.0);
                 ecuf.setSaldoIntereses(0.0);
+
+                estadoCuentaUfRepository.save(ecuf);
             }
         }
     }

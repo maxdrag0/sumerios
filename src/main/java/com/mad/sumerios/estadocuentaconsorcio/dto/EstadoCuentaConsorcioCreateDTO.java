@@ -9,6 +9,7 @@ public class EstadoCuentaConsorcioCreateDTO {
     @NotNull
     private Long idConsorcio;
 
+
     public EstadoCuentaConsorcioCreateDTO (Long idConsorcio){
         this.idConsorcio = idConsorcio;
     }

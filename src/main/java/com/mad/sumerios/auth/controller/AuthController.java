@@ -80,7 +80,10 @@ public class AuthController {
         return new JwtResponse(jwt, userDetails.getUsername());
     }
 
-
+    @GetMapping("/status")
+    public ResponseEntity<String> checkStatus() {
+        return ResponseEntity.ok("ready");
+    }
 }
 
 

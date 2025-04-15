@@ -34,7 +34,7 @@ public class EmailSender {
 
             // Configurar los detalles del correo
             helper.setFrom(fromEmail);
-            helper.addBcc("maxii.drago@gmail.com");
+            helper.addBcc("sumerios.recibos@gmail.com");
 
             for (String mail : mails) {
                 helper.addBcc(mail);

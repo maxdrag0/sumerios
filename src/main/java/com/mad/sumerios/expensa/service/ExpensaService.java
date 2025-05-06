@@ -98,8 +98,50 @@ public class ExpensaService {
         this.administracionService = administracionService;
     }
 
+    public byte[] previsualizarExpensa(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, Boolean segundoVencimiento) throws Exception{
+        validateConsorcio(idConsorcio);
+        validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
+        ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
+        ConsorcioResponseDTO consorcio = consorcioService.getConsorcioById(idConsorcio);
+        List<UnidadFuncionalResponseDTO> ufs = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
+        List<EstadoCuentaUfDTO> estadosDeCuentaUf = estadoCuentaUfService.getEstadoCuentaUfs(ufs);
+
+        List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares = estadoCuentaUfService.createEstadosDeCuentaAuxiliares(estadosDeCuentaUf);
+        aplicarDeudaEInteresesAuxiliar(estadosDeCuentaAuxiliares, expensa.getPorcentajeIntereses());
+
+        Map<CategoriaEgreso, Double> totalGastosPorCategoria = Arrays.stream(CategoriaEgreso.values())
+                .collect(Collectors.toMap(categoria -> categoria, categoria -> totalGastos(expensa.getEgresos(), categoria)));
+
+        totalGastosPorCategoria.forEach((categoria, total) -> {
+            if (total > 0) {
+                try {
+                    aplicarTotalAuxiliar(estadosDeCuentaAuxiliares, total, categoria);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        if(!expensa.getGp().isEmpty()){
+            aplicarGastosParticularesAuxiliar(expensa.getGp(), estadosDeCuentaAuxiliares);
+        }
+
+        aplicarValorTotalAuxiliar(estadosDeCuentaAuxiliares);
+
+
+        calcularSegundoVencimientoAuxiliar(estadosDeCuentaAuxiliares, dto.getPorcentajeSegundoVencimiento(), segundoVencimiento);
+
+        return PdfGeneratorExpensa.crearPdfExpensa(
+                administracionService.getAdministracionById(consorcio.getIdAdm()),
+                consorcio,
+                expensa,
+                ufs,
+                estadosDeCuentaAuxiliares);
+    }
+
+
     @Transactional
-    public byte[] liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, boolean repetirEgresos) throws Exception{
+    public byte[] liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, Boolean repetirEgresos, Boolean segundoVencimiento) throws Exception{
         validateConsorcio(idConsorcio);
         validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
@@ -134,6 +176,9 @@ public class ExpensaService {
 
     // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL, APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES
         aplicarValorTotal(estadosDeCuentaUf);
+
+
+        calcularSegundoVencimiento(estadosDeCuentaUf, dto.getPorcentajeSegundoVencimiento(), segundoVencimiento);
 
     // CREA NUEVA EXPENSA  VACIA E INTNERMEDIA
         createExpensa(dto);
@@ -250,6 +295,10 @@ public class ExpensaService {
     // BORRAR EXPENSA
 
     // Validates y metodos complementarios
+    private double diferenciaRedondeo(double numero) {
+        double numeroRedondeado = Math.ceil(numero);
+        return numeroRedondeado - numero;
+    }
     private void validateConsorcio(Long idConsorcio) throws Exception{
         consorcioRepository.findById(idConsorcio)
                 .orElseThrow(()-> new Exception("Consorcio no encontrado"));
@@ -276,7 +325,8 @@ public class ExpensaService {
             estadoCuentaUfService.createCopiaEstadoCuentaUf(estadoActual);
         }
     }
-    private double totalGastos(List<EgresoResponseDTO> egresos, CategoriaEgreso categoriaEgreso) {
+    private double totalGastos(List<EgresoResponseDTO> egresos,
+                               CategoriaEgreso categoriaEgreso) {
         if (egresos == null || egresos.isEmpty() || categoriaEgreso == null) {
             return 0.0;
         }
@@ -286,6 +336,50 @@ public class ExpensaService {
                 .mapToDouble(EgresoResponseDTO::getTotalFinal)
                 .sum();
     }
+
+    private void aplicarDeudaEIntereses(List<EstadoCuentaUfDTO> estadosDeCuentaUf,
+                                        double porcentajeIntereses) throws Exception {
+        for (EstadoCuentaUfDTO estadoActual : estadosDeCuentaUf) {
+            if(estadoActual.getSaldoFinal() > 0){
+                estadoCuentaUfService.aplicarDeudaEIntereses(estadoActual.getIdEstadoCuentaUf(), porcentajeIntereses);
+            } else {
+                EstadoCuentaUf ecuf = estadoCuentaUfRepository.findById(estadoActual.getIdEstadoCuentaUf())
+                        .orElseThrow(()-> new Exception("Estado de cuenta no encontrado"));
+
+                ecuf.setDeuda(ecuf.getSaldoExpensa());
+                ecuf.setTotalMesPrevio(ecuf.getTotalExpensa());
+                ecuf.setIntereses(0.0);
+                ecuf.setSaldoFinal(0.0);
+                ecuf.setSaldoExpensa(0.0);
+                ecuf.setSaldoIntereses(0.0);
+
+                estadoCuentaUfRepository.save(ecuf);
+            }
+        }
+    }
+
+    private void aplicarDeudaEInteresesAuxiliar(List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares,
+                                                double porcentajeIntereses) {
+        for(EstadoCuentaUfDTO ecAux : estadosDeCuentaAuxiliares){
+            ecAux.setTotalMesPrevio(ecAux.getTotalExpensa());
+            if(ecAux.getSaldoFinal()>0){
+                double deuda = ecAux.getSaldoExpensa() - ecAux.getSaldoIntereses();
+                double intereses = (deuda * porcentajeIntereses) / 100;
+
+                ecAux.setDeuda(ecAux.getSaldoFinal());
+                ecAux.setIntereses(intereses);
+                ecAux.setSaldoFinal(0.0);
+                ecAux.setSaldoIntereses(intereses);
+            } else {
+                ecAux.setDeuda(ecAux.getSaldoExpensa());
+                ecAux.setIntereses(0.0);
+                ecAux.setSaldoFinal(0.0);
+                ecAux.setSaldoExpensa(0.0);
+                ecAux.setSaldoIntereses(0.0);
+            }
+        }
+    }
+
     private void aplicarTotal(List<EstadoCuentaUfDTO> estadoCuentaUfs,
                               double total,
                               CategoriaEgreso categoria) throws Exception {
@@ -314,6 +408,33 @@ public class ExpensaService {
             }
         }
     }
+
+
+    private void aplicarTotalAuxiliar(List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares,
+                                      double total,
+                                      CategoriaEgreso categoria) throws Exception {
+        for(EstadoCuentaUfDTO ecAux: estadosDeCuentaAuxiliares){
+            UnidadFuncionalResponseDTO uf = unidadFuncionalService.getUnidadFuncionalById(ecAux.getIdUf());
+
+            Map<CategoriaEgreso, Double> porcentajes = Map.of(
+                    CategoriaEgreso.A, uf.getPorcentajeUnidad(),
+                    CategoriaEgreso.B, uf.getPorcentajeUnidadB(),
+                    CategoriaEgreso.C, uf.getPorcentajeUnidadC(),
+                    CategoriaEgreso.D, uf.getPorcentajeUnidadD(),
+                    CategoriaEgreso.E, uf.getPorcentajeUnidadE()
+            );
+
+            Double porcentaje = porcentajes.get(categoria);
+            if (porcentaje != null) {
+                double totalAAplicar = (porcentaje > 0) ? (total * porcentaje) / 100 : 0;
+
+                if (totalAAplicar>0){
+                    categoria.aplicarAuxiliar(ecAux, totalAAplicar);
+                }
+            }
+        }
+    }
+
     private void aplicarGastosParticulares(List<GastoParticularResponseDTO> gastosParticulares) throws Exception {
         for(GastoParticularResponseDTO gp : gastosParticulares){
             double valor = gp.getTotalFinal();
@@ -324,28 +445,62 @@ public class ExpensaService {
             }
         }
     }
-    private void aplicarDeudaEIntereses(List<EstadoCuentaUfDTO> estadosDeCuentaUf, double porcentajeIntereses) throws Exception {
-        for (EstadoCuentaUfDTO estadoActual : estadosDeCuentaUf) {
-            if(estadoActual.getSaldoFinal() > 0){
-                estadoCuentaUfService.aplicarDeudaEIntereses(estadoActual.getIdEstadoCuentaUf(), porcentajeIntereses);
-            } else {
-                EstadoCuentaUf ecuf = estadoCuentaUfRepository.findById(estadoActual.getIdEstadoCuentaUf())
-                                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado"));
 
-                ecuf.setDeuda(ecuf.getSaldoExpensa());
-                ecuf.setTotalMesPrevio(ecuf.getTotalMesPrevio());
-                ecuf.setIntereses(0.0);
-                ecuf.setSaldoFinal(0.0);
-                ecuf.setSaldoExpensa(0.0);
-                ecuf.setSaldoIntereses(0.0);
-
-                estadoCuentaUfRepository.save(ecuf);
+    private void aplicarGastosParticularesAuxiliar(List<GastoParticularResponseDTO> gastosParticulares,
+                                                   List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares){
+        for(GastoParticularResponseDTO gp : gastosParticulares){
+            double valor = gp.getTotalFinal();
+            if(valor>0){
+                estadosDeCuentaAuxiliares.stream()
+                        .filter(ec -> ec.getIdUf().equals(gp.getIdUf()))
+                        .findFirst()
+                        .ifPresent(ecAux -> ecAux.setGastoParticular(ecAux.getGastoParticular() + valor));
             }
         }
     }
+
     private void aplicarValorTotal(List<EstadoCuentaUfDTO> estadosDeCuentaUf) throws Exception {
         for (EstadoCuentaUfDTO estadoActual : estadosDeCuentaUf) {
             estadoCuentaUfService.aplicarTotalFinal(estadoActual.getIdEstadoCuentaUf());
+        }
+    }
+
+    private void aplicarValorTotalAuxiliar(List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares) {
+        for(EstadoCuentaUfDTO ecAux : estadosDeCuentaAuxiliares){
+
+            double valorDeExpensa = ecAux.getTotalA() +
+                    ecAux.getTotalB() +
+                    ecAux.getTotalC() +
+                    ecAux.getTotalD() +
+                    ecAux.getTotalE() +
+                    ecAux.getGastoParticular();
+
+            double valorDeudaEIntereses = ecAux.getDeuda() + ecAux.getIntereses();
+            double valorFinal = valorDeExpensa+valorDeudaEIntereses;
+            double redondeo = diferenciaRedondeo(valorFinal);
+
+            ecAux.setRedondeo(redondeo);
+            ecAux.setSaldoExpensa(valorDeExpensa + ecAux.getSaldoExpensa());
+            ecAux.setSaldoFinal(valorFinal+redondeo);
+            ecAux.setTotalExpensa(valorFinal+redondeo);
+        }
+    }
+
+    private void calcularSegundoVencimiento(List<EstadoCuentaUfDTO> estadosDeCuentaUf, Double porcentajeSegundoVencimiento, Boolean segundoVencimiento) throws Exception {
+        for (EstadoCuentaUfDTO estadoActual : estadosDeCuentaUf) {
+            if(segundoVencimiento){
+                estadoCuentaUfService.calcularSegundoVencimiento(estadoActual.getIdEstadoCuentaUf(), porcentajeSegundoVencimiento);
+            }
+        }
+    }
+
+    private void calcularSegundoVencimientoAuxiliar(List<EstadoCuentaUfDTO> estadosDeCuentaAuxiliares, Double porcentajeSegundoVencimiento, Boolean segundoVencimiento) {
+        for(EstadoCuentaUfDTO ecAux : estadosDeCuentaAuxiliares){
+            if(segundoVencimiento){
+                ecAux.setSegundoVencimiento((ecAux.getTotalExpensa() * porcentajeSegundoVencimiento) / 100);
+            } else if(ecAux.getSegundoVencimiento() != 0.0) {
+                ecAux.setSegundoVencimiento(0.0);
+            }
         }
     }
     // Mapeo a entidad

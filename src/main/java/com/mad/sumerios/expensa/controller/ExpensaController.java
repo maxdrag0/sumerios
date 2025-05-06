@@ -113,7 +113,8 @@ public class ExpensaController {
                     idConsorcio,
                     request.getIdExpensa(),
                     request.getExpensaCreateDTO(),
-                    request.getRepetirEgresos()
+                    request.getRepetirEgresos(),
+                    request.getSegundoVencimiento()
             );
 
             HttpHeaders headers = new HttpHeaders();
@@ -133,6 +134,32 @@ public class ExpensaController {
         }
     }
 
+    @PostMapping("/preview/consorcio/{idConsorcio}")
+    public ResponseEntity<byte[]> previsualizarExpensa(@PathVariable Long idConsorcio,
+                                                  @RequestBody LiquidarExpensaRequest request) {
+        try {
+            byte[] pdfBytes = expensaService.previsualizarExpensa(
+                    idConsorcio,
+                    request.getIdExpensa(),
+                    request.getExpensaCreateDTO(),
+                    request.getSegundoVencimiento());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(ContentDisposition
+                    .builder("inline")
+                    .filename("Preview_Expensa_" + idConsorcio + ".pdf")
+                    .build());
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            // Devuelve el mensaje de error en el cuerpo
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                    .body(e.getMessage().getBytes());
+        }
+    }
 
     @DeleteMapping("/{idExpensa}")
     public ResponseEntity<?> restablecerPeriodo(@PathVariable Long idExpensa){

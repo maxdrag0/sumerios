@@ -84,6 +84,18 @@ public class CopiaEstadoCuentaUfService {
                     dto.getGastoParticular());
         }
 
+        if(dto.getSegundoVencimientoActivo() != null) {
+            copiaEstadoCuentaUf.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
+        } else {
+            copiaEstadoCuentaUf.setSegundoVencimientoActivo(false);
+        }
+
+        if(dto.getSegundoVencimiento() != null) {
+            copiaEstadoCuentaUf.setSegundoVencimiento(dto.getSegundoVencimiento());
+        } else {
+            copiaEstadoCuentaUf.setSegundoVencimiento(0.0);
+        }
+
         copiaEstadoCuentaUf.setSaldoFinal(dto.getSaldoFinal());
         copiaEstadoCuentaUf.setSaldoExpensa(dto.getSaldoExpensa());
         copiaEstadoCuentaUf.setSaldoIntereses(dto.getSaldoIntereses());
@@ -118,6 +130,16 @@ public class CopiaEstadoCuentaUfService {
             dto.setRedondeo(copiaEstadoCuentaUf.getRedondeo());
         }
         dto.setTotalExpensa(copiaEstadoCuentaUf.getTotalExpensa());
+        if(copiaEstadoCuentaUf.getSegundoVencimientoActivo() == null) {
+            dto.setSegundoVencimientoActivo(false);
+        } else{
+            dto.setSegundoVencimientoActivo(copiaEstadoCuentaUf.getSegundoVencimientoActivo());
+        }
+        if(copiaEstadoCuentaUf.getSegundoVencimiento() == null) {
+            dto.setSegundoVencimiento(0.0);
+        } else{
+            dto.setSegundoVencimiento(copiaEstadoCuentaUf.getSegundoVencimiento());
+        }
         dto.setSaldoFinal(copiaEstadoCuentaUf.getSaldoFinal());
         dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());
         dto.setSaldoIntereses(copiaEstadoCuentaUf.getSaldoIntereses());

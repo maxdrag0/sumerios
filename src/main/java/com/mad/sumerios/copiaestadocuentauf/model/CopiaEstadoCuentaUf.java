@@ -41,6 +41,10 @@ public class CopiaEstadoCuentaUf {
     @NotNull
     private Double gastoParticular;
     @NotNull
+    private Boolean segundoVencimientoActivo;
+    @NotNull
+    private Double segundoVencimiento;
+    @NotNull
     private Double redondeo;
     @NotNull
     private Double totalExpensa;

@@ -25,6 +25,7 @@ public class EstadoCuentaUf {
 
     private YearMonth periodo = YearMonth.now();
     private Double totalMesPrevio;
+
     @NotNull
     private Double deuda;
     @NotNull
@@ -42,12 +43,23 @@ public class EstadoCuentaUf {
     @NotNull
     private Double gastoParticular;
     private Double redondeo;
+
+    // VALOR EXPENSA + INTERESES + DEUDA + REDONDEO
     @NotNull
     private Double totalExpensa;
+
+    @NotNull
+    private Boolean segundoVencimientoActivo;
+    @NotNull
+    private Double segundoVencimiento;
+    // VALOR EXPENSA + INTERESES + DEUDA + REDONDEO - EL CUAL SE VA MODIFICANDO SEGUN PAGOS
     @NotNull
     private Double saldoFinal;
+
+    // VALOR DE EXPENSAS + DEUDA EXPENSA O - SALDO A FAVOR
     @NotNull
     private Double saldoExpensa;
+    //
     @NotNull
     private Double saldoIntereses;
 
@@ -56,5 +68,4 @@ public class EstadoCuentaUf {
     public void setSaldoInteresesCero(){
         this.saldoIntereses = (double) 0;
     }
-
 }

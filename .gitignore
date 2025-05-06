@@ -35,3 +35,6 @@ build/
 ### VARs ###
 .env
 docker-compose.yml
+Dockerfile
+
+application.properties

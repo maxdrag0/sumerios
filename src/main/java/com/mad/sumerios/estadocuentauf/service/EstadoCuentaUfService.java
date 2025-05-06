@@ -59,6 +59,8 @@ public class EstadoCuentaUfService {
         ec.setGastoParticular(ecUpdated.getGastoParticular());
         ec.setRedondeo(ecUpdated.getRedondeo());
         ec.setTotalExpensa(ecUpdated.getTotalExpensa());
+        ec.setSegundoVencimientoActivo(ecUpdated.getSegundoVencimientoActivo());
+        ec.setSegundoVencimiento(ecUpdated.getSegundoVencimiento());
         ec.setSaldoFinal(ecUpdated.getSaldoFinal());
         ec.setSaldoExpensa(ecUpdated.getSaldoExpensa());
         ec.setSaldoIntereses(ecUpdated.getSaldoIntereses());
@@ -129,13 +131,27 @@ public class EstadoCuentaUfService {
         estadoActual.setTotalD(copiaEstadoPeriodoPrevio.getTotalD());
         estadoActual.setTotalE(copiaEstadoPeriodoPrevio.getTotalE());
         estadoActual.setGastoParticular(copiaEstadoPeriodoPrevio.getGastoParticular());
+
         if(copiaEstadoPeriodoPrevio.getRedondeo() == null){
             estadoActual.setRedondeo(0.0);
 
         } else{
             estadoActual.setRedondeo(copiaEstadoPeriodoPrevio.getRedondeo());
         }
+
         estadoActual.setTotalExpensa(copiaEstadoPeriodoPrevio.getTotalExpensa());
+
+        if(copiaEstadoPeriodoPrevio.getSegundoVencimientoActivo() == null){
+            estadoActual.setSegundoVencimientoActivo(false);
+        } else {
+            estadoActual.setSegundoVencimientoActivo(copiaEstadoPeriodoPrevio.getSegundoVencimientoActivo());
+        }
+
+        if(copiaEstadoPeriodoPrevio.getSegundoVencimiento() == null){
+            estadoActual.setSegundoVencimiento(0.0);
+        } else {
+            estadoActual.setSegundoVencimiento(copiaEstadoPeriodoPrevio.getSegundoVencimiento());
+        }
         estadoActual.setSaldoFinal(copiaEstadoPeriodoPrevio.getSaldoFinal());
         estadoActual.setSaldoExpensa(copiaEstadoPeriodoPrevio.getSaldoExpensa());
         estadoActual.setSaldoIntereses(copiaEstadoPeriodoPrevio.getSaldoIntereses());
@@ -174,15 +190,13 @@ public class EstadoCuentaUfService {
                 .orElseThrow(() -> new Exception("Estado de cuenta no encontrado"));
 
 
-        double deuda = estadoCuentaUf.getSaldoFinal() - estadoCuentaUf.getSaldoIntereses();
-        double intereses = (deuda * porcentajeIntereses) / 100;
+        double intereses = (estadoCuentaUf.getSaldoExpensa() * porcentajeIntereses) / 100;
 
         estadoCuentaUf.setTotalMesPrevio(estadoCuentaUf.getTotalExpensa());
-        estadoCuentaUf.setDeuda(deuda);
+        estadoCuentaUf.setDeuda(estadoCuentaUf.getSaldoFinal());
         estadoCuentaUf.setIntereses(intereses);
         // Modifico saldo expensa e saldo intereses
         estadoCuentaUf.setSaldoFinal(0.0);
-        estadoCuentaUf.setSaldoExpensa(0.0);
         estadoCuentaUf.setSaldoIntereses(intereses);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
@@ -191,8 +205,6 @@ public class EstadoCuentaUfService {
                              double porcentaje,
                              double total,
                              CategoriaEgreso categoria) throws Exception {
-
-        EstadoCuentaUfDTO dto = this.getEstadoCuentaUfById(idEstadoCuentaUf);
 
         double totalAAplicar = (porcentaje > 0) ? (total * porcentaje) / 100 : 0;
 
@@ -230,11 +242,39 @@ public class EstadoCuentaUfService {
         double redondeo = diferenciaRedondeo(valorFinal);
 
         estadoCuentaUf.setRedondeo(redondeo);
-        estadoCuentaUf.setSaldoExpensa(valorDeExpensa + estadoCuentaUf.getDeuda());
+        estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() + valorDeExpensa);
         estadoCuentaUf.setSaldoFinal(valorFinal+redondeo);
         estadoCuentaUf.setTotalExpensa(valorFinal+redondeo);
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+
+    public void calcularSegundoVencimiento(Long idEstadoCuentaUf, Double porcentajeSegundoVencimiento) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+
+        estadoCuentaUf.setSegundoVencimiento((estadoCuentaUf.getTotalExpensa() * porcentajeSegundoVencimiento) / 100);
+        estadoCuentaUf.setSegundoVencimientoActivo(false);
+    }
+
+    public void imputarSegundoVencimiento(Long idEstadoCuentaUf) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+
+        double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
+        estadoCuentaUf.setSegundoVencimientoActivo(true);
+        estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() + diferencia);
+        estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() + diferencia);
+    }
+
+    public void desimputarSegundoVencimiento(Long idEstadoCuentaUf) throws Exception {
+        EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
+
+        double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
+        estadoCuentaUf.setSegundoVencimientoActivo(false);
+        estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() - diferencia);
+        estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() - diferencia);
     }
 
     private double diferenciaRedondeo(double numero) {
@@ -267,6 +307,8 @@ public class EstadoCuentaUfService {
         ec.setGastoParticular(0.0);
         ec.setRedondeo(0.0);
         ec.setTotalExpensa(0.0);
+        ec.setSegundoVencimientoActivo(false);
+        ec.setSegundoVencimiento(0.0);
         ec.setSaldoFinal(0.0);
         ec.setSaldoExpensa(0.0);
         ec.setSaldoIntereses(0.0);
@@ -296,6 +338,8 @@ public class EstadoCuentaUfService {
         ec.setGastoParticular(dto.getGastoParticular());
         ec.setRedondeo(dto.getRedondeo());
         ec.setTotalExpensa(dto.getTotalExpensa());
+        ec.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
+        ec.setSegundoVencimiento(dto.getSegundoVencimiento());
         ec.setSaldoFinal(dto.getSaldoFinal());
         ec.setSaldoExpensa(dto.getSaldoExpensa());
         ec.setSaldoIntereses(dto.getSaldoIntereses());
@@ -320,6 +364,8 @@ public class EstadoCuentaUfService {
         dto.setGastoParticular(ea.getGastoParticular());
         dto.setRedondeo(ea.getRedondeo());
         dto.setTotalExpensa(ea.getTotalExpensa());
+        dto.setSegundoVencimientoActivo(ea.getSegundoVencimientoActivo());
+        dto.setSegundoVencimiento(ea.getSegundoVencimiento());
         dto.setSaldoFinal(ea.getSaldoFinal());
         dto.setSaldoExpensa(ea.getSaldoExpensa());
         dto.setSaldoIntereses(ea.getSaldoIntereses());
@@ -408,6 +454,38 @@ public class EstadoCuentaUfService {
         }
 
         estadoCuentaUfRepository.save(estadoCuentaUf);
+    }
+
+
+    public List<EstadoCuentaUfDTO> createEstadosDeCuentaAuxiliares(List<EstadoCuentaUfDTO> estadosDeCuentaUf) {
+        List<EstadoCuentaUfDTO> estadoCuentaUfAuxiliaresDTOS = new ArrayList<>();
+        for(EstadoCuentaUfDTO ea : estadosDeCuentaUf){
+            EstadoCuentaUfDTO ecAux = new EstadoCuentaUfDTO();
+            copiarEstadoCuentaAux(ea, ecAux);
+            estadoCuentaUfAuxiliaresDTOS.add(ecAux);
+        }
+
+        return estadoCuentaUfAuxiliaresDTOS;
+    }
+
+    private void copiarEstadoCuentaAux(EstadoCuentaUfDTO ea, EstadoCuentaUfDTO ecAux) {
+        ecAux.setIdEstadoCuentaUf(ea.getIdEstadoCuentaUf());
+        ecAux.setIdUf(ea.getIdUf());
+        ecAux.setPeriodo(ea.getPeriodo());
+        ecAux.setTotalMesPrevio(ea.getTotalMesPrevio());
+        ecAux.setDeuda(ea.getDeuda());
+        ecAux.setIntereses(ea.getIntereses());
+        ecAux.setTotalA(0.0);
+        ecAux.setTotalB(0.0);
+        ecAux.setTotalC(0.0);
+        ecAux.setTotalD(0.0);
+        ecAux.setTotalE(0.0);
+        ecAux.setGastoParticular(0.0);
+        ecAux.setRedondeo(0.0);
+        ecAux.setTotalExpensa(ea.getTotalExpensa());
+        ecAux.setSaldoFinal(ea.getSaldoFinal());
+        ecAux.setSaldoExpensa(ea.getSaldoExpensa());
+        ecAux.setSaldoIntereses(ea.getSaldoIntereses());
     }
 
 

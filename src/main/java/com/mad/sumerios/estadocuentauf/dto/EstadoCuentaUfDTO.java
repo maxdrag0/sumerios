@@ -20,7 +20,10 @@ public class EstadoCuentaUfDTO {
     private Double gastoParticular;
     private Double redondeo;
     private Double totalExpensa;
+    private Boolean segundoVencimientoActivo;
+    private Double segundoVencimiento;
     private Double saldoFinal;
     private Double saldoExpensa;
     private Double saldoIntereses;
+
 }

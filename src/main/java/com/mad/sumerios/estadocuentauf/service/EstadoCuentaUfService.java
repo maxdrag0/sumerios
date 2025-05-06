@@ -260,21 +260,28 @@ public class EstadoCuentaUfService {
     public void imputarSegundoVencimiento(Long idEstadoCuentaUf) throws Exception {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
-
-        double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
-        estadoCuentaUf.setSegundoVencimientoActivo(true);
-        estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() + diferencia);
-        estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() + diferencia);
+        if(!estadoCuentaUf.getSegundoVencimientoActivo()) {
+            double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
+            estadoCuentaUf.setSegundoVencimientoActivo(true);
+            estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() + diferencia);
+            estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() + diferencia);
+        } else{
+            throw new Exception("El segundo vencimiento ya esta imputado.");
+        }
     }
 
     public void desimputarSegundoVencimiento(Long idEstadoCuentaUf) throws Exception {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
 
-        double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
-        estadoCuentaUf.setSegundoVencimientoActivo(false);
-        estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() - diferencia);
-        estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() - diferencia);
+        if(estadoCuentaUf.getSegundoVencimientoActivo()) {
+            double diferencia = estadoCuentaUf.getSegundoVencimiento() - estadoCuentaUf.getTotalExpensa();
+            estadoCuentaUf.setSegundoVencimientoActivo(false);
+            estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() - diferencia);
+            estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() - diferencia);
+        } else{
+            throw new Exception("El segundo vencimiento no esta imputado.");
+        }
     }
 
     private double diferenciaRedondeo(double numero) {
@@ -385,7 +392,11 @@ public class EstadoCuentaUfService {
 
         // LIMPIA VALORES
         estadoCuentaUf.get().setPeriodo(estadoCuentaUf.get().getPeriodo().plusMonths(1));
-        estadoCuentaUf.get().setTotalMesPrevio(estadoCuentaUf.get().getTotalExpensa());
+        if(estadoCuentaUf.get().getSegundoVencimientoActivo()){
+            estadoCuentaUf.get().setTotalMesPrevio(estadoCuentaUf.get().getSegundoVencimiento());
+        } else {
+            estadoCuentaUf.get().setTotalMesPrevio(estadoCuentaUf.get().getTotalExpensa());
+        }
         estadoCuentaUf.get().setTotalA(0.0);
         estadoCuentaUf.get().setTotalB(0.0);
         estadoCuentaUf.get().setTotalC(0.0);

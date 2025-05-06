@@ -36,6 +36,26 @@ public class EstadoCuentaUfController {
         }
     }
 
+    @PostMapping("/imputarSegundoVencimiento/{idEstadoCuentaUf}")
+    public ResponseEntity<String> imputarSegundoVencimiento(@PathVariable Long idEstadoCuentaUf){
+        try {
+            estadoCuentaUfService.imputarSegundoVencimiento(idEstadoCuentaUf);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Segundo vencimiento imputado correctamente.");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/desimputarSegundoVencimiento/{idEstadoCuentaUf}")
+    public ResponseEntity<String> desimputarSegundoVencimiento(@PathVariable Long idEstadoCuentaUf){
+        try {
+            estadoCuentaUfService.desimputarSegundoVencimiento(idEstadoCuentaUf);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Segundo vencimiento desimputado correctamente.");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     // UPDATE
     @PutMapping("/{idEstadoCuentaUf}")
     public ResponseEntity<String> updateEstadoCuentaUf(@PathVariable Long idEstadoCuentaUf,

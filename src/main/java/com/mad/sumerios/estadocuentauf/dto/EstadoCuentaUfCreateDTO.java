@@ -12,13 +12,8 @@ public class EstadoCuentaUfCreateDTO {
 
     @NotNull
     private Long idUf;
-
     private YearMonth periodo;
 
-
-    public EstadoCuentaUfCreateDTO (Long idUf){
-        this.idUf = idUf;
-    }
 
     public EstadoCuentaUfCreateDTO (Long idUf, YearMonth periodo){
         this.idUf = idUf;

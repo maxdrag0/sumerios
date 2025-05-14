@@ -187,21 +187,7 @@ public class PagoUFService {
     }
 
     //  ACTUALIZAR INGRESO
-//    public void updatePagoUF(Long idPagoUf, PagoUFUpdateDTO dto) throws Exception{
-//        PagoUF pago = pagoUFRepository.findById(idPagoUf)
-//                .orElseThrow(()-> new Exception("Pago no encontrado"));
-//        PagoUF pagoUpdated = mapToPagoUFEntityUpdate(dto);
-//
-//        EstadoCuentaConsorcio estadoCuentaConsorcio = obtenerEstadoCuentaConsorcio(pago.getIdConsorcio());
-//        estadoCuentaConsorcioService.modificarPagoUF(estadoCuentaConsorcio, pago, pagoUpdated);
-//
-//        pago.setFecha(pagoUpdated.getFecha());
-//        pago.setValor(pagoUpdated.getValor());
-//        pago.setDescripcion(pagoUpdated.getDescripcion());
-//        pago.setFormaPago(pagoUpdated.getFormaPago());
-//
-//        pagoUFRepository.save(pago);
-//    }
+
 
     //  ELIMINAR INGRESO
     public void deletePagoUF(Long id) throws Exception{
@@ -280,19 +266,6 @@ public class PagoUFService {
 
         return pagoUF;
     }
-//    private PagoUF mapToPagoUFEntityUpdate(PagoUFUpdateDTO dto) throws Exception {
-//        validateNull(dto);
-//        validateValor(dto.getValor());
-//
-//        PagoUF pagoUF = new PagoUF();
-//
-//        pagoUF.setFecha(dto.getFecha());
-//        pagoUF.setValor(dto.getValor());
-//        pagoUF.setFormaPago(dto.getFormaPago());
-//        pagoUF.setDescripcion(dto.getDescripcion());
-//
-//        return pagoUF;
-//    }
 
     // mapeo Entity a DTO
     public PagoUFDTO mapToPagoUFDTO(PagoUF pagoUF) {

@@ -30,8 +30,8 @@ public class AdministracionService {
 
     // CREATE ADMINISTRACION
     public void createAdministracion(AdministracionRegisterDTO dto) throws Exception {
+        validateAdministracion(dto.getMail());
         Administracion administracion = mapToAdministracionEntity(dto);
-        validateAdministracion(administracion);
         administracionRepository.save(administracion);
     }
 
@@ -50,18 +50,29 @@ public class AdministracionService {
 
     // ACTUALIZAR ADMINISTRACION
     public void updateAdministracion(Long idAdm, AdministracionUpdateDTO dto) throws Exception {
+        validateMail(idAdm, dto.getMail());
+
         Administracion existingAdm = administracionRepository.findByIdAdm(idAdm)
                 .orElseThrow(() -> new Exception("Administración no encontrada"));
 
-        Administracion updatedAdm = mapToAdministracionEntityUpdate(dto);
-        validateAdministracionOnUpdate(updatedAdm, idAdm);
-
         // Actualizar campos
-        existingAdm.setNombre(updatedAdm.getNombre());
-        existingAdm.setDireccion(updatedAdm.getDireccion());
-        existingAdm.setTelefono(updatedAdm.getTelefono());
-        existingAdm.setCuit(updatedAdm.getCuit());
-        existingAdm.setMail(updatedAdm.getMail());
+        existingAdm.setNombre(dto.getNombre());
+        existingAdm.setDireccion(dto.getDireccion());
+        existingAdm.setTelefono(dto.getTelefono());
+        existingAdm.setCuit(dto.getCuit());
+        existingAdm.setMail(dto.getMail());
+
+        AppUserAdmin administrador = appUserAdminRepository.findById(dto.getIdAppUser())
+                .orElseThrow(() -> new IllegalArgumentException("Administrador no encontrado"));
+
+        if (administrador.getAdministracion() != null) {
+            long idAdmExistente = administrador.getAdministracion().getIdAdm();
+            if (idAdmExistente != existingAdm.getIdAdm()) {
+                throw new Exception("El administrador ya está asignado a otra administración");
+            }
+        } else if (administrador.getRol() == RolUser.VECINO) {
+            throw new Exception("El rol del administrador no puede ser " + administrador.getRol());
+        }
 
         administracionRepository.save(existingAdm);
     }
@@ -77,15 +88,16 @@ public class AdministracionService {
 
 
     // Validaciones
-    private void validateAdministracion(Administracion administracion) throws Exception {
-        if (administracionRepository.findByMail(administracion.getMail()).isPresent()) {
-            throw new Exception("La administración ya está registrada (mail ya existente)");
+    private void validateAdministracion(String mail) throws Exception {
+        if (administracionRepository.findByMail(mail).isPresent()){
+            throw new Exception("El mail ya esta registrado");
         }
     }
-    private void validateAdministracionOnUpdate(Administracion administracion, Long idAdm) throws Exception {
-        if (administracionRepository.findByMail(administracion.getMail())
+
+    private void validateMail(Long idAdm, String mail) throws Exception {
+        if (administracionRepository.findByMail(mail)
                 .filter(a -> a.getIdAdm() != idAdm).isPresent()) {
-            throw new Exception("Mail ya existente");
+            throw new Exception("Mail ya existente en otra administración.");
         }
     }
 
@@ -109,32 +121,6 @@ public class AdministracionService {
 
         administracion.setAdministrador(administrador);
         administrador.setAdministracion(administracion);
-        return administracion;
-    }
-
-    private Administracion mapToAdministracionEntityUpdate(AdministracionUpdateDTO dto) throws Exception {
-        AppUserAdmin administrador = appUserAdminRepository.findById(dto.getIdAppUser())
-                .orElseThrow(() -> new IllegalArgumentException("Administrador no encontrado"));
-
-        Administracion administracion = new Administracion();
-        administracion.setIdAdm(dto.getIdAdm());
-        administracion.setNombre(dto.getNombre());
-        administracion.setDireccion(dto.getDireccion());
-        administracion.setTelefono(dto.getTelefono());
-        administracion.setCuit(dto.getCuit());
-        administracion.setMail(dto.getMail());
-
-        // Buscar el AppUser (administrador)
-
-        if (administrador.getAdministracion() != null) {
-            long idAdmExistente = administrador.getAdministracion().getIdAdm();
-            if (idAdmExistente != administracion.getIdAdm()) {
-                throw new Exception("El administrador ya está asignado a otra administración");
-            }
-        } else if (administrador.getRol() == RolUser.VECINO) {
-            throw new Exception("El rol del administrador no puede ser " + administrador.getRol());
-        }
-
         return administracion;
     }
 

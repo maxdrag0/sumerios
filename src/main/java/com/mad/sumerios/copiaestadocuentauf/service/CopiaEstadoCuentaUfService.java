@@ -86,13 +86,9 @@ public class CopiaEstadoCuentaUfService {
 
         if(dto.getSegundoVencimientoActivo() != null) {
             copiaEstadoCuentaUf.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
-        } else {
-            copiaEstadoCuentaUf.setSegundoVencimientoActivo(false);
-        }
-
-        if(dto.getSegundoVencimiento() != null) {
             copiaEstadoCuentaUf.setSegundoVencimiento(dto.getSegundoVencimiento());
         } else {
+            copiaEstadoCuentaUf.setSegundoVencimientoActivo(false);
             copiaEstadoCuentaUf.setSegundoVencimiento(0.0);
         }
 
@@ -130,16 +126,15 @@ public class CopiaEstadoCuentaUfService {
             dto.setRedondeo(copiaEstadoCuentaUf.getRedondeo());
         }
         dto.setTotalExpensa(copiaEstadoCuentaUf.getTotalExpensa());
+
         if(copiaEstadoCuentaUf.getSegundoVencimientoActivo() == null) {
             dto.setSegundoVencimientoActivo(false);
-        } else{
-            dto.setSegundoVencimientoActivo(copiaEstadoCuentaUf.getSegundoVencimientoActivo());
-        }
-        if(copiaEstadoCuentaUf.getSegundoVencimiento() == null) {
             dto.setSegundoVencimiento(0.0);
         } else{
+            dto.setSegundoVencimientoActivo(copiaEstadoCuentaUf.getSegundoVencimientoActivo());
             dto.setSegundoVencimiento(copiaEstadoCuentaUf.getSegundoVencimiento());
         }
+
         dto.setSaldoFinal(copiaEstadoCuentaUf.getSaldoFinal());
         dto.setSaldoExpensa(copiaEstadoCuentaUf.getSaldoExpensa());
         dto.setSaldoIntereses(copiaEstadoCuentaUf.getSaldoIntereses());

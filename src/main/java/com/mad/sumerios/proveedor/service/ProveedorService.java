@@ -63,14 +63,12 @@ public class ProveedorService {
                 .orElseThrow(() -> new Exception ("Proveedor no encontrado"));
 
         validateCuitUpdate(dto.getIdProveedor(), dto.getCuit());
-//        validateTelefonoUpdate(dto.getIdProveedor(), dto.getTelefono());
-        Proveedor proveedorUpdated = mapToProveedorEntityUpdate(dto);
 
-        proveedor.setTelefono(proveedorUpdated.getTelefono());
-        proveedor.setNombre(proveedorUpdated.getNombre());
-        proveedor.setDescripcion(proveedorUpdated.getDescripcion());
-        proveedor.setCbu(proveedorUpdated.getCbu());
-        proveedor.setCuit(proveedorUpdated.getCuit());
+        proveedor.setNombre(dto.getNombre());
+        proveedor.setDescripcion(dto.getDescripcion());
+        proveedor.setCbu(dto.getCbu());
+        proveedor.setCuit(dto.getCuit());
+        proveedor.setTelefono(dto.getTelefono());
 
         proveedorRepository.save(proveedor);
 
@@ -131,20 +129,6 @@ public class ProveedorService {
         proveedor.setDescripcion(dto.getDescripcion());
         proveedor.setCuit(dto.getCuit());
         proveedor.setCbu(dto.getCbu());
-
-        return proveedor;
-    }
-    private Proveedor mapToProveedorEntityUpdate(ProveedorUpdateDTO dto) {
-        System.out.println("DTO"+dto);
-        Proveedor proveedor = new Proveedor();
-
-        proveedor.setIdProveedor(dto.getIdProveedor());
-        proveedor.setNombre(dto.getNombre());
-        proveedor.setDescripcion(dto.getDescripcion());
-        proveedor.setCbu(dto.getCbu());
-        proveedor.setCuit(dto.getCuit());
-        proveedor.setTelefono(dto.getTelefono());
-        System.out.println("Entidad mapeada"+proveedor);
 
         return proveedor;
     }

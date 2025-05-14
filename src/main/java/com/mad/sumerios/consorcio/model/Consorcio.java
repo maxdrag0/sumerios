@@ -49,14 +49,14 @@ public class Consorcio {
     private String numCuenta;
     private String alias;
 
+    // INTERESES Y SEGUNDO VENCIMIENTO
+    private Double porcentajeIntereses;
+    private Boolean segundoVencimiento;
+    private Double porcentajeSegundoVencimiento;
+
     @OneToMany(mappedBy = "consorcio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<UnidadFuncional> unidadesFuncionales;
 
-//    @OneToMany(mappedBy = "consorcio",
-//            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
-//            fetch = FetchType.LAZY)
-//    @JsonManagedReference
-//    private List<Expensa> expensas;
 
 }

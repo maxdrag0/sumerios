@@ -65,29 +65,32 @@ public class GastoParticularService {
 
 //    // UPDATE Gp.
     public void updateGastoParticular (Long idGastoParticular, GastoParticularUpdateDTO dto) throws Exception{
+        validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
+        validateProveedor(dto.getIdProveedor());
+        validateTotalFinal(dto.getTotalFinal());
+        justValidateExpensa(dto.getIdExpensa());
+
         GastoParticular gp = gastoParticularRepository.findById(idGastoParticular)
                 .orElseThrow(()-> new Exception("Gasto Particular no encontrado."));
 
-        GastoParticular gpUpdated = mapToGastoParticularEntityUpdate(dto);
-        System.out.println(gp.getPagoConsorcio());
-        System.out.println(gpUpdated.getPagoConsorcio());
         Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
+
         if(gp.getPagoConsorcio()){
-            consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarGastoParticular(value.getEstadoCuentaConsorcio(), gp, gpUpdated));
-        } else if(gpUpdated.getPagoConsorcio()){
-            consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticular(value.getEstadoCuentaConsorcio(), gpUpdated));
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarGastoParticular(value.getEstadoCuentaConsorcio(), gp, dto));
+        } else if(dto.getPagoConsorcio()){
+            consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticularUpdate(value.getEstadoCuentaConsorcio(), dto));
         }
 
-        gp.setIdConsorcio(gpUpdated.getIdConsorcio());
-        gp.setIdProveedor(gpUpdated.getIdProveedor());
-        gp.setIdUf(gpUpdated.getIdUf());
-        gp.setFecha(gpUpdated.getFecha());
-        gp.setTitulo(gpUpdated.getTitulo());
-        gp.setFormaPago(gpUpdated.getFormaPago());
-        gp.setComprobante(gpUpdated.getComprobante());
-        gp.setDescripcion(gpUpdated.getDescripcion());
-        gp.setTotalFinal(gpUpdated.getTotalFinal());
-        gp.setPagoConsorcio(gpUpdated.getPagoConsorcio());
+        gp.setIdConsorcio(dto.getIdConsorcio());
+        gp.setIdProveedor(dto.getIdProveedor());
+        gp.setIdUf(dto.getIdUf());
+        gp.setFecha(dto.getFecha());
+        gp.setTitulo(dto.getTitulo());
+        gp.setFormaPago(dto.getFormaPago());
+        gp.setComprobante(dto.getComprobante());
+        gp.setDescripcion(dto.getDescripcion());
+        gp.setTotalFinal(dto.getTotalFinal());
+        gp.setPagoConsorcio(dto.getPagoConsorcio());
 
         gastoParticularRepository.save(gp);
     }
@@ -177,6 +180,13 @@ public class GastoParticularService {
         }
     }
     //  expensa
+    private void justValidateExpensa(Long idExpensa) throws Exception {
+        Optional<Expensa> exp = expensaRepository.findById(idExpensa);
+        if(exp.isEmpty()){
+            throw new Exception("Expensa no encontrado");
+        }
+    }
+
     private Expensa validateExpensa(Long idExpensa) throws Exception {
         Optional<Expensa> exp = expensaRepository.findById(idExpensa);
         if(exp.isEmpty()){
@@ -211,29 +221,7 @@ public class GastoParticularService {
 
         return gastoParticular;
     }
-    public GastoParticular mapToGastoParticularEntityUpdate(GastoParticularUpdateDTO dto) throws Exception{
-        validateUfAndConsorcio(dto.getIdUf(), dto.getIdConsorcio());
-        validateProveedor(dto.getIdProveedor());
-        validateTotalFinal(dto.getTotalFinal());
-        Expensa exp = validateExpensa(dto.getIdExpensa());
 
-        GastoParticular gastoParticular = new GastoParticular();
-
-        gastoParticular.setIdConsorcio(dto.getIdConsorcio());
-        gastoParticular.setExpensa(exp);
-        gastoParticular.setPeriodo(dto.getPeriodo());
-        gastoParticular.setIdProveedor(dto.getIdProveedor());
-        gastoParticular.setIdUf(dto.getIdUf());
-        gastoParticular.setFecha(dto.getFecha());
-        gastoParticular.setTitulo(dto.getTitulo());
-        gastoParticular.setFormaPago(dto.getFormaPago());
-        gastoParticular.setComprobante(dto.getComprobante());
-        gastoParticular.setDescripcion(dto.getDescripcion());
-        gastoParticular.setTotalFinal(dto.getTotalFinal());
-        gastoParticular.setPagoConsorcio(dto.getPagoConsorcio());
-
-        return gastoParticular;
-    }
     //  map Entity a DTO
     public GastoParticularResponseDTO mapToGastoParticularResponse(GastoParticular gp) {
         GastoParticularResponseDTO dto = new GastoParticularResponseDTO();

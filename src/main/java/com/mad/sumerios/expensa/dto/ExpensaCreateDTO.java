@@ -10,12 +10,12 @@ public class ExpensaCreateDTO {
 
     @NotNull
     private Long idConsorcio;
-
     @NotNull
     private YearMonth periodo;
-
     @NotNull
     private Double porcentajeIntereses;
-
     private Double porcentajeSegundoVencimiento;
+
+    private String nota;
+    private String juicios;
 }

@@ -17,4 +17,8 @@ public class ConsorcioUpdateDTO {
     private String banco;
     private String numCuenta;
     private String alias;
+
+    private Double porcentajeIntereses;
+    private Boolean segundoVencimiento;
+    private Double porcentajeSegundoVencimiento;
 }

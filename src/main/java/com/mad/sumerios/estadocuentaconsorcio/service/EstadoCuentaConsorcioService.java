@@ -7,8 +7,11 @@ import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioCreateDTO
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import com.mad.sumerios.estadocuentaconsorcio.repository.IEstadoCuentaConsorcioRepository;
+import com.mad.sumerios.movimientos.egreso.dto.EgresoUpdateDTO;
 import com.mad.sumerios.movimientos.egreso.model.Egreso;
+import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularUpdateDTO;
 import com.mad.sumerios.movimientos.gastoParticular.model.GastoParticular;
+import com.mad.sumerios.movimientos.ingreso.dto.IngresoUpdateDTO;
 import com.mad.sumerios.movimientos.ingreso.model.Ingreso;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,18 +41,17 @@ public class EstadoCuentaConsorcioService {
 
     //  UPDATE ESTADO CUENTA
     public void updateEstadoCuenta (Long idEstadoCuenta, EstadoCuentaConsorcioDTO dto) throws Exception {
-        EstadoCuentaConsorcio ea = estadoCuentaRepository.findById(idEstadoCuenta)
+        EstadoCuentaConsorcio ec = estadoCuentaRepository.findById(idEstadoCuenta)
                 .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuenta));
 
-        EstadoCuentaConsorcio eaUpdated = mapToEstadoCuentaEntityUpdate(dto);
 
-        ea.setEfectivo(eaUpdated.getEfectivo());
-        ea.setBanco(eaUpdated.getBanco());
-        ea.setFondoAdm(eaUpdated.getFondoAdm());
-        ea.setTotal(eaUpdated.getTotal());
-        ea.setTotalAlCierre(eaUpdated.getTotalAlCierre());
+        ec.setEfectivo(dto.getEfectivo());
+        ec.setBanco(dto.getBanco());
+        ec.setFondoAdm(dto.getFondoAdm());
+        ec.setTotal(dto.getTotal());
+        ec.setTotalAlCierre(dto.getTotalAlCierre());
 
-        estadoCuentaRepository.save(ea);
+        estadoCuentaRepository.save(ec);
     }
 
     //  GET
@@ -91,7 +93,7 @@ public class EstadoCuentaConsorcioService {
         estadoCuentaRepository.save(estadoCuentaConsorcio);
     }
     // Modificar
-    public void modificarEgreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Egreso egresoViejo, Egreso egresoNuevo) {
+    public void modificarEgreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Egreso egresoViejo, EgresoUpdateDTO egresoNuevo) {
         if (egresoViejo.getFormaPago().equals(egresoNuevo.getFormaPago())) {
             actualizarTotalEstadoCuentaEgreso(estadoCuentaConsorcio, egresoViejo.getTotalFinal(), egresoNuevo.getTotalFinal());
             actualizarCajaPorCambioMontoEgreso(estadoCuentaConsorcio, egresoViejo.getFormaPago(), egresoViejo.getTotalFinal(), egresoNuevo.getTotalFinal());
@@ -132,7 +134,7 @@ public class EstadoCuentaConsorcioService {
             estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + diferencia);
         }
     }
-    private void actualizarCajaPorCambioFormaPagoEgreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Egreso egresoViejo, Egreso egresoNuevo) {
+    private void actualizarCajaPorCambioFormaPagoEgreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Egreso egresoViejo, EgresoUpdateDTO egresoNuevo) {
         if (egresoViejo.getFormaPago().equals(FormaPago.EFECTIVO)) {
             estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() + egresoViejo.getTotalFinal());
             estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() - egresoNuevo.getTotalFinal());
@@ -166,7 +168,7 @@ public class EstadoCuentaConsorcioService {
         estadoCuentaRepository.save(estadoCuentaConsorcio);
     }
     // Modificar
-    public void modificarIngreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Ingreso ingresoViejo, Ingreso ingresoNuevo) {
+    public void modificarIngreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Ingreso ingresoViejo, IngresoUpdateDTO ingresoNuevo) {
         if (ingresoViejo.getFormaPago().equals(ingresoNuevo.getFormaPago())) {
             actualizarTotalEstadoCuentaIngreso(estadoCuentaConsorcio, ingresoViejo.getValor(), ingresoNuevo.getValor());
             actualizarCajaPorCambioMontoIngreso(estadoCuentaConsorcio, ingresoViejo.getFormaPago(), ingresoViejo.getValor(), ingresoNuevo.getValor());
@@ -207,7 +209,7 @@ public class EstadoCuentaConsorcioService {
             }
         }
     }
-    private void actualizarCajaPorCambioFormaPagoIngreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Ingreso ingresoViejo, Ingreso ingresoNuevo) {
+    private void actualizarCajaPorCambioFormaPagoIngreso(EstadoCuentaConsorcio estadoCuentaConsorcio, Ingreso ingresoViejo, IngresoUpdateDTO ingresoNuevo) {
         if (ingresoViejo.getFormaPago().equals(FormaPago.EFECTIVO)) {
             estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() - ingresoViejo.getValor());
             estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() + ingresoNuevo.getValor());
@@ -229,6 +231,17 @@ public class EstadoCuentaConsorcioService {
 
         estadoCuentaRepository.save(estadoCuentaConsorcio);
     }
+
+    public void restarGastoParticularUpdate(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticularUpdateDTO gastoParticular){
+        estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() - gastoParticular.getTotalFinal());
+        if(gastoParticular.getFormaPago() == FormaPago.EFECTIVO){
+            estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() - gastoParticular.getTotalFinal());
+        } else {
+            estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() - gastoParticular.getTotalFinal());
+        }
+
+        estadoCuentaRepository.save(estadoCuentaConsorcio);
+    }
     // Revertir
     public void revertirGastoParticular(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticular gastoParticular){
         estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + gastoParticular.getTotalFinal());
@@ -241,7 +254,7 @@ public class EstadoCuentaConsorcioService {
         estadoCuentaRepository.save(estadoCuentaConsorcio);
     }
     // Modificar
-    public void modificarGastoParticular(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticular gpViejo, GastoParticular gpNuevo) {
+    public void modificarGastoParticular(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticular gpViejo, GastoParticularUpdateDTO gpNuevo) {
         if(gpNuevo.getPagoConsorcio()){
             if (gpViejo.getFormaPago().equals(gpNuevo.getFormaPago())) {
                 actualizarTotalEstadoCuentaGastoParticular(estadoCuentaConsorcio, gpViejo.getTotalFinal(), gpNuevo.getTotalFinal());
@@ -286,7 +299,7 @@ public class EstadoCuentaConsorcioService {
             estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + diferencia);
         }
     }
-    private void actualizarCajaPorCambioFormaPagoGastoParticular(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticular gpViejo, GastoParticular GpNuevo) {
+    private void actualizarCajaPorCambioFormaPagoGastoParticular(EstadoCuentaConsorcio estadoCuentaConsorcio, GastoParticular gpViejo, GastoParticularUpdateDTO GpNuevo) {
         if (gpViejo.getFormaPago().equals(FormaPago.EFECTIVO)) {
             estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() + gpViejo.getTotalFinal());
             estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() - GpNuevo.getTotalFinal());
@@ -321,43 +334,6 @@ public class EstadoCuentaConsorcioService {
 
         estadoCuentaRepository.save(estadoCuentaConsorcio);
     }
-    // Modificar
-//    public void modificarPagoUF(EstadoCuentaConsorcio estadoCuentaConsorcio, PagoUF pagoViejo, PagoUF pagoNuevo){
-//        if(pagoViejo.getFormaPago() == pagoNuevo.getFormaPago()){
-//            updateMismaFormaPagoPagoUF(estadoCuentaConsorcio, pagoViejo, pagoNuevo);
-//        } else{
-//            updateDistintaPagoUF(estadoCuentaConsorcio, pagoViejo, pagoNuevo);
-//        }
-//    }
-//    private void updateDistintaPagoUF(EstadoCuentaConsorcio estadoCuentaConsorcio, PagoUF pagoViejo, PagoUF pagoNuevo) {
-//        estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() - pagoViejo.getValor());
-//        estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + pagoNuevo.getValor());
-//
-//        if(pagoViejo.getFormaPago().equals(FormaPago.EFECTIVO)){
-//            // reversion gasto original
-//            estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() - pagoViejo.getValor());
-//            // descuento gasto nuevo
-//            estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() + pagoNuevo.getValor());
-//        } else{
-//            // reversion gasto original
-//            estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() - pagoViejo.getValor());
-//            // descuento gasto nuevo
-//            estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() + pagoNuevo.getValor());
-//        }
-//
-//        estadoCuentaRepository.save(estadoCuentaConsorcio);
-//    }
-//    private void updateMismaFormaPagoPagoUF(EstadoCuentaConsorcio estadoCuentaConsorcio, PagoUF pagoViejo, PagoUF pagoNuevo) {
-//        Double diferencia = pagoNuevo.getValor() - pagoViejo.getValor();
-//        estadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal() + diferencia);
-//        if(pagoViejo.getFormaPago() == FormaPago.EFECTIVO){
-//            estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() + diferencia);
-//        } else{
-//            estadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco() + diferencia);
-//        }
-//
-//        estadoCuentaRepository.save(estadoCuentaConsorcio);
-//    }
 
     // VALIDACIONES
     private Consorcio validateConsorcio(Long idConsorcio) throws Exception {
@@ -396,20 +372,7 @@ public class EstadoCuentaConsorcioService {
 
         return ec;
     }
-    private EstadoCuentaConsorcio mapToEstadoCuentaEntityUpdate(EstadoCuentaConsorcioDTO dto) throws Exception {
-        validateTotal(dto.getBanco(), dto.getEfectivo(), dto.getFondoAdm(), dto.getTotal());
 
-        EstadoCuentaConsorcio ec = new EstadoCuentaConsorcio();
-
-        ec.setIdEstadoCuentaConsorcio(dto.getIdEstadoCuentaConsorcio());
-        ec.setEfectivo(dto.getEfectivo());
-        ec.setBanco(dto.getBanco());
-        ec.setFondoAdm(dto.getFondoAdm());
-        ec.setTotal(dto.getTotal());
-        ec.setTotalAlCierre(dto.getTotalAlCierre());
-
-        return ec;
-    }
     // MAP ENTITY TO DTO
     public EstadoCuentaConsorcioDTO mapToEstadoCuentaDTO (EstadoCuentaConsorcio ea) {
         EstadoCuentaConsorcioDTO dto = new EstadoCuentaConsorcioDTO();

@@ -20,6 +20,9 @@ public class ConsorcioResponseDTO {
     private String cbu;
     private String numCuenta;
     private String alias;
+    private Double porcentajeIntereses;
+    private Boolean segundoVencimiento;
+    private Double porcentajeSegundoVencimiento;
     private Long idAdm;
     private EstadoCuentaConsorcioDTO estadoCuentaConsorcioDTO;
 }

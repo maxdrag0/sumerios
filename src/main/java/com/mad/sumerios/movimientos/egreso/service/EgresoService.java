@@ -100,26 +100,28 @@ public class EgresoService {
 
     //  ACTUALIZAR CONSORCIO
     public void updateEgreso (Long idIngreso, EgresoUpdateDTO dto) throws Exception{
+        validateConsorcio(dto.getIdConsorcio());
+        validateProveedor(dto.getIdProveedor());
+        validateValor(dto.getTotalFinal());
+
         Egreso egreso = egresoRepository.findById(idIngreso)
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
 
-        Egreso egresoUpdated = mapToEgresoEntityUpdate(dto);
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
             Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
-            consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarEgreso(value.getEstadoCuentaConsorcio(), egreso, egresoUpdated));
-
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarEgreso(value.getEstadoCuentaConsorcio(), egreso, dto));
         }
 
-        egreso.setIdConsorcio(egresoUpdated.getIdConsorcio());
-        egreso.setIdProveedor(egresoUpdated.getIdProveedor());
-        egreso.setFecha(egresoUpdated.getFecha());
-        egreso.setTipoEgreso(egresoUpdated.getTipoEgreso());
-        egreso.setFormaPago(egresoUpdated.getFormaPago());
-        egreso.setTitulo(egresoUpdated.getTitulo());
-        egreso.setDescripcion(egresoUpdated.getDescripcion());
-        egreso.setComprobante(egresoUpdated.getComprobante());
-        egreso.setTotalFinal(egresoUpdated.getTotalFinal());
-        egreso.setCategoriaEgreso(egresoUpdated.getCategoriaEgreso());
+        egreso.setIdConsorcio(dto.getIdConsorcio());
+        egreso.setIdProveedor(dto.getIdProveedor());
+        egreso.setFecha(dto.getFecha());
+        egreso.setTitulo(dto.getTitulo());
+        egreso.setTipoEgreso(dto.getTipoEgreso());
+        egreso.setFormaPago(dto.getFormaPago());
+        egreso.setComprobante(dto.getComprobante());
+        egreso.setDescripcion(dto.getDescripcion());
+        egreso.setTotalFinal(dto.getTotalFinal());
+        egreso.setCategoriaEgreso(dto.getCategoriaEgreso());
 
         egresoRepository.save(egreso);
     }
@@ -185,29 +187,6 @@ public class EgresoService {
         return egreso;
     }
 
-
-
-    private Egreso mapToEgresoEntityUpdate(EgresoUpdateDTO dto) throws Exception{
-        validateConsorcio(dto.getIdConsorcio());
-        validateProveedor(dto.getIdProveedor());
-        validateValor(dto.getTotalFinal());
-
-        Egreso egreso = new Egreso();
-
-        egreso.setPeriodo(dto.getPeriodo());
-        egreso.setIdConsorcio(dto.getIdConsorcio());
-        egreso.setIdProveedor(dto.getIdProveedor());
-        egreso.setFecha(dto.getFecha());
-        egreso.setTitulo(dto.getTitulo());
-        egreso.setTipoEgreso(dto.getTipoEgreso());
-        egreso.setFormaPago(dto.getFormaPago());
-        egreso.setComprobante(dto.getComprobante());
-        egreso.setDescripcion(dto.getDescripcion());
-        egreso.setTotalFinal(dto.getTotalFinal());
-        egreso.setCategoriaEgreso(dto.getCategoriaEgreso());
-
-        return egreso;
-    }
     //  mapeo Entity a DTO
     public EgresoResponseDTO mapToEgresoResponse(Egreso egreso){
         EgresoResponseDTO dto = new EgresoResponseDTO();

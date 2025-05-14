@@ -88,18 +88,23 @@ public class IngresoService {
 
     //  ACTUALIZAR INGRESO
     public void updateIngreso(Long idIngreso, IngresoUpdateDTO dto) throws Exception{
+        validateNull(dto);
+        validateValor(dto.getValor());
+        validateProveedor(dto.getIdProveedor());
+
         Ingreso ingreso = ingresoRepository.findById(idIngreso)
-                .orElseThrow(()-> new Exception("Ingreso no encontrado"));
-        Ingreso ingresoUpdated = mapToIngresoUpdate(dto);
+                .orElseThrow(()-> new Exception("Ingreso con ID: "+dto.getIdIngreso()+" no encontrado."));
+
 
         Optional<Consorcio> consorcio = consorcioRepository.findById(ingreso.getIdConsorcio());
-        consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarIngreso(value.getEstadoCuentaConsorcio(), ingreso, ingresoUpdated));
+        consorcio.ifPresent(value-> estadoCuentaConsorcioService.modificarIngreso(value.getEstadoCuentaConsorcio(), ingreso, dto));
 
-        ingreso.setFecha(ingresoUpdated.getFecha());
-        ingreso.setValor(ingresoUpdated.getValor());
-        ingreso.setTitulo(ingresoUpdated.getTitulo());
-        ingreso.setDescripcion(ingresoUpdated.getDescripcion());
-        ingreso.setFormaPago(ingresoUpdated.getFormaPago());
+        ingreso.setIdProveedor(dto.getIdProveedor());
+        ingreso.setFecha(dto.getFecha());
+        ingreso.setValor(dto.getValor());
+        ingreso.setTitulo(dto.getTitulo());
+        ingreso.setDescripcion(dto.getDescripcion());
+        ingreso.setFormaPago(dto.getFormaPago());
 
         ingresoRepository.save(ingreso);
     }
@@ -166,26 +171,7 @@ public class IngresoService {
 
         return ingreso;
     }
-    private Ingreso mapToIngresoUpdate(IngresoUpdateDTO dto) throws Exception {
-        validateNull(dto);
-        validateValor(dto.getValor());
-        validateProveedor(dto.getIdProveedor());
-        Ingreso ingreso = new Ingreso();
 
-        if(ingresoRepository.findById(dto.getIdIngreso()).isEmpty()){
-            throw new Exception("Ingreso con ID: "+dto.getIdIngreso()+" no encontrado.");
-        }
-
-        ingreso.setPeriodo(dto.getPeriodo());
-        ingreso.setIdProveedor(dto.getIdProveedor());
-        ingreso.setFecha(dto.getFecha());
-        ingreso.setValor(dto.getValor());
-        ingreso.setTitulo(dto.getTitulo());
-        ingreso.setDescripcion(dto.getDescripcion());
-        ingreso.setFormaPago(dto.getFormaPago());
-
-        return ingreso;
-    }
     //  mapeo Entity a DTO
     public IngresoResponseDTO mapToIngresoResponseDTO (Ingreso ingreso) {
         IngresoResponseDTO dto = new IngresoResponseDTO();

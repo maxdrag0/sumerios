@@ -45,25 +45,23 @@ public class EstadoCuentaUfService {
         EstadoCuentaUf ec = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuentaUf));
 
-        EstadoCuentaUf ecUpdated = mapToEstadoCuentaUfEntityUpdate(dto);
-        System.out.println();
-        ec.setPeriodo(ecUpdated.getPeriodo());
-        ec.setTotalMesPrevio(ecUpdated.getTotalMesPrevio());
-        ec.setDeuda(ecUpdated.getDeuda());
-        ec.setIntereses(ecUpdated.getIntereses());
-        ec.setTotalA(ecUpdated.getTotalA());
-        ec.setTotalB(ecUpdated.getTotalB());
-        ec.setTotalC(ecUpdated.getTotalC());
-        ec.setTotalD(ecUpdated.getTotalD());
-        ec.setTotalE(ecUpdated.getTotalE());
-        ec.setGastoParticular(ecUpdated.getGastoParticular());
-        ec.setRedondeo(ecUpdated.getRedondeo());
-        ec.setTotalExpensa(ecUpdated.getTotalExpensa());
-        ec.setSegundoVencimientoActivo(ecUpdated.getSegundoVencimientoActivo());
-        ec.setSegundoVencimiento(ecUpdated.getSegundoVencimiento());
-        ec.setSaldoFinal(ecUpdated.getSaldoFinal());
-        ec.setSaldoExpensa(ecUpdated.getSaldoExpensa());
-        ec.setSaldoIntereses(ecUpdated.getSaldoIntereses());
+        ec.setPeriodo(dto.getPeriodo());
+        ec.setTotalMesPrevio(dto.getTotalMesPrevio());
+        ec.setDeuda(dto.getDeuda());
+        ec.setIntereses(dto.getIntereses());
+        ec.setTotalA(dto.getTotalA());
+        ec.setTotalB(dto.getTotalB());
+        ec.setTotalC(dto.getTotalC());
+        ec.setTotalD(dto.getTotalD());
+        ec.setTotalE(dto.getTotalE());
+        ec.setGastoParticular(dto.getGastoParticular());
+        ec.setRedondeo(dto.getRedondeo());
+        ec.setTotalExpensa(dto.getTotalExpensa());
+        ec.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
+        ec.setSegundoVencimiento(dto.getSegundoVencimiento());
+        ec.setSaldoFinal(dto.getSaldoFinal());
+        ec.setSaldoExpensa(dto.getSaldoExpensa());
+        ec.setSaldoIntereses(dto.getSaldoIntereses());
 
         estadoCuentaUfRepository.save(ec);
     }
@@ -253,7 +251,7 @@ public class EstadoCuentaUfService {
         EstadoCuentaUf estadoCuentaUf = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
                 .orElseThrow(()->new Exception("Estado de cuenta no encontrado"));
 
-        estadoCuentaUf.setSegundoVencimiento((estadoCuentaUf.getTotalExpensa() * porcentajeSegundoVencimiento) / 100);
+        estadoCuentaUf.setSegundoVencimiento(estadoCuentaUf.getTotalExpensa() +((estadoCuentaUf.getTotalExpensa() * porcentajeSegundoVencimiento) / 100));
         estadoCuentaUf.setSegundoVencimientoActivo(false);
     }
 
@@ -265,6 +263,8 @@ public class EstadoCuentaUfService {
             estadoCuentaUf.setSegundoVencimientoActivo(true);
             estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() + diferencia);
             estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() + diferencia);
+
+            estadoCuentaUfRepository.save(estadoCuentaUf);
         } else{
             throw new Exception("El segundo vencimiento ya esta imputado.");
         }
@@ -279,6 +279,12 @@ public class EstadoCuentaUfService {
             estadoCuentaUf.setSegundoVencimientoActivo(false);
             estadoCuentaUf.setSaldoFinal(estadoCuentaUf.getSaldoFinal() - diferencia);
             estadoCuentaUf.setSaldoIntereses(estadoCuentaUf.getSaldoIntereses() - diferencia);
+            if(estadoCuentaUf.getSaldoIntereses() < 0){
+                estadoCuentaUf.setSaldoExpensa(estadoCuentaUf.getSaldoExpensa() + estadoCuentaUf.getSaldoIntereses());
+                estadoCuentaUf.setSaldoIntereses(0.0);
+            }
+
+            estadoCuentaUfRepository.save(estadoCuentaUf);
         } else{
             throw new Exception("El segundo vencimiento no esta imputado.");
         }
@@ -321,35 +327,6 @@ public class EstadoCuentaUfService {
         ec.setSaldoIntereses(0.0);
 
         uf.setEstadoCuentaUf(ec);
-
-        return ec;
-    }
-    private EstadoCuentaUf mapToEstadoCuentaUfEntityUpdate(EstadoCuentaUfDTO dto) throws Exception {
-        if(unidadFuncionalRepository.findById(dto.getIdUf()).isEmpty()){
-            throw new Exception("Unidad funcional no encontrada");
-
-        }
-
-        EstadoCuentaUf ec = new EstadoCuentaUf();
-
-
-        ec.setPeriodo(dto.getPeriodo());
-        ec.setTotalMesPrevio(dto.getTotalMesPrevio());
-        ec.setDeuda(dto.getDeuda());
-        ec.setIntereses(dto.getIntereses());
-        ec.setTotalA(dto.getTotalA());
-        ec.setTotalB(dto.getTotalB());
-        ec.setTotalC(dto.getTotalC());
-        ec.setTotalD(dto.getTotalD());
-        ec.setTotalE(dto.getTotalE());
-        ec.setGastoParticular(dto.getGastoParticular());
-        ec.setRedondeo(dto.getRedondeo());
-        ec.setTotalExpensa(dto.getTotalExpensa());
-        ec.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
-        ec.setSegundoVencimiento(dto.getSegundoVencimiento());
-        ec.setSaldoFinal(dto.getSaldoFinal());
-        ec.setSaldoExpensa(dto.getSaldoExpensa());
-        ec.setSaldoIntereses(dto.getSaldoIntereses());
 
         return ec;
     }
@@ -497,6 +474,8 @@ public class EstadoCuentaUfService {
         ecAux.setSaldoFinal(ea.getSaldoFinal());
         ecAux.setSaldoExpensa(ea.getSaldoExpensa());
         ecAux.setSaldoIntereses(ea.getSaldoIntereses());
+        ecAux.setSegundoVencimientoActivo(ea.getSegundoVencimientoActivo());
+        ecAux.setSegundoVencimiento(ea.getSegundoVencimiento());
     }
 
 

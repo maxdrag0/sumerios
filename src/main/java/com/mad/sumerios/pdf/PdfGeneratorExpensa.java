@@ -15,11 +15,9 @@ import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
-import org.apache.pdfbox.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.NumberFormat;
 import java.time.format.TextStyle;
 import java.util.List;
@@ -31,101 +29,70 @@ public class PdfGeneratorExpensa {
                                          ConsorcioResponseDTO consorcio,
                                          ExpensaResponseDto expensa,
                                          List<UnidadFuncionalResponseDTO> ufs,
-                                         List<EstadoCuentaUfDTO> estadosDeCuentaUf) throws DocumentException, IOException {
+                                         List<EstadoCuentaUfDTO> estadosDeCuentaUf,
+                                         Boolean segundoVencimiento,
+                                         String nota,
+                                         String juicios) throws DocumentException, IOException {
 
-        Document document = new Document(PageSize.B4.rotate());
+        float margenSuperior = 280f; // ajusta este valor según el alto del encabezado
+        Document document = new Document(PageSize.B4.rotate(), 36, 36, margenSuperior, 36);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfWriter writer = PdfWriter.getInstance(document, baos);
+
+        // =====================
+        // FORMATEOS Y DATOS PREVIOS
+        // =====================
+        String mes = expensa.getPeriodo().getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
+        String mesCapitalizado = mes.substring(0, 1).toUpperCase() + mes.substring(1);
+        String periodoFormateado = mesCapitalizado + " de " + expensa.getPeriodo().getYear();
+
+        // =====================
+        // DINERO
+        // =====================
+        NumberFormat formatoMoneda = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+
+
+        // =====================
+        // FUENTES Y COLORES
+        // =====================
+        Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.WHITE);
+        Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        Font boldFontBigTitle = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
+        Font boldFontTitle = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        Font boldFontSubTitle = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
+        Font font = new Font(Font.FontFamily.HELVETICA, 14);
+        Font fonter = new Font(Font.FontFamily.HELVETICA, 12);
+        Font regularFont = new Font(Font.FontFamily.HELVETICA, 10);
+        Font boldFontSmall = new Font(Font.FontFamily.HELVETICA, 8, Font.BOLD);
+        Font boldFontSmaller = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
+        Font smallFonter = new Font(Font.FontFamily.HELVETICA, 7);
+
+        BaseColor grayBackground = new BaseColor(230, 230, 230);
+        BaseColor verdeAzulado = new BaseColor(0, 128, 128);
+
+
         try {
-            LogoHeaderEvent logoEvent = new LogoHeaderEvent(250, 250, 300); // Ajustá ancho, alto y offsetY
-            writer.setPageEvent(logoEvent);
+            // AGREGO TITULO, ENCABEZADO Y LOGO
+            EncabezadoExpensas headerEvent = new EncabezadoExpensas(250, 250, 300,
+                    titleFont,
+                    subtitleFont,
+                    boldFontBigTitle,
+                    boldFontTitle,
+                    verdeAzulado,
+                    grayBackground,
+                    periodoFormateado,
+                    adm,
+                    consorcio
+            );
+            writer.setPageEvent(headerEvent);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         document.open();
-        // FORMATOS, FUENTES Y COLORES
-        // PERIODO
-        String mes = expensa.getPeriodo().getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
-        String mesCapitalizado = mes.substring(0, 1).toUpperCase() + mes.substring(1);
-        String periodoFormateado = mesCapitalizado + " de " + expensa.getPeriodo().getYear();
-
-        // DINERO
-        NumberFormat formatoMoneda = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
-
-        // FUENTES
-        // TITULOS FONDO VERDE
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.WHITE);
-        Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
-
-        Font boldFontBigTitle = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Font boldFontTitle = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-        Font boldFontSubTitle = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
 
 
-        Font font = new Font(Font.FontFamily.HELVETICA, 14);
-        Font regularFont = new Font(Font.FontFamily.HELVETICA, 10);
-
-        Font boldFontSmall = new Font(Font.FontFamily.HELVETICA, 8, Font.BOLD);
-        Font boldFontSmaller = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
-        Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
-        Font smallFonter = new Font(Font.FontFamily.HELVETICA, 7);
-        // COLORES
-        BaseColor grayBackground = new BaseColor(230, 230, 230);
-        BaseColor verdeAzulado = new BaseColor(0,128,128);
-
-//        agregarLogo(document, 300, 300, 350); // ancho, alto, offset desde arriba
-
-        // TABLA TITULO
-        PdfPTable titulo = new PdfPTable(1); // Cambiar a una sola columna
-        titulo.setWidthPercentage(100);
-        titulo.getDefaultCell().setBorder(PdfPCell.BOX);
-        titulo.setSpacingBefore(5f);
-
-        PdfPCell titleCell = new PdfPCell(new Phrase("EXPENSAS LEY 14.701", subtitleFont));
-        titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        titleCell.setBackgroundColor(verdeAzulado);
-        titleCell.setBorder(PdfPCell.NO_BORDER);
-        titleCell.setPaddingTop(15f);
-
-        titulo.addCell(titleCell);
-
-
-
-        PdfPCell subtitleCell = new PdfPCell(new Phrase("Liquidación de: "+periodoFormateado+"\n"+" ", titleFont));
-        subtitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        subtitleCell.setBackgroundColor(verdeAzulado);
-        subtitleCell.setBorder(PdfPCell.NO_BORDER);
-
-        titulo.addCell(subtitleCell);
-
-        document.add(titulo);
-        // FIN TABLA TITULO
-
-        // Tabla de DATOS ENCABEZADO
-        PdfPTable encabezado = new PdfPTable(2); // Cambiar a una sola columna
-        encabezado.setWidthPercentage(100);
-        encabezado.setWidths(new int[]{50, 50});
-
-        encabezado.addCell(createCell("ADMINISTRACION", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground)).setPaddingBottom(4f);
-        encabezado.addCell(createCell("CONSORCIO", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground)).setPaddingBottom(4f);
-        encabezado.addCell(createCell("Nombre: "+adm.getNombre(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("Nombre: "+consorcio.getNombre(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("Administrador: "+adm.getAdministrador().getNombre()+" "+adm.getAdministrador().getApellido(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);
-        encabezado.addCell(createCell("Direccion: "+consorcio.getDireccion(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);
-        encabezado.addCell(createCell("Direccion: "+adm.getDireccion(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("C.U.I.T.: "+consorcio.getCuit(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("Telefono: "+adm.getTelefono(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("", boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("Mail: "+adm.getMail(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("", boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("C.U.I.T.: "+adm.getCuit(), boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-        encabezado.addCell(createCell("", boldFontTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, null)).setPaddingBottom(4f);;
-
-        encabezado.setSpacingAfter(10f);
-        document.add(encabezado);
-
-        // FIN Tabla de DATOS ENCABEZADO
 
 //      EGRESOS, GASTOS PARTICULARES E INGRESOS
 //      TITULO
@@ -136,7 +103,7 @@ public class PdfGeneratorExpensa {
         PdfPCell movimientosCell = new PdfPCell(new Phrase("Pagos e ingresos del período", titleFont));
         movimientosCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         movimientosCell.setBackgroundColor(verdeAzulado);
-        movimientosCell.setBorder(PdfPCell.NO_BORDER);
+        movimientosCell.setBorder(PdfPCell.BOX);
         movimientosCell.setPaddingBottom(15f);
         movimientosCell.setPaddingTop(15f);
 
@@ -149,15 +116,15 @@ public class PdfGeneratorExpensa {
         encabezadoTablaMovimientos.setWidthPercentage(100);
         encabezadoTablaMovimientos.setWidths(new int[]{40,10,10,10,10,10,10});
 
-        encabezadoTablaMovimientos.addCell(createCell("Descripción del gastos ", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.NO_BORDER, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("A", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("B", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("C", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("D", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("E", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
-        encabezadoTablaMovimientos.addCell(createCell("Total", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.LEFT, grayBackground)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("Descripción del gastos ", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("A", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("B", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("C", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("D", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("E", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("Total", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
 
-        encabezadoTablaMovimientos.setSpacingAfter(10f);
+        encabezadoTablaMovimientos.setSpacingAfter(20f);
 
         document.add(encabezadoTablaMovimientos);
 
@@ -168,36 +135,49 @@ public class PdfGeneratorExpensa {
             table.setWidthPercentage(100);
             table.setWidths(new int[]{40,10,10,10,10,10,10});
 
-//            PdfPCell cell = new PdfPCell(new Phrase((numeroTipoEgreso + " - " + tipo.name().toUpperCase())));
-            PdfPCell cell = new PdfPCell(createCell(numeroTipoEgreso + " - " + tipo.getDescripcion().toUpperCase(),boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground));
+            PdfPCell cell = new PdfPCell(createCell(numeroTipoEgreso + " - " + tipo.getDescripcion().toUpperCase(),boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,23f));
 
             cell.setColspan(8);
+            cell.setPadding(5f);
             cell.setHorizontalAlignment(Element.ALIGN_LEFT);
             table.addCell(cell);
+
 
             // Filas de datos
             List<EgresoResponseDTO> egresos = filtrarPorTipoEgreso(expensa.getEgresos(), tipo);
             if(!egresos.isEmpty()){
                 double totalRubro = 0;
-                for (EgresoResponseDTO egreso : egresos) {
+                int numEgreso = 1;
 
-                    table.addCell(createCell(egreso.getTitulo()+": "+egreso.getDescripcion(), font, Element.ALIGN_LEFT, PdfPCell.BOX, null));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.A) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.B) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.C) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.D) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.E) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null));
-                    table.addCell(createCell(formatoMoneda.format(egreso.getTotalFinal()), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, null));
+                for (EgresoResponseDTO egreso : egresos) {
+                    Paragraph paragraph = new Paragraph();
+                    paragraph.add(new Chunk(numEgreso+" - "+egreso.getTitulo() + ":", boldFontTitle).setTextRise(4f));
+
+                    Chunk descripcionChunk = new Chunk(egreso.getDescripcion(), regularFont);
+                    descripcionChunk.setTextRise(-2f);
+                    paragraph.add(Chunk.NEWLINE);
+                    paragraph.add(descripcionChunk);
+
+                    table.addCell(createCellEgreso(paragraph, Element.ALIGN_LEFT, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.A) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.B) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.C) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.D) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.E) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
+                    table.addCell(createCell(formatoMoneda.format(egreso.getTotalFinal()), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, null,20f));
                     totalRubro += egreso.getTotalFinal();
 
-                    numeroTipoEgreso += 1;
+                    numEgreso++;
+
                 }
-                PdfPCell pie = new PdfPCell(createCell("Total del rubro",boldFontTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground));
+                PdfPCell pie = new PdfPCell(createCell("Total del rubro",boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,23f));
+                pie.setPadding(5f);
                 pie.setColspan(6);
                 table.addCell(pie);
-                table.addCell(createCell(formatoMoneda.format(totalRubro),boldFontTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
+                table.addCell(createCell(formatoMoneda.format(totalRubro),boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,23f)).setPadding(5f);
 
-                table.setSpacingAfter(15f);
+                table.setSpacingAfter(10f);
+                numeroTipoEgreso ++;
 
                 document.add(table);
                 document.add(Chunk.NEWLINE);
@@ -211,11 +191,6 @@ public class PdfGeneratorExpensa {
 
 //      ESTADO CUENTA CONSORCIO
         document.newPage();
-        document.add(titulo);
-        document.add(encabezado);
-//        agregarLogo(document, 300, 300, 350); // ancho, alto, offset desde arriba
-
-
         PdfPTable estadoCuentaConsorcio = new PdfPTable(1); // Cambiar a una sola columna
         estadoCuentaConsorcio.setWidthPercentage(100);
         estadoCuentaConsorcio.getDefaultCell().setBorder(PdfPCell.BOX);
@@ -223,20 +198,82 @@ public class PdfGeneratorExpensa {
         PdfPCell ecTituloEstadoCuentaConsorcioCell = new PdfPCell(new Phrase("Estado financiero", titleFont));
         ecTituloEstadoCuentaConsorcioCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         ecTituloEstadoCuentaConsorcioCell.setBackgroundColor(verdeAzulado);
-        ecTituloEstadoCuentaConsorcioCell.setBorder(PdfPCell.NO_BORDER);
+        ecTituloEstadoCuentaConsorcioCell.setBorder(PdfPCell.BOX);
         ecTituloEstadoCuentaConsorcioCell.setPaddingBottom(15f);
         ecTituloEstadoCuentaConsorcioCell.setPaddingTop(15f);
 
         estadoCuentaConsorcio.addCell(ecTituloEstadoCuentaConsorcioCell);
 
         document.add(estadoCuentaConsorcio);
-         // <-- Salto de página
 //      FIN ESTADO CUENTA CONSORCIO
+
+//      NOTA Y JUICIOS
+
+        document.newPage();
+        PdfPTable notaTabla = new PdfPTable(1); // Cambiar a una sola columna
+        notaTabla.setWidthPercentage(100);
+        notaTabla.getDefaultCell().setBorder(PdfPCell.BOX);
+
+        PdfPCell notaTituloCell = new PdfPCell(new Phrase("NOTA", titleFont));
+        notaTituloCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        notaTituloCell.setBackgroundColor(verdeAzulado);
+        notaTituloCell.setBorder(PdfPCell.BOX);
+        notaTituloCell.setPaddingBottom(15f);
+        notaTituloCell.setPaddingTop(15f);
+        notaTabla.addCell(notaTituloCell);
+
+        PdfPCell notaContenidoCell = new PdfPCell(new Phrase(
+                (nota != null && !nota.trim().isEmpty()) ? nota : "No hay notas este mes", font));
+        notaContenidoCell.setBackgroundColor(grayBackground);
+        notaContenidoCell.setBorder(PdfPCell.BOX);
+        notaContenidoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        notaContenidoCell.setPadding(15f);
+        notaTabla.addCell(notaContenidoCell);
+
+        PdfPCell cierreNota = new PdfPCell();
+        cierreNota.setBackgroundColor(verdeAzulado);
+        cierreNota.setBorder(PdfPCell.BOX);
+        cierreNota.setMinimumHeight(25f);
+
+        notaTabla.addCell(cierreNota);
+        notaTabla.setSpacingAfter(20f);
+
+        document.add(notaTabla);
+
+        PdfPTable juiciosTabla = new PdfPTable(1); // Cambiar a una sola columna
+        juiciosTabla.setWidthPercentage(100);
+        juiciosTabla.getDefaultCell().setBorder(PdfPCell.BOX);
+
+        PdfPCell juiciosTituloCell = new PdfPCell(new Phrase("DATOS DE JUICIOS", titleFont));
+        juiciosTituloCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        juiciosTituloCell.setBackgroundColor(verdeAzulado);
+        juiciosTituloCell.setBorder(PdfPCell.BOX);
+        juiciosTituloCell.setPaddingBottom(15f);
+        juiciosTituloCell.setPaddingTop(15f);
+        juiciosTabla.addCell(juiciosTituloCell);
+
+        PdfPCell juiciosContenidoCell = new PdfPCell(new Phrase(
+                (juicios != null && !juicios.trim().isEmpty()) ? juicios : "No hay juicios iniciados", font));
+        juiciosContenidoCell.setBackgroundColor(grayBackground);
+        juiciosContenidoCell.setBorder(PdfPCell.BOX);
+        juiciosContenidoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        juiciosContenidoCell.setPadding(15f);
+        juiciosTabla.addCell(juiciosContenidoCell);
+
+        PdfPCell cierreJuicios = new PdfPCell();
+        cierreJuicios.setBackgroundColor(verdeAzulado);
+        cierreJuicios.setBorder(PdfPCell.BOX);
+        cierreJuicios.setMinimumHeight(25f);
+        juiciosTabla.addCell(cierreJuicios);
+
+        juiciosTabla.setSpacingAfter(20f);
+
+        document.add(juiciosTabla);
+
+//      FIN NOTA Y JUICIOS
 
 //      ESTADO CUENTA UNIDADES FUNCIONALES
         document.newPage();
-        document.add(titulo);
-        document.add(encabezado);
 
         PdfPTable estadoCuentaUf = new PdfPTable(1);
         estadoCuentaUf.setWidthPercentage(100);
@@ -254,173 +291,364 @@ public class PdfGeneratorExpensa {
         document.add(estadoCuentaUf);
 
 
-        PdfPTable encabezadoTablaEstadoCuentaUf = new PdfPTable(19); // Número total de columnas
-        encabezadoTablaEstadoCuentaUf.setWidthPercentage(100);
+        if(segundoVencimiento){
+            PdfPTable encabezadoTablaEstadoCuentaUf = new PdfPTable(20); // Número total de columnas
+            encabezadoTablaEstadoCuentaUf.setWidthPercentage(100);
 
-        encabezadoTablaEstadoCuentaUf.setWidths(new int[]{2,3,8 ,
-                6,6,6,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                6,
-                7});
+            encabezadoTablaEstadoCuentaUf.setWidths(new int[]{2, 3, 6,
+                    6, 6, 6, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    6,
+                    7,
+                    7});
 
-        // Fila 1: Encabezados principales con celdas combinadas
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Datos de la unidad", boldFontSubTitle, Element.ALIGN_CENTER, 3));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Cuenta corriente", boldFontSubTitle, Element.ALIGN_CENTER, 4));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("A", boldFontSubTitle, Element.ALIGN_CENTER, 2));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("B", boldFontSubTitle, Element.ALIGN_CENTER, 2));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("C", boldFontSubTitle, Element.ALIGN_CENTER, 2));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("D", boldFontSubTitle, Element.ALIGN_CENTER, 2));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("E", boldFontSubTitle, Element.ALIGN_CENTER, 2));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Gastos part.", boldFontSubTitle, Element.ALIGN_CENTER, 1));
-        encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Total a abonar", boldFontSubTitle, Element.ALIGN_CENTER, 1));
+            // Fila 1: Encabezados principales con celdas combinadas
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Datos de la unidad", boldFontTitle, Element.ALIGN_CENTER, 3));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Cuenta corriente", boldFontTitle, Element.ALIGN_CENTER, 4));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("A", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("B", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("C", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("D", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("E", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Gastos part.", boldFontTitle, Element.ALIGN_CENTER, 1));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Expensa\n 1° Vto.", boldFontTitle, Element.ALIGN_CENTER, 1));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Expensa\n 2° Vto.", boldFontTitle, Element.ALIGN_CENTER, 1));
 
-        // Fila 2: Subtítulos
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("UF", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Propietario", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Saldo $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Pago $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Deuda $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Int. $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground)); // Gastos part.
-        encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground)); // Total final
-
-        document.add(encabezadoTablaEstadoCuentaUf);
-
-
-        PdfPTable tablaEstadoCuenta = new PdfPTable(19); //
-        tablaEstadoCuenta.setWidthPercentage(100);
-        tablaEstadoCuenta.setWidths(new int[]{2,3,8 ,
-                6,6,6,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                6,
-                7});
-
-        double saldo = 0, pago= 0, deuda= 0, intereses= 0, porA= 0, totalA= 0, porB= 0, totalB= 0, porC= 0, totalC= 0, porD= 0, totalD= 0, porE= 0, totalE= 0, totalGp= 0, total = 0;
-
-        for (UnidadFuncionalResponseDTO uf : ufs) {
-            // Encabezado de la tabla
-            EstadoCuentaUfDTO estadoCuenta = estadosDeCuentaUf.stream()
-                    .filter(e -> e.getIdUf().equals(uf.getIdUf()))
-                    .findFirst()
-                    .orElse(null);
-
-            List<PagoUFDTO> pagos = expensa.getPagoUf().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
-            List<GastoParticularResponseDTO> gP = expensa.getGp().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
-            double totalPago = totalPagoPorUf(pagos);
-            double totalGastosParticulares = totalGastoParticulares(gP);
-
-            saldo += estadoCuenta.getTotalMesPrevio();
-            pago += totalPago;
-            deuda += estadoCuenta.getDeuda();
-            intereses += estadoCuenta.getIntereses();
-            porA += uf.getPorcentajeUnidad();
-            totalA += estadoCuenta.getTotalA();
-            porB += uf.getPorcentajeUnidadB();
-            totalB += estadoCuenta.getTotalB();
-            porC += uf.getPorcentajeUnidadC();
-            totalC += estadoCuenta.getTotalC();
-            porD += uf.getPorcentajeUnidadD();
-            totalD += estadoCuenta.getTotalD();
-            porE += uf.getPorcentajeUnidadE();
-            totalE += estadoCuenta.getTotalE();
-            totalGp += totalGastosParticulares;
-            total += estadoCuenta.getTotalExpensa();
-
-            if (estadoCuenta == null) continue;
-            // DATOS UF
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getUnidadFuncional()), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(uf.getApellidoPropietario(), boldFontSmaller, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            // SALDOS UF
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalMesPrevio()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalPago), smallFonter, Element.ALIGN_RIGHT, PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getDeuda()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getIntereses()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-            // TOTALES
-            // A
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidad()), smallFonter, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalA()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // B
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadB()), smallFonter, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalB()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // C
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadC()), smallFonter, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalC()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // D
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadD()), smallFonter, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalD()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // E
-            tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadE()), smallFonter, Element.ALIGN_CENTER,PdfPCell.BOX,null));
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalE()), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // GASTO PART
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalGastosParticulares), smallFonter, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // REDONDEO
-//            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getRedondeo()), smallFont, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
-
-            // TOTAL A PAGAR
-            tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalExpensa()), boldFontSmaller, Element.ALIGN_RIGHT,PdfPCell.BOX,null));
+            // Fila 2: Subtítulos
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("UF", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("N°", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Propietario", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Saldo $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Pago $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Deuda $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Int. $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f)); // Gastos part.
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f)); // Total final 1Vto
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f)); // Total final 2Vto
 
 
+            document.add(encabezadoTablaEstadoCuentaUf);
+
+
+            PdfPTable tablaEstadoCuenta = new PdfPTable(20); //
+            tablaEstadoCuenta.setWidthPercentage(100);
+            tablaEstadoCuenta.setWidths(new int[]{2, 3, 6,
+                    6, 6, 6, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    6,
+                    7,
+                    7});
+
+            double saldo = 0,
+                    pago = 0,
+                    deuda = 0,
+                    intereses = 0,
+                    porA = 0,
+                    totalA = 0,
+                    porB = 0,
+                    totalB = 0,
+                    porC = 0,
+                    totalC = 0,
+                    porD = 0,
+                    totalD = 0,
+                    porE = 0,
+                    totalE = 0,
+                    totalGp = 0,
+                    total = 0,
+                    totalSegundoVencimiento = 0;
+
+            for (UnidadFuncionalResponseDTO uf : ufs) {
+                // Encabezado de la tabla
+                EstadoCuentaUfDTO estadoCuenta = estadosDeCuentaUf.stream()
+                        .filter(e -> e.getIdUf().equals(uf.getIdUf()))
+                        .findFirst()
+                        .orElse(null);
+
+                List<PagoUFDTO> pagos = expensa.getPagoUf().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
+                List<GastoParticularResponseDTO> gP = expensa.getGp().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
+                double totalPago = totalPagoPorUf(pagos);
+                double totalGastosParticulares = totalGastoParticulares(gP);
+
+                saldo += estadoCuenta.getTotalMesPrevio();
+                pago += totalPago;
+                deuda += estadoCuenta.getDeuda();
+                intereses += estadoCuenta.getIntereses();
+                porA += uf.getPorcentajeUnidad();
+                totalA += estadoCuenta.getTotalA();
+                porB += uf.getPorcentajeUnidadB();
+                totalB += estadoCuenta.getTotalB();
+                porC += uf.getPorcentajeUnidadC();
+                totalC += estadoCuenta.getTotalC();
+                porD += uf.getPorcentajeUnidadD();
+                totalD += estadoCuenta.getTotalD();
+                porE += uf.getPorcentajeUnidadE();
+                totalE += estadoCuenta.getTotalE();
+                totalGp += totalGastosParticulares;
+                total += estadoCuenta.getTotalExpensa();
+                totalSegundoVencimiento += estadoCuenta.getSegundoVencimiento();
+
+                // DATOS UF
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getUnidadFuncional()), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(uf.getApellidoPropietario()+", "+uf.getNombrePropietario(), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
+                // SALDOS UF
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalMesPrevio()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalPago), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getDeuda()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getIntereses()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                // TOTALES
+                // A
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidad()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalA()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // B
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadB()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalB()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // C
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadC()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalC()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // D
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadD()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalD()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // E
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadE()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalE()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // GASTO PART
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalGastosParticulares), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // TOTAL A PAGAR
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalExpensa()), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // TOTAL A PAGAR
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getSegundoVencimiento()), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+
+            }
+            document.add(tablaEstadoCuenta);
+
+            PdfPTable tablaTotales = new PdfPTable(20); //
+            tablaTotales.setWidthPercentage(100);
+            tablaTotales.setWidths(new int[]{2, 3, 6,
+                    6, 6, 6, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    3, 6,
+                    6,
+                    7,
+                    7});
+
+            // Fila 1: Encabezados principales con celdas combinadas
+            tablaTotales.addCell(createCellTotales("TOTALES", boldFontSubTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground, 3,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(saldo), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(pago), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(deuda), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(intereses), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porA, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalA), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porB, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalB), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porC, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalC), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porD, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalD), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porE, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalE), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalGp), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(total), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalSegundoVencimiento), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+
+
+            document.add(tablaTotales);
+        } else {
+            PdfPTable encabezadoTablaEstadoCuentaUf = new PdfPTable(19); // Número total de columnas
+            encabezadoTablaEstadoCuentaUf.setWidthPercentage(100);
+
+            encabezadoTablaEstadoCuentaUf.setWidths(new int[]{2, 3, 8,
+                    6, 6, 6, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    6,
+                    7});
+
+            // Fila 1: Encabezados principales con celdas combinadas
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Datos de la unidad", boldFontTitle, Element.ALIGN_CENTER, 3));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Cuenta corriente", boldFontTitle, Element.ALIGN_CENTER, 4));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("A", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("B", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("C", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("D", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("E", boldFontTitle, Element.ALIGN_CENTER, 2));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Gastos part.", boldFontTitle, Element.ALIGN_CENTER, 1));
+            encabezadoTablaEstadoCuentaUf.addCell(createMergedCell("Total a abonar", boldFontTitle, Element.ALIGN_CENTER, 1));
+
+            // Fila 2: Subtítulos
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("UF", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("N°", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Propietario", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Saldo $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Pago $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Deuda $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Int. $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("%", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("Exp $", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f)); // Gastos part.
+            encabezadoTablaEstadoCuentaUf.addCell(createCell("$", boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f)); // Total final
+
+            document.add(encabezadoTablaEstadoCuentaUf);
+
+
+            PdfPTable tablaEstadoCuenta = new PdfPTable(19); //
+            tablaEstadoCuenta.setWidthPercentage(100);
+            tablaEstadoCuenta.setWidths(new int[]{2, 3, 8,
+                    6, 6, 6, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    6,
+                    7});
+
+            double saldo = 0, pago = 0, deuda = 0, intereses = 0, porA = 0, totalA = 0, porB = 0, totalB = 0, porC = 0, totalC = 0, porD = 0, totalD = 0, porE = 0, totalE = 0, totalGp = 0, total = 0;
+
+            for (UnidadFuncionalResponseDTO uf : ufs) {
+                // Encabezado de la tabla
+                EstadoCuentaUfDTO estadoCuenta = estadosDeCuentaUf.stream()
+                        .filter(e -> e.getIdUf().equals(uf.getIdUf()))
+                        .findFirst()
+                        .orElse(null);
+
+                List<PagoUFDTO> pagos = expensa.getPagoUf().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
+                List<GastoParticularResponseDTO> gP = expensa.getGp().stream().filter(e -> e.getIdUf().equals(uf.getIdUf())).toList();
+                double totalPago = totalPagoPorUf(pagos);
+                double totalGastosParticulares = totalGastoParticulares(gP);
+
+                saldo += estadoCuenta.getTotalMesPrevio();
+                pago += totalPago;
+                deuda += estadoCuenta.getDeuda();
+                intereses += estadoCuenta.getIntereses();
+                porA += uf.getPorcentajeUnidad();
+                totalA += estadoCuenta.getTotalA();
+                porB += uf.getPorcentajeUnidadB();
+                totalB += estadoCuenta.getTotalB();
+                porC += uf.getPorcentajeUnidadC();
+                totalC += estadoCuenta.getTotalC();
+                porD += uf.getPorcentajeUnidadD();
+                totalD += estadoCuenta.getTotalD();
+                porE += uf.getPorcentajeUnidadE();
+                totalE += estadoCuenta.getTotalE();
+                totalGp += totalGastosParticulares;
+                total += estadoCuenta.getTotalExpensa();
+
+                if (estadoCuenta == null) continue;
+                // DATOS UF
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getUnidadFuncional()), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(uf.getApellidoPropietario()+", "+uf.getNombrePropietario(), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                // SALDOS UF
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalMesPrevio()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalPago), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getDeuda()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getIntereses()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                // TOTALES
+                // A
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidad()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalA()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // B
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadB()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalB()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // C
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadC()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalC()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // D
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadD()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalD()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // E
+                tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getPorcentajeUnidadE()), smallFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalE()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // GASTO PART
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalGastosParticulares), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+                // TOTAL A PAGAR
+                tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalExpensa()), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+
+
+            }
+            document.add(tablaEstadoCuenta);
+
+            PdfPTable tablaTotales = new PdfPTable(19); //
+            tablaTotales.setWidthPercentage(100);
+            tablaTotales.setWidths(new int[]{2, 3, 8,
+                    6, 6, 6, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    4, 6,
+                    6,
+                    7});
+
+            // Fila 1: Encabezados principales con celdas combinadas
+            tablaTotales.addCell(createCellTotales("TOTALES", boldFontSubTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground, 3,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(saldo), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(pago), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(deuda), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(intereses), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porA, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalA), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porB, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalB), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porC, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalC), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porD, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalD), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(String.valueOf(redondear(porE, 2)), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalE), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(totalGp), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+            tablaTotales.addCell(createCell(formatoMoneda.format(total), boldFontSmall, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,20f));
+
+            document.add(tablaTotales);
         }
-        document.add(tablaEstadoCuenta);
-
-        PdfPTable tablaTotales = new PdfPTable(19); //
-        tablaTotales.setWidthPercentage(100);
-        tablaTotales.setWidths(new int[]{2,3,8 ,
-                6,6,6,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                4,6,
-                6,
-                7});
-
-        // Fila 1: Encabezados principales con celdas combinadas
-        tablaTotales.addCell(createCellTotales("TOTALES", boldFontSubTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground, 3));
-        tablaTotales.addCell(createCell(formatoMoneda.format(saldo), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(pago), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(deuda), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(intereses), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(String.valueOf(redondear(porA,2)), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalA), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(String.valueOf(redondear(porB,2)), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalB), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(String.valueOf(redondear(porC,2)), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalC), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(String.valueOf(redondear(porD,2)), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalD), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(String.valueOf(redondear(porE,2)), boldFontSmaller, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalE), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(totalGp), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-        tablaTotales.addCell(createCell(formatoMoneda.format(total), boldFontSmaller, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground));
-
-        document.add(tablaTotales);
-
 //      FIN ESTADO CUENTA UNIDADES FUNCIONALES
 
 //        document.setPageSize(PageSize.A4);
@@ -430,35 +658,48 @@ public class PdfGeneratorExpensa {
         return baos.toByteArray();
     }
 
-    private static PdfPCell createCell(String content, Font font, int alignment, int border, BaseColor backgroundColor) {
+    private static PdfPCell createCell(String content, Font font, int alignment, int border, BaseColor backgroundColor, Float minHeight) {
         PdfPCell cell = new PdfPCell(new Phrase(content, font));
-        cell.setHorizontalAlignment(alignment);
+        cell.setHorizontalAlignment(alignment); // izquierda, centro, derecha
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE); // centrado vertical
         cell.setBorder(border);
+
         if (backgroundColor != null) {
             cell.setBackgroundColor(backgroundColor);
+        }
+        if (minHeight != null) {
+            cell.setMinimumHeight(minHeight);
         }
         return cell;
     }
 
-    private static PdfPCell createCellEc(String content, Font font, int alignment, int border, BaseColor backgroundColor) {
+    private static PdfPCell createCellEc(String content, Font font, int alignment, int border, BaseColor backgroundColor, Float minHeight) {
         PdfPCell cell = new PdfPCell(new Phrase(content, font));
         cell.setHorizontalAlignment(alignment);
         cell.setBorder(border);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE); // centrado vertical
         if (backgroundColor != null) {
             cell.setBackgroundColor(backgroundColor);
+        }
+        if (minHeight != null) {
+            cell.setMinimumHeight(minHeight);
         }
         cell.setPadding(2);
 
         return cell;
     }
 
-    private static PdfPCell createCellTotales(String content, Font font, int alignment, int border, BaseColor backgroundColor, int colspan) {
+    private static PdfPCell createCellTotales(String content, Font font, int alignment, int border, BaseColor backgroundColor, int colspan,Float minHeight) {
         PdfPCell cell = new PdfPCell(new Phrase(content, font));
         cell.setColspan(colspan);
         cell.setHorizontalAlignment(alignment);
         cell.setBorder(border);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE); // centrado vertical
         if (backgroundColor != null) {
             cell.setBackgroundColor(backgroundColor);
+        }
+        if (minHeight != null) {
+            cell.setMinimumHeight(minHeight);
         }
         return cell;
     }
@@ -470,6 +711,21 @@ public class PdfGeneratorExpensa {
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE); // Alineación vertical centrada
         cell.setBackgroundColor(BaseColor.LIGHT_GRAY); // Fondo gris para diferenciación
         cell.setPadding(5); // Espaciado interno para mejorar la apariencia
+        return cell;
+    }
+
+    private static PdfPCell createCellEgreso(Paragraph content, int hAlign, int border, BaseColor backgroundColor, Float minHeight) {
+        PdfPCell cell = new PdfPCell(content);
+        cell.setHorizontalAlignment(hAlign);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setBorder(border);
+        cell.setPadding(8f); // agrega espaciado interno
+        if (backgroundColor != null) {
+            cell.setBackgroundColor(backgroundColor);
+        }
+        if (minHeight != null) {
+            cell.setMinimumHeight(minHeight);
+        }
         return cell;
     }
 
@@ -500,23 +756,5 @@ public class PdfGeneratorExpensa {
         return Math.round(valor * escala) / escala;
     }
 
-    private static void agregarLogo(Document document, float ancho, float alto, float offsetY) {
-        try (InputStream logoStream = PdfGenerator2.class.getResourceAsStream("/static/images/sumerios.png")) {
-            if (logoStream != null) {
-                Image logo = Image.getInstance(IOUtils.toByteArray(logoStream));
-                logo.scaleToFit(ancho, alto);
-
-                float x = (document.getPageSize().getWidth() - logo.getScaledWidth()) / 2;
-                float y = document.getPageSize().getHeight() - logo.getScaledHeight() - offsetY;
-
-                logo.setAbsolutePosition(x, y);
-                document.add(logo);
-            } else {
-                System.out.println("No se encontró el logo.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
 }

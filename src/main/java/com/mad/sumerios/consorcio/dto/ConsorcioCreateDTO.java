@@ -1,5 +1,6 @@
 package com.mad.sumerios.consorcio.dto;
 
+import com.mad.sumerios.enums.TipoCuenta;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class ConsorcioCreateDTO {
     private Long idAdm;
 
     private String cuit;
-    private String titulo;
+    private String titularCuenta;
+    private TipoCuenta tipoCuenta;
     private String cbu;
     private String banco;
     private String numCuenta;
@@ -25,4 +27,6 @@ public class ConsorcioCreateDTO {
     private Double porcentajeIntereses;
     private Boolean segundoVencimiento;
     private Double porcentajeSegundoVencimiento;
+
+    private String codigoAcceso;
 }

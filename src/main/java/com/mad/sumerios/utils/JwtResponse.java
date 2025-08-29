@@ -8,9 +8,9 @@ public class JwtResponse {
     private String type;
     private String username;
 
-    public JwtResponse(String token, String username) {
+    public JwtResponse(String token, String username,String tokenType) {
         this.token = token;
-        this.type = "Bearer";  // Fijar el tipo como 'Bearer'
+        this.type = tokenType;
         this.username = username;
     }
 }

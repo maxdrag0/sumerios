@@ -2,6 +2,8 @@ package com.mad.sumerios.estadocuentaconsorcio.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.copiaestadocuentaconsorcio.dto.CopiaEstadoCuentaConsorcioDTO;
+import com.mad.sumerios.copiaestadocuentaconsorcio.service.CopiaEstadoCuentaConsorcioService;
 import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioCreateDTO;
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
@@ -17,6 +19,7 @@ import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,12 +29,15 @@ public class EstadoCuentaConsorcioService {
 
     private final IEstadoCuentaConsorcioRepository estadoCuentaRepository;
     private final IConsorcioRepository consorcioRepository;
+    private final CopiaEstadoCuentaConsorcioService copiaEstadoCuentaConsorcioService;
 
     @Autowired
     public EstadoCuentaConsorcioService(IEstadoCuentaConsorcioRepository estadoCuentaRepository,
-                                        IConsorcioRepository consorcioRepository){
+                                        IConsorcioRepository consorcioRepository,
+                                        CopiaEstadoCuentaConsorcioService copiaEstadoCuentaConsorcioService){
         this.estadoCuentaRepository = estadoCuentaRepository;
         this.consorcioRepository = consorcioRepository;
+        this.copiaEstadoCuentaConsorcioService = copiaEstadoCuentaConsorcioService;
     }
 
     //  CREATE ESTADO CUENTA
@@ -40,9 +46,9 @@ public class EstadoCuentaConsorcioService {
     }
 
     //  UPDATE ESTADO CUENTA
-    public void updateEstadoCuenta (Long idEstadoCuenta, EstadoCuentaConsorcioDTO dto) throws Exception {
-        EstadoCuentaConsorcio ec = estadoCuentaRepository.findById(idEstadoCuenta)
-                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuenta));
+    public void updateEstadoCuenta (EstadoCuentaConsorcioDTO dto) throws Exception {
+        EstadoCuentaConsorcio ec = estadoCuentaRepository.findById(dto.getIdEstadoCuentaConsorcio())
+                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + dto.getIdEstadoCuentaConsorcio()));
 
 
         ec.setEfectivo(dto.getEfectivo());
@@ -143,6 +149,22 @@ public class EstadoCuentaConsorcioService {
             estadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo() - egresoNuevo.getTotalFinal());
         }
     }
+
+    // FONDO ADM
+    // Crear Fondo ADM
+    public void crearFondoAdm(EstadoCuentaConsorcio estadoCuentaConsorcio, Double totalFinal){
+        estadoCuentaConsorcio.setFondoAdm(estadoCuentaConsorcio.getFondoAdm() + totalFinal);
+    }
+    // Revertir Fondo ADM
+    public void eliminarFondoAdm(EstadoCuentaConsorcio estadoCuentaConsorcio, Double totalFinal){
+        estadoCuentaConsorcio.setFondoAdm(estadoCuentaConsorcio.getFondoAdm() - totalFinal);
+    }
+    // Modificar
+    public void modificarFondoAdm(EstadoCuentaConsorcio estadoCuentaConsorcio, Double totalFinalViejo, Double totalFinalNuevo) {
+        double diferencia = totalFinalNuevo - totalFinalViejo;
+        estadoCuentaConsorcio.setFondoAdm(estadoCuentaConsorcio.getFondoAdm() + diferencia);
+    }
+
 
     // Ingreso
     // Sumar
@@ -343,8 +365,8 @@ public class EstadoCuentaConsorcioService {
         }
         return consorcio.get();
     }
-    private void validateTotal(Double banco, Double efectivo, Double fondoAdm, Double total) throws Exception {
-        double suma = banco + efectivo + fondoAdm;
+    private void validateTotal(Double banco, Double efectivo, Double total) throws Exception {
+        double suma = banco + efectivo;
         if(suma != total){
             throw new Exception("El reparto valores es de $"+ suma +" mientras que el total es de $"+ total);
 
@@ -355,6 +377,7 @@ public class EstadoCuentaConsorcioService {
     // MAP DTO TO ENTITY
     private EstadoCuentaConsorcio mapToEstadoCuentaEntity(EstadoCuentaConsorcioCreateDTO dto) throws Exception {
         Consorcio consorcio = validateConsorcio(dto.getIdConsorcio());
+
         if (consorcio.getEstadoCuentaConsorcio() != null) {
             throw new Exception("El consorcio ya tiene un estado de cuenta asociado.");
         }
@@ -378,6 +401,7 @@ public class EstadoCuentaConsorcioService {
         EstadoCuentaConsorcioDTO dto = new EstadoCuentaConsorcioDTO();
 
         dto.setIdEstadoCuentaConsorcio(ea.getIdEstadoCuentaConsorcio());
+        dto.setIdConsorcio(ea.getConsorcio().getIdConsorcio());
         dto.setEfectivo(ea.getEfectivo());
         dto.setBanco(ea.getBanco());
         dto.setFondoAdm(ea.getFondoAdm());
@@ -395,5 +419,30 @@ public class EstadoCuentaConsorcioService {
         ecc.setTotalAlCierre(total);
 
         estadoCuentaRepository.save(ecc);
+    }
+
+    public void crearCopiaEstadoCuenta(EstadoCuentaConsorcioDTO estadoCuentaConsorcio, YearMonth periodo) throws Exception {
+        copiaEstadoCuentaConsorcioService.createCopiaEstadoCuentaConsorcio(estadoCuentaConsorcio, periodo);
+    }
+
+
+    public void restablecerPeriodoPrevio(EstadoCuentaConsorcioDTO estadoActual, YearMonth periodo) throws Exception {
+        CopiaEstadoCuentaConsorcioDTO copiaEstadoCuentaConsorcioPeriodoPrevio = copiaEstadoCuentaConsorcioService.getByConsorcioAndPeriodo(
+                estadoActual.getIdConsorcio(),
+                periodo.minusMonths(1)
+        );
+
+        if(copiaEstadoCuentaConsorcioPeriodoPrevio == null){
+            throw new Exception("Copia no encontrada");
+        }
+
+        estadoActual.setEfectivo(copiaEstadoCuentaConsorcioPeriodoPrevio.getEfectivo());
+        estadoActual.setBanco(copiaEstadoCuentaConsorcioPeriodoPrevio.getBanco());
+        estadoActual.setFondoAdm(copiaEstadoCuentaConsorcioPeriodoPrevio.getFondoAdm());
+        estadoActual.setTotalAlCierre(copiaEstadoCuentaConsorcioPeriodoPrevio.getTotalAlCierre());
+        estadoActual.setTotal(copiaEstadoCuentaConsorcioPeriodoPrevio.getTotal());
+
+        this.updateEstadoCuenta(estadoActual);
+        copiaEstadoCuentaConsorcioService.deleteCopiaEstadoCuentaConsorcio(copiaEstadoCuentaConsorcioPeriodoPrevio.getIdCopiaEstadoCuentaConsorcio());
     }
 }

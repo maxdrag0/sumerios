@@ -26,12 +26,16 @@ public class UnidadFuncionalRestController {
 
     //  CREAR uf
     @PostMapping
-    public ResponseEntity<String> createUnidadFuncional(@RequestBody UnidadFuncionalCreateDTO dto) {
+    public ResponseEntity<Map<String, Object>> createUnidadFuncional(@RequestBody UnidadFuncionalCreateDTO dto) {
+        Map<String, Object> response = new HashMap<>();
         try{
-            unidadFuncionalService.createUnidadFuncional(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Unidad Funcional creada exitosamente");
+            UnidadFuncionalResponseDTO ufCreada = unidadFuncionalService.createUnidadFuncional(dto);
+            response.put("id", ufCreada.getIdUf());
+            response.put("message", "Consorcio creado exitosamente");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 

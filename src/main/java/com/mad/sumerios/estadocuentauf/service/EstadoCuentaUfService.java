@@ -15,7 +15,6 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,8 +41,7 @@ public class EstadoCuentaUfService {
     }
     //  UPDATE ESTADO CUENTA
     public void updateEstadoCuentaUf (Long idEstadoCuentaUf, EstadoCuentaUfDTO dto) throws Exception {
-        EstadoCuentaUf ec = estadoCuentaUfRepository.findById(idEstadoCuentaUf)
-                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuentaUf));
+        EstadoCuentaUf ec = verificarECUf(idEstadoCuentaUf);
 
         ec.setPeriodo(dto.getPeriodo());
         ec.setTotalMesPrevio(dto.getTotalMesPrevio());
@@ -59,12 +57,58 @@ public class EstadoCuentaUfService {
         ec.setTotalExpensa(dto.getTotalExpensa());
         ec.setSegundoVencimientoActivo(dto.getSegundoVencimientoActivo());
         ec.setSegundoVencimiento(dto.getSegundoVencimiento());
-        ec.setSaldoFinal(dto.getSaldoFinal());
-        ec.setSaldoExpensa(dto.getSaldoExpensa());
-        ec.setSaldoIntereses(dto.getSaldoIntereses());
+
+        if(dto.getSaldoFinal() == null || dto.getSaldoFinal() == 0){
+            ec.setSaldoFinal(dto.getTotalExpensa());
+        } else{
+            ec.setSaldoFinal(dto.getSaldoFinal());
+        }
+
+        if(dto.getSaldoExpensa() == null || dto.getSaldoExpensa() == 0){
+            ec.setSaldoExpensa(dto.getDeuda()+dto.getTotalA()+dto.getTotalB()+dto.getTotalC()+dto.getTotalD()+dto.getTotalE()+dto.getGastoParticular());
+        } else{
+            ec.setSaldoExpensa(dto.getSaldoExpensa());
+        }
+
+        ec.setSaldoIntereses(dto.getIntereses());
 
         estadoCuentaUfRepository.save(ec);
     }
+
+    public void reiniciarEstadoCuentaCero (Long idEstadoCuentaUf) throws Exception {
+        EstadoCuentaUf ec = verificarECUf(idEstadoCuentaUf);
+
+        ec.setTotalMesPrevio(0.0);
+        ec.setDeuda(0.0);
+        ec.setIntereses(0.0);
+        ec.setTotalA(0.0);
+        ec.setTotalB(0.0);
+        ec.setTotalC(0.0);
+        ec.setTotalD(0.0);
+        ec.setTotalE(0.0);
+        ec.setGastoParticular(0.0);
+        ec.setRedondeo(0.0);
+        ec.setTotalExpensa(0.0);
+        ec.setSegundoVencimientoActivo(false);
+        ec.setSegundoVencimiento(0.0);
+        ec.setSaldoFinal(0.0);
+        ec.setSaldoExpensa(0.0);
+        ec.setSaldoIntereses(0.0);
+
+        estadoCuentaUfRepository.save(ec);
+    }
+
+    public void inicializarCuenta(Long idEstadoCuentaUf, Double totalNuevo) throws Exception {
+        EstadoCuentaUf ec = verificarECUf(idEstadoCuentaUf);
+
+        ec.setTotalExpensa(totalNuevo);
+        ec.setTotalA(totalNuevo);
+        ec.setSaldoExpensa(totalNuevo);
+        ec.setSaldoFinal(totalNuevo);
+
+        estadoCuentaUfRepository.save(ec);
+    }
+
 
     public void updatePeriodos (EstadoCuentaUfUpdatePeriodo dto) throws Exception {
         List<EstadoCuentaUfDTO> ecufs = this.getEstadoCuentaUfs(dto.getUnidadFuncionalList());
@@ -101,11 +145,10 @@ public class EstadoCuentaUfService {
     }
 
     // METODO PARA RESTABLECER ESTADO DE CUENTA CUANDO SE ELIMINA UNA EXPENSA
-    public void restablecerPeriodoPrevio(Long idEstadoCuentaUf) throws Exception {
+    public void restablecerPeriodoPrevio(EstadoCuentaUfDTO estadoActual) throws Exception {
 
-        EstadoCuentaUfDTO estadoActual = this.getEstadoCuentaUfById(idEstadoCuentaUf);
         CopiaEstadoCuentaUfDTO copiaEstadoPeriodoPrevio = copiaEstadoCuentaUfService.getCopiasEstadoCuentaUfByIdEstadoCuentaUfAndPeriodo(
-                idEstadoCuentaUf,
+                estadoActual.getIdEstadoCuentaUf(),
                 estadoActual.getPeriodo().minusMonths(1));
         if(copiaEstadoPeriodoPrevio == null){
             throw new Exception("Copia no encontrada");
@@ -119,7 +162,6 @@ public class EstadoCuentaUfService {
 
         } else{
             estadoActual.setTotalMesPrevio(copiaEstadoPeriodoPrevio.getTotalMesPrevio());
-
         }
         estadoActual.setDeuda(copiaEstadoPeriodoPrevio.getDeuda());
         estadoActual.setIntereses(copiaEstadoPeriodoPrevio.getIntereses());
@@ -153,28 +195,16 @@ public class EstadoCuentaUfService {
         estadoActual.setSaldoFinal(copiaEstadoPeriodoPrevio.getSaldoFinal());
         estadoActual.setSaldoExpensa(copiaEstadoPeriodoPrevio.getSaldoExpensa());
         estadoActual.setSaldoIntereses(copiaEstadoPeriodoPrevio.getSaldoIntereses());
-        this.updateEstadoCuentaUf(idEstadoCuentaUf, estadoActual);
+        this.updateEstadoCuentaUf(estadoActual.getIdEstadoCuentaUf(), estadoActual);
         // ELIMINO LA COPIA
         copiaEstadoCuentaUfService.deleteCopiaEstadoCuentaUf(copiaEstadoPeriodoPrevio.getIdCopiaEstadoCuentaUf());
     }
 
     // VALIDACIONES Y AUX
-
-//    private void validateValor(Double deuda,
-//                               Double intereses,
-//                               Double totalA,
-//                               Double totalB,
-//                               Double totalC,
-//                               Double totalD,
-//                               Double totalE,
-//                               Double gastoParticular,
-//                               Double totalFinal) throws Exception {
-//        double suma = deuda+intereses+totalA+totalB+totalC+totalD+totalE+gastoParticular;
-//        if(suma != totalFinal) {
-//            throw new Exception(
-//                    "El reparto valores es de $"+ suma +" mientras que el total es de $"+ totalFinal);
-//        }
-//    }
+    public EstadoCuentaUf verificarECUf(Long idEstadoCuentaUf) throws Exception {
+        return estadoCuentaUfRepository.findById(idEstadoCuentaUf)
+                .orElseThrow(()-> new Exception("Estado de cuenta no encontrado con el ID: " + idEstadoCuentaUf));
+    }
     private UnidadFuncional validateUf(Long idUf) throws Exception {
         Optional<UnidadFuncional> uf = unidadFuncionalRepository.findById(idUf);
         if(uf.isEmpty()){

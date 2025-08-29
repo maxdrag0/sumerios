@@ -23,9 +23,7 @@ public class Proveedor {
     @NotBlank
     private String nombre;
 
-    @NotBlank
     private String telefono;
-
     private String descripcion;
     private String cuit;
     private String cbu;

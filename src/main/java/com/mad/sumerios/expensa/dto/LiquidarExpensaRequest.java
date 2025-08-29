@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class LiquidarExpensaRequest {
     private Long idExpensa;
-    private Boolean repetirEgresos;
+    private RepetirEgresos repetirEgresos;
     private Boolean segundoVencimiento;
+    private Boolean mostrarFondoAdm;
     private ExpensaCreateDTO expensaCreateDTO;
 }

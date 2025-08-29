@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class EstadoCuentaConsorcioDTO {
     private Long idEstadoCuentaConsorcio;
+    private Long idConsorcio;
     private Double total;
     private Double efectivo;
     private Double banco;

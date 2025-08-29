@@ -85,6 +85,21 @@ public class ConsorcioRestController {
         }
     }
 
+    @PutMapping("/{idConsorcio}/regenerarCodigoAcceso")
+    public ResponseEntity<Map<String, String>> regenerarCodigoAcceso(@PathVariable Long idConsorcio) {
+        try{
+            String codigoAcceso = consorcioService.regenerarCodigo(idConsorcio);
+            Map<String, String> response = Map.of(
+                    "mensaje", "El nuevo código de acceso al consorcio es: " + codigoAcceso,
+                    "codigoAcceso", codigoAcceso
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
     //  ELIMINAR CONSORCIO
     @DeleteMapping("/{idConsorcio}")
     public ResponseEntity<String> deleteConsorcio(@PathVariable Long idAdm,

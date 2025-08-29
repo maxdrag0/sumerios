@@ -9,6 +9,10 @@ import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioCreateDTO
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
+import com.mad.sumerios.intermedioExpensaConsorcio.dto.IntermediaExpensaConsorcioDto;
+import com.mad.sumerios.intermedioExpensaConsorcio.service.IntermediaExpensaConsorcioService;
+import jakarta.persistence.EntityNotFoundException;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +26,16 @@ public class ConsorcioService {
     private final IConsorcioRepository consorcioRepository;
     private final IAdministracionRepository administracionRepository;
     private final EstadoCuentaConsorcioService estadoCuentaConsorcioService;
-
+    private final IntermediaExpensaConsorcioService intermediaExpensaConsorcioService;
     @Autowired
     public ConsorcioService(IConsorcioRepository consorcioRepository,
                             IAdministracionRepository administracionRepository,
-                            EstadoCuentaConsorcioService estadoCuentaConsorcioService) {
+                            EstadoCuentaConsorcioService estadoCuentaConsorcioService,
+                            IntermediaExpensaConsorcioService intermediaExpensaConsorcioService) {
         this.consorcioRepository = consorcioRepository;
         this.administracionRepository = administracionRepository;
         this.estadoCuentaConsorcioService = estadoCuentaConsorcioService;
+        this.intermediaExpensaConsorcioService = intermediaExpensaConsorcioService;
     }
 
     //  CREAR CONSORCIO
@@ -78,7 +84,8 @@ public class ConsorcioService {
         cons.setCiudad(dto.getCiudad());
         cons.setCuit(dto.getCuit());
 
-        cons.setTitulo(dto.getTitulo());
+        cons.setTitularCuenta(dto.getTitularCuenta());
+        cons.setTipoCuenta(dto.getTipoCuenta());
         cons.setCbu(dto.getCbu());
         cons.setBanco(dto.getBanco());
         cons.setNumCuenta(dto.getNumCuenta());
@@ -91,11 +98,15 @@ public class ConsorcioService {
     }
 
     //  ELIMINAR CONSORCIO
-    public void deleteConsorcio(Long idAdm, Long idConsorcio) {
+    public void deleteConsorcio(Long idAdm, Long idConsorcio) throws Exception {
         Optional<Consorcio> consorcioOpt = consorcioRepository.findByidConsorcioAndAdministracion_IdAdm(idConsorcio, idAdm);
 
         if (consorcioOpt.isPresent()) {
+            IntermediaExpensaConsorcioDto dtoIntermedia = intermediaExpensaConsorcioService.getIntermediaByConsorcio(idConsorcio);
+            intermediaExpensaConsorcioService.deleteIntermedia(dtoIntermedia.getIdIntermedia());
+
             consorcioRepository.deleteById(idConsorcio);  // Elimina el consorcio
+
         } else {
             throw new RuntimeException("Consorcio no encontrado o no pertenece a la administración");
         }
@@ -133,6 +144,7 @@ public class ConsorcioService {
 
 //  VALIDACIONES UPDATE
     private void validarDireccionUnicaUpdate(String direccion, Long idActualConsorcio) throws Exception {
+
         if (consorcioRepository.findByDireccion(direccion)
                 .filter(c -> !Long.valueOf(c.getIdConsorcio()).equals(idActualConsorcio))  // Conversión de long a Long
                 .isPresent()) {
@@ -140,13 +152,54 @@ public class ConsorcioService {
         }
     }
     private void validarCuitUnicoUpdate(String cuit, Long idActualConsorcio) throws Exception {
-        if(cuit != null && !cuit.isEmpty()){
-            if (consorcioRepository.findByCuit(cuit)
-                    .filter(c -> !Long.valueOf(c.getCuit()).equals(idActualConsorcio))  // Conversión de long a Long
-                    .isPresent()) {
-                throw new Exception("El consorcio ya está registrado. El CUIT: " + cuit + " ya existe");
+        // 1️⃣ Si no envían cuit, no validamos
+        if (cuit == null || cuit.isEmpty()) {
+            return;
+        }
+
+        // 2️⃣ Buscamos por cuit
+        Optional<Consorcio> consorcioBuscado = consorcioRepository.findByCuit(cuit);
+
+        // 3️⃣ Si existe un consorcio con ese cuit...
+        if (consorcioBuscado.isPresent()) {
+            Consorcio existente = consorcioBuscado.get();
+            long idEncontrado = existente.getIdConsorcio();
+            long idActual    = idActualConsorcio;
+            // 4️⃣ Si el id encontrado es distinto al que estamos actualizando, lanzamos excepción
+            if (idEncontrado != idActual) {
+                throw new Exception("El consorcio ya está registrado. El CUIT: "
+                        + cuit
+                        + " ya existe en otro consorcio: "
+                        + existente.getDireccion()
+                        + " - "
+                        + existente.getNombre()
+                        + ".");
             }
         }
+    }
+
+    private String crearCodigoAccesoRandom(int length) {
+        String codigo;
+        do {
+            codigo = RandomStringUtils.randomAlphanumeric(length);
+        } while (codigoYaExiste(codigo));
+        return codigo;
+    }
+
+    private boolean codigoYaExiste(String codigo) {
+        return consorcioRepository.findByCodigoAcceso(codigo).isPresent(); // ejemplo con JPA
+    }
+
+    public String regenerarCodigo(Long idConsorcio) {
+        String codigoAcceso = crearCodigoAccesoRandom(10);
+
+        Consorcio consorcio = consorcioRepository.findById(idConsorcio)
+                .orElseThrow(() -> new EntityNotFoundException("Consorcio con ID " + idConsorcio + " no encontrado"));
+
+        consorcio.setCodigoAcceso(codigoAcceso);
+        consorcioRepository.save(consorcio);
+
+        return codigoAcceso;
     }
 
 //  MAPEO DTO
@@ -165,7 +218,8 @@ public class ConsorcioService {
         consorcio.setDireccion(dto.getDireccion());
         consorcio.setCiudad(dto.getCiudad());
         consorcio.setCuit(dto.getCuit());
-        consorcio.setTitulo(dto.getTitulo());
+        consorcio.setTitularCuenta(dto.getTitularCuenta());
+        consorcio.setTipoCuenta(dto.getTipoCuenta());
         consorcio.setCbu(dto.getCbu());
         consorcio.setBanco(dto.getBanco());
         consorcio.setNumCuenta(dto.getNumCuenta());
@@ -175,8 +229,11 @@ public class ConsorcioService {
         consorcio.setSegundoVencimiento(dto.getSegundoVencimiento());
         consorcio.setPorcentajeSegundoVencimiento(dto.getPorcentajeSegundoVencimiento());
 
+        consorcio.setCodigoAcceso(crearCodigoAccesoRandom(10));
+        
         return consorcio;
     }
+
     private ConsorcioResponseDTO mapToConsorcioResponseDTO(Consorcio consorcio) {
         ConsorcioResponseDTO consorcioDTO = new ConsorcioResponseDTO();
 
@@ -188,7 +245,8 @@ public class ConsorcioService {
 
         // Usamos null-safe setters
         consorcioDTO.setCuit(nullSafe(consorcio.getCuit()));
-        consorcioDTO.setTitulo(nullSafe(consorcio.getTitulo()));
+        consorcioDTO.setTitularCuenta(nullSafe(consorcio.getTitularCuenta()));
+        consorcioDTO.setTipoCuenta(consorcio.getTipoCuenta());
         consorcioDTO.setCbu(nullSafe(consorcio.getCbu()));
         consorcioDTO.setNumCuenta(nullSafe(consorcio.getNumCuenta()));
         consorcioDTO.setAlias(nullSafe(consorcio.getAlias()));
@@ -196,6 +254,7 @@ public class ConsorcioService {
         consorcioDTO.setPorcentajeIntereses(consorcio.getPorcentajeIntereses());
         consorcioDTO.setSegundoVencimiento(consorcio.getSegundoVencimiento());
         consorcioDTO.setPorcentajeSegundoVencimiento(consorcio.getPorcentajeSegundoVencimiento());
+        consorcioDTO.setCodigoAcceso(consorcio.getCodigoAcceso());
 
         // Datos de la administración
         consorcioDTO.setIdAdm(consorcio.getAdministracion().getIdAdm());
@@ -205,10 +264,12 @@ public class ConsorcioService {
         if (ec != null) {
             EstadoCuentaConsorcioDTO ecDto = new EstadoCuentaConsorcioDTO();
             ecDto.setIdEstadoCuentaConsorcio(ec.getIdEstadoCuentaConsorcio());
+            ecDto.setIdConsorcio(ec.getConsorcio().getIdConsorcio());
             ecDto.setTotal(ec.getTotal());
             ecDto.setEfectivo(ec.getEfectivo());
             ecDto.setBanco(ec.getBanco());
             ecDto.setFondoAdm(ec.getFondoAdm());
+            ecDto.setTotalAlCierre(ec.getTotalAlCierre());
             consorcioDTO.setEstadoCuentaConsorcioDTO(ecDto);
         }
 

@@ -2,10 +2,9 @@ package com.mad.sumerios.consorcio.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mad.sumerios.administracion.model.Administracion;
+import com.mad.sumerios.enums.TipoCuenta;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
-import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -43,7 +42,8 @@ public class Consorcio {
     private String ciudad;
 
     private String cuit;
-    private String titulo;
+    private String titularCuenta;
+    private TipoCuenta tipoCuenta;
     private String cbu;
     private String banco;
     private String numCuenta;
@@ -58,5 +58,6 @@ public class Consorcio {
     @JsonIgnore
     private List<UnidadFuncional> unidadesFuncionales;
 
+    private String codigoAcceso;
 
 }

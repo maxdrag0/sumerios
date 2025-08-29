@@ -2,6 +2,7 @@ package com.mad.sumerios.movimientos.gastoParticular.service;
 
 import com.mad.sumerios.consorcio.model.Consorcio;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
+import com.mad.sumerios.enums.TipoEgreso;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
@@ -55,7 +56,7 @@ public class GastoParticularService {
     public void createGastoParticular (GastoParticularCreateDTO dto) throws Exception{
         GastoParticular gastoParticular = mapToGastoParticularEntity(dto);
 
-        if(gastoParticular.getPagoConsorcio()){
+        if(dto.getPagoConsorcio()){
             Optional<Consorcio> consorcio = consorcioRepository.findById(dto.getIdConsorcio());
             consorcio.ifPresent(value-> estadoCuentaConsorcioService.restarGastoParticular(value.getEstadoCuentaConsorcio(), gastoParticular));
         }
@@ -206,6 +207,7 @@ public class GastoParticularService {
 
         GastoParticular gastoParticular = new GastoParticular();
 
+        gastoParticular.setTipoEgreso(TipoEgreso.GASTOS_PARTICULARES);
         gastoParticular.setExpensa(exp);
         gastoParticular.setPeriodo(dto.getPeriodo());
         gastoParticular.setIdConsorcio(dto.getIdConsorcio());
@@ -235,7 +237,7 @@ public class GastoParticularService {
         dto.setFecha(gp.getFecha());
         dto.setTitulo(gp.getTitulo());
         dto.setFormaPago(gp.getFormaPago());
-        dto.setTipoEgreso(gp.getTIPO_EGRESO());
+        dto.setTipoEgreso(gp.getTipoEgreso());
         dto.setComprobante(gp.getComprobante());
         dto.setDescripcion(gp.getDescripcion());
         dto.setPagoConsorcio(gp.getPagoConsorcio());

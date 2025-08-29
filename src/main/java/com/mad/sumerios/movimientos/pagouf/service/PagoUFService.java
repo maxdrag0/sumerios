@@ -29,8 +29,12 @@ import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
 import com.mad.sumerios.unidadfuncional.service.UnidadFuncionalService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,7 +83,7 @@ public class PagoUFService {
 
     //  CREAR INGRESO
     @Transactional
-    public void createPagoUF(PagoUFRequest request) throws Exception {
+    public ResponseEntity<byte[]> createPagoUF(PagoUFRequest request) throws Exception {
         // Mapeo del DTO a la entidad PagoUF
         PagoUF pago = mapToPagoUFEntity(request.getPago());
 
@@ -100,30 +104,28 @@ public class PagoUFService {
         Double totalPago = obtenerTotalPagoPeriodo(ufDto.getIdUf(), pago.getPeriodo()) - pago.getValor();
 
         // Generar el PDF
-        Path tempFile = Files.createTempFile("pago_uf_" + ufDto.getUnidadFuncional(), ".pdf");
-        String outputPath = tempFile.toAbsolutePath().toString();
+        ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
+        PdfGenerator2.createPdfPago(this.mapToPagoUFDTO(pago), totalPago, admDto, consorcioDto, ufDto, pdfOutput);
 
-        PdfGenerator2.createPdfPago(this.mapToPagoUFDTO(pago),totalPago ,admDto, consorcioDto, ufDto, outputPath);
+        byte[] pdfBytes = pdfOutput.toByteArray();
 
-        // Verificar archivo generado
-        File pdfFile = tempFile.toFile();
-        if (pdfFile.exists()) {
-            System.out.println("PDF generado en: " + pdfFile.getAbsolutePath());
-            System.out.println("Tamaño del PDF: " + pdfFile.length() + " bytes");
-        }
+
+        emailSender.enviarPagoMailSumerios(ufDto, consorcioDto.getNombre(), pdfBytes);
 
         // Imprimir pdf
-        if(request.getImprimir()){
-            PrintPdf.printPdf(outputPath);
-        }
+//        if(request.getImprimir()){
+//            PrintPdf.printPdf(outputPath);
+//        }
         // Enviar el PDF por correo
         if(request.getEnviarMail()){
-            emailSender.enviarPagoPorCorreo(request.getMails(),ufDto, consorcioDto.getNombre(), outputPath);
+            emailSender.enviarPagoPorCorreo(request.getMails(),ufDto, consorcioDto.getNombre(), pdfBytes);
         }
 
-
         // Eliminar el archivo temporal
-        new File(outputPath).delete();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=pago_uf_" + ufDto.getUnidadFuncional() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 
     private Double obtenerTotalPagoPeriodo(long idUf, YearMonth periodo) {

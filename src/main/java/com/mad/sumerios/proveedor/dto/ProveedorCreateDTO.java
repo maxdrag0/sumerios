@@ -11,7 +11,6 @@ public class ProveedorCreateDTO {
 
     @NotNull
     private long idAdm;
-    @NotBlank
     private String telefono;
 
     private String descripcion;

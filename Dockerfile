@@ -4,7 +4,7 @@ FROM eclipse-temurin:17-jdk
 # Crea un directorio dentro del contenedor
 WORKDIR /app
 
-ARG JAR_FILE=target/sumerios-0.0.4.jar
+ARG JAR_FILE=target/sumerios-0.0.5.jar
 
 # Copia el JAR compilado
 COPY ${JAR_FILE} sumerios.jar

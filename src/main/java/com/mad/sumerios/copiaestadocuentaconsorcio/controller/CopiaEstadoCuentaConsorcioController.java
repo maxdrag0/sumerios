@@ -2,6 +2,7 @@ package com.mad.sumerios.copiaestadocuentaconsorcio.controller;
 
 import com.mad.sumerios.copiaestadocuentaconsorcio.dto.CopiaEstadoCuentaConsorcioDTO;
 import com.mad.sumerios.copiaestadocuentaconsorcio.service.CopiaEstadoCuentaConsorcioService;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class CopiaEstadoCuentaConsorcioController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createCopiaEstadoCuentaConsorcio (@RequestBody EstadoCuentaConsorcio estadoCuentaConsorcio,
+    public ResponseEntity<?> createCopiaEstadoCuentaConsorcio (@RequestBody EstadoCuentaConsorcioDTO estadoCuentaConsorcio,
                                                                @RequestBody YearMonth periodo){
         try{
             copiaEstadoCuentaConsorcioService.createCopiaEstadoCuentaConsorcio(estadoCuentaConsorcio, periodo);

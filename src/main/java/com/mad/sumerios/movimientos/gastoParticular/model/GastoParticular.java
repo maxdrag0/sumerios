@@ -23,7 +23,9 @@ public class  GastoParticular {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_gasto_particular")
     private Long idGastoParticular;
-    private final TipoEgreso TIPO_EGRESO = TipoEgreso.GASTOS_PARTICULARES;
+
+    @Column(name = "tipo_egreso")
+    private TipoEgreso tipoEgreso;
 
     //  REFERENCIAS
     @NotNull

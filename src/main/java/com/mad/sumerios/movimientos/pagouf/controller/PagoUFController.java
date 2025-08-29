@@ -2,8 +2,6 @@ package com.mad.sumerios.movimientos.pagouf.controller;
 
 
 import com.mad.sumerios.enums.FormaPago;
-import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
-import com.mad.sumerios.movimientos.pagouf.dto.PagoUFCreateDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFRequest;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
@@ -31,12 +29,11 @@ public class PagoUFController {
 
     //  CREAR PAGO UF
     @PostMapping
-    public ResponseEntity<String> createPagoUF(@RequestBody PagoUFRequest pagoUF) {
+    public ResponseEntity<byte[]> createPagoUF(@RequestBody PagoUFRequest pagoUF) {
         try {
-            pagoUFService.createPagoUF(pagoUF);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Pago creado exitosamente");
+            return pagoUFService.createPagoUF(pagoUF);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 

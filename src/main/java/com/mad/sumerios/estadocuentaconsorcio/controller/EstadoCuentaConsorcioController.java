@@ -67,7 +67,7 @@ public class EstadoCuentaConsorcioController {
     public ResponseEntity<String> updateEgreso (@PathVariable Long idEstadoCuenta,
                                                 @RequestBody EstadoCuentaConsorcioDTO dto){
         try{
-            estadoCuentaConsorcioService.updateEstadoCuenta(idEstadoCuenta, dto);
+            estadoCuentaConsorcioService.updateEstadoCuenta(dto);
             return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

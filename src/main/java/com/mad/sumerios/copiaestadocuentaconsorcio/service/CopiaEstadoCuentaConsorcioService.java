@@ -3,6 +3,7 @@ package com.mad.sumerios.copiaestadocuentaconsorcio.service;
 import com.mad.sumerios.copiaestadocuentaconsorcio.dto.CopiaEstadoCuentaConsorcioDTO;
 import com.mad.sumerios.copiaestadocuentaconsorcio.model.CopiaEstadoCuentaConsorcio;
 import com.mad.sumerios.copiaestadocuentaconsorcio.repository.ICopiaEstadoCuentaConsorcioRepository;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.model.EstadoCuentaConsorcio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,8 @@ public class CopiaEstadoCuentaConsorcioService {
     }
 
     // CREATE COPIA
-    public void createCopiaEstadoCuentaConsorcio (EstadoCuentaConsorcio estadoCuentaConsorcio, YearMonth periodo) throws Exception{
+    public void createCopiaEstadoCuentaConsorcio (EstadoCuentaConsorcioDTO estadoCuentaConsorcio, YearMonth periodo) throws Exception{
+        System.out.println(estadoCuentaConsorcio);
         copiaEstadoCuentaConsorcioRepository.save(mapToCopiaEstadoCuentaConsorcioEntity(estadoCuentaConsorcio, periodo));
     }
 
@@ -30,8 +32,8 @@ public class CopiaEstadoCuentaConsorcioService {
         return mapToCopiaEstadoCuentaConsorcioDto(copia);
     }
 
-    public void deleteCopiaEstadoCuentaConsorcio(Long idEstadoCuentaConsorcio){
-        copiaEstadoCuentaConsorcioRepository.deleteById(idEstadoCuentaConsorcio);
+    public void deleteCopiaEstadoCuentaConsorcio(Long idCopiaEstadoCuentaConsorcio){
+        copiaEstadoCuentaConsorcioRepository.deleteById(idCopiaEstadoCuentaConsorcio);
     }
 
     // MAPEOS
@@ -39,26 +41,30 @@ public class CopiaEstadoCuentaConsorcioService {
         CopiaEstadoCuentaConsorcioDTO dto = new CopiaEstadoCuentaConsorcioDTO();
 
         dto.setIdCopiaEstadoCuentaConsorcio(copia.getIdCopiaEstadoCuentaConsorcio());
+        dto.setIdEstadoCuentaConsorcio(copia.getIdEstadoCuentaConsorcio());
         dto.setIdConsorcio(copia.getIdConsorcio());
         dto.setPeriodo(copia.getPeriodo());
         dto.setEfectivo(copia.getEfectivo());
         dto.setBanco(copia.getBanco());
         dto.setFondoAdm(copia.getFondoAdm());
         dto.setTotal(copia.getTotal());
+        dto.setTotalAlCierre(copia.getTotalAlCierre());
 
         return dto;
     }
 
-    private CopiaEstadoCuentaConsorcio mapToCopiaEstadoCuentaConsorcioEntity(EstadoCuentaConsorcio estadoCuentaConsorcio,
+    private CopiaEstadoCuentaConsorcio mapToCopiaEstadoCuentaConsorcioEntity(EstadoCuentaConsorcioDTO estadoCuentaConsorcio,
                                                                              YearMonth periodo) {
         CopiaEstadoCuentaConsorcio copiaEstadoCuentaConsorcio = new CopiaEstadoCuentaConsorcio();
 
-        copiaEstadoCuentaConsorcio.setIdConsorcio(estadoCuentaConsorcio.getConsorcio().getIdConsorcio());
-        copiaEstadoCuentaConsorcio.setPeriodo(periodo.minusMonths(1));
+        copiaEstadoCuentaConsorcio.setIdEstadoCuentaConsorcio(estadoCuentaConsorcio.getIdEstadoCuentaConsorcio());
+        copiaEstadoCuentaConsorcio.setIdConsorcio(estadoCuentaConsorcio.getIdConsorcio());
+        copiaEstadoCuentaConsorcio.setPeriodo(periodo);
         copiaEstadoCuentaConsorcio.setEfectivo(estadoCuentaConsorcio.getEfectivo());
         copiaEstadoCuentaConsorcio.setBanco(estadoCuentaConsorcio.getBanco());
         copiaEstadoCuentaConsorcio.setFondoAdm(estadoCuentaConsorcio.getFondoAdm());
         copiaEstadoCuentaConsorcio.setTotal(estadoCuentaConsorcio.getTotal());
+        copiaEstadoCuentaConsorcio.setTotalAlCierre(estadoCuentaConsorcio.getTotalAlCierre());
 
         return copiaEstadoCuentaConsorcio;
     }

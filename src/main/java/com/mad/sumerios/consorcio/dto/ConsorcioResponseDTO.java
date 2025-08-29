@@ -1,5 +1,6 @@
 package com.mad.sumerios.consorcio.dto;
 
+import com.mad.sumerios.enums.TipoCuenta;
 import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class ConsorcioResponseDTO {
     private String ciudad;
     private String banco;
     private String cuit;
-    private String titulo;
+    private String titularCuenta;
+    private TipoCuenta tipoCuenta;
     private String cbu;
     private String numCuenta;
     private String alias;
@@ -25,4 +27,6 @@ public class ConsorcioResponseDTO {
     private Double porcentajeSegundoVencimiento;
     private Long idAdm;
     private EstadoCuentaConsorcioDTO estadoCuentaConsorcioDTO;
+
+    private String codigoAcceso;
 }

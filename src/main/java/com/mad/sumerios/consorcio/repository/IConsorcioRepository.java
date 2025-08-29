@@ -15,4 +15,5 @@ public interface IConsorcioRepository extends JpaRepository<Consorcio, Long> {
     Optional<Consorcio> findByCuit(String cuit);
     List<Consorcio> findByAdministracion_IdAdm(Long idAdm);
     Optional<Consorcio> findByidConsorcioAndAdministracion_IdAdm(Long idConsorcio, Long idAdm);
+    Optional<Consorcio> findByCodigoAcceso(String codigoAcceso);
 }

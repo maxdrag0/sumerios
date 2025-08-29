@@ -3,16 +3,13 @@ package com.mad.sumerios.estadocuentauf.controller;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfCreateDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfUpdatePeriodo;
+import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfUpdateTotalDTO;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
-import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.YearMonth;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/estado_cuenta_uf")
@@ -62,6 +59,38 @@ public class EstadoCuentaUfController {
                                                        @RequestBody EstadoCuentaUfDTO dto){
         try{
             estadoCuentaUfService.updateEstadoCuentaUf(idEstadoCuentaUf, dto);
+            return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+//    @PutMapping("/{idEstadoCuentaUf}/totalExpensa")
+//    public ResponseEntity<String> updateTotalExpensa(@PathVariable Long idEstadoCuentaUf,
+//                                                       @RequestBody EstadoCuentaUfUpdateTotalDTO dto){
+//        try{
+//            estadoCuentaUfService.updateTotalExpensa(idEstadoCuentaUf, dto.getTotalNuevo(), dto.getAplicarExpensa());
+//            return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        }
+//    }
+
+    @PutMapping("/{idEstadoCuentaUf}/inicializarCuenta")
+    public ResponseEntity<String> inicializarCuenta(@PathVariable Long idEstadoCuentaUf,
+                                                     @RequestBody Double totalNuevo){
+        try{
+            estadoCuentaUfService.inicializarCuenta(idEstadoCuentaUf, totalNuevo);
+            return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{idEstadoCuentaUf}/reiniciarEstadoCuentaCero")
+    public ResponseEntity<String> reiniciarEstadoCuentaCero(@PathVariable Long idEstadoCuentaUf){
+        try{
+            estadoCuentaUfService.reiniciarEstadoCuentaCero(idEstadoCuentaUf);
             return ResponseEntity.status(HttpStatus.OK).body("Estado de cuenta modificado exitosamente.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

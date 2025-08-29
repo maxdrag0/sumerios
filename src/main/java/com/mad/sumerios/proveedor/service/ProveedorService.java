@@ -26,8 +26,13 @@ public class ProveedorService {
     // create proveedor
     @Transactional
     public ProveedorResponseDTO createProveedor (ProveedorCreateDTO dto) throws Exception {
-        validateTelefono(dto.getTelefono());
-        validateCuit(dto.getCuit());
+        if (dto.getTelefono() != null && !dto.getTelefono().isBlank()) {
+            validateTelefono(dto.getTelefono());
+        }
+
+        if (dto.getCuit() != null && !dto.getCuit().isBlank()) {
+            validateCuit(dto.getCuit());
+        }
 
         Proveedor proveedor = mapToProveedorEntity(dto);
         proveedorRepository.save(proveedor);
@@ -46,6 +51,7 @@ public class ProveedorService {
                 .orElseThrow(() -> new Exception("Proveedor no encontrado con el ID: "+ idProveedor));
         return mapToResponseDTO(proveedor);
     }
+
     // delete proveedores
     public ProveedorResponseDTO deleteProveedor (Long idProveedor) throws Exception {
         Proveedor proveedor = proveedorRepository.findById(idProveedor)
@@ -61,8 +67,6 @@ public class ProveedorService {
 
         Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
                 .orElseThrow(() -> new Exception ("Proveedor no encontrado"));
-
-        validateCuitUpdate(dto.getIdProveedor(), dto.getCuit());
 
         proveedor.setNombre(dto.getNombre());
         proveedor.setDescripcion(dto.getDescripcion());

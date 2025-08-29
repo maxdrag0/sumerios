@@ -10,6 +10,7 @@ import org.apache.pdfbox.io.IOUtils;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
@@ -20,16 +21,13 @@ public class PdfGenerator2 {
 
     public static void createPdfPago(PagoUFDTO pagoUF, double totalPago, AdministracionResponseDTO admDto,
                                      ConsorcioResponseDTO consorcioDto, UnidadFuncionalResponseDTO uf,
-                                     String outputPath) {
+                                     OutputStream outputPath) {
         Document document = new Document(new Rectangle(320, 567), 20, 20, 20, 20);
 
         try {
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(outputPath));
+            PdfWriter writer = PdfWriter.getInstance(document, outputPath);
             document.open();
 
-            // Agregar marca de agua centrada y transparente
-//            String rutaImagen = "C:/Users/Max/Desktop/electron/sumerios/src/renderer/src/assets/sumerios.png";
-//            addWatermark(writer, rutaImagen, document);
 
             InputStream logoStream = PdfGenerator2.class.getResourceAsStream("/static/images/sumerios.png");
             if (logoStream != null) {
@@ -110,6 +108,8 @@ public class PdfGenerator2 {
             detallesTable.getDefaultCell().setBorder(PdfPCell.BOX); // Agregar bordes
 
             detallesTable.addCell(createCell("Pago ID: " + pagoUF.getIdPagoUF(), boldFont, Element.ALIGN_JUSTIFIED, PdfPCell.BOX, grayBackground)).setPaddingBottom(4f);
+            detallesTable.addCell(createAlignedCell("Deuda:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getDeuda()), regularFont)).setPaddingTop(1f);
+            detallesTable.addCell(createAlignedCell("Intereses:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getIntereses()), regularFont)).setPaddingTop(1f);
             detallesTable.addCell(createAlignedCell("Total A:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalA()), regularFont)).setPaddingTop(1f);
             detallesTable.addCell(createAlignedCell("Total B:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalB()), regularFont));
             detallesTable.addCell(createAlignedCell("Total C:", "$" + formatCurrency(uf.getEstadoCuentaUfDTO().getTotalC()), regularFont));
@@ -136,7 +136,29 @@ public class PdfGenerator2 {
             PdfPTable leyTable = new PdfPTable(1);
             leyTable.setWidthPercentage(100);
             leyTable.addCell(createCell("EXPENSAS LEY 14,701 PROVINCIA DE BUENOS AIRES", boldFont, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground)).setPadding(4f);
+            leyTable.setSpacingAfter(10f);
+
             document.add(leyTable);
+
+            // Comentario del pago
+            PdfPTable comentarioTable = new PdfPTable(1);
+            comentarioTable.setWidthPercentage(100);
+
+            // Fila 1: título
+            PdfPCell tituloComentario = new PdfPCell(new Phrase("Comentario", boldFont));
+            tituloComentario.setHorizontalAlignment(Element.ALIGN_CENTER);
+            tituloComentario.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            tituloComentario.setPadding(4f);
+            comentarioTable.addCell(tituloComentario);
+
+            // Fila 2: contenido dinámico
+            PdfPCell contenidoComentario = new PdfPCell(new Phrase(pagoUF.getDescripcion(), smallFont));
+            contenidoComentario.setHorizontalAlignment(Element.ALIGN_LEFT);
+            contenidoComentario.setPadding(6f); // más grande para que respire
+            comentarioTable.addCell(contenidoComentario);
+
+            // Agregar al documento
+            document.add(comentarioTable);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -168,7 +190,7 @@ public class PdfGenerator2 {
 
         // Posición centrada
         float x = (document.getPageSize().getWidth() - watermarkWidth) / 2;
-        float y = 308;
+        float y = 295;
 
         watermark.setAbsolutePosition(x, y);
         watermark.scaleAbsolute(watermarkWidth, watermarkHeight);
@@ -180,7 +202,7 @@ public class PdfGenerator2 {
     private static PdfPCell createAlignedCell(String leftText, String rightText, Font font) {
         // Crear una tabla interna con dos columnas
         PdfPTable innerTable = new PdfPTable(2);
-        innerTable.setWidthPercentage(100); // Ancho completo de la celda principal
+        innerTable.setWidthPercentage(100);// Ancho completo de la celda principal
         try {
             innerTable.setWidths(new int[]{70, 30}); // Ajusta las proporciones de las columnas
         } catch (DocumentException e) {

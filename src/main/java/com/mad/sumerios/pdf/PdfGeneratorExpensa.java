@@ -1,25 +1,28 @@
 package com.mad.sumerios.pdf;
 
 import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.mad.sumerios.administracion.dto.AdministracionResponseDTO;
 import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import com.mad.sumerios.enums.CategoriaEgreso;
+import com.mad.sumerios.enums.FormaPago;
 import com.mad.sumerios.enums.TipoEgreso;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.expensa.dto.ExpensaResponseDto;
 import com.mad.sumerios.movimientos.egreso.dto.EgresoResponseDTO;
 import com.mad.sumerios.movimientos.gastoParticular.dto.GastoParticularResponseDTO;
+import com.mad.sumerios.movimientos.ingreso.dto.IngresoResponseDTO;
 import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
+import com.mad.sumerios.proveedor.service.ProveedorService;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -31,8 +34,10 @@ public class PdfGeneratorExpensa {
                                          List<UnidadFuncionalResponseDTO> ufs,
                                          List<EstadoCuentaUfDTO> estadosDeCuentaUf,
                                          Boolean segundoVencimiento,
+                                         Boolean mostrarFondoAdm,
                                          String nota,
-                                         String juicios) throws DocumentException, IOException {
+                                         String juicios,
+                                         ProveedorService proveedorService) throws Exception {
 
         float margenSuperior = 280f; // ajusta este valor según el alto del encabezado
         Document document = new Document(PageSize.B4.rotate(), 36, 36, margenSuperior, 36);
@@ -61,12 +66,9 @@ public class PdfGeneratorExpensa {
         Font boldFontTitle = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
         Font boldFontSubTitle = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
         Font font = new Font(Font.FontFamily.HELVETICA, 14);
-        Font fonter = new Font(Font.FontFamily.HELVETICA, 12);
         Font regularFont = new Font(Font.FontFamily.HELVETICA, 10);
         Font boldFontSmall = new Font(Font.FontFamily.HELVETICA, 8, Font.BOLD);
-        Font boldFontSmaller = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
         Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
-        Font smallFonter = new Font(Font.FontFamily.HELVETICA, 7);
 
         BaseColor grayBackground = new BaseColor(230, 230, 230);
         BaseColor verdeAzulado = new BaseColor(0, 128, 128);
@@ -116,7 +118,7 @@ public class PdfGeneratorExpensa {
         encabezadoTablaMovimientos.setWidthPercentage(100);
         encabezadoTablaMovimientos.setWidths(new int[]{40,10,10,10,10,10,10});
 
-        encabezadoTablaMovimientos.addCell(createCell("Descripción del gastos ", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
+        encabezadoTablaMovimientos.addCell(createCell("Descripción del gasto ", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
         encabezadoTablaMovimientos.addCell(createCell("A", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
         encabezadoTablaMovimientos.addCell(createCell("B", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
         encabezadoTablaMovimientos.addCell(createCell("C", boldFontBigTitle, Element.ALIGN_CENTER, PdfPCell.BOX, grayBackground,25f)).setPaddingBottom(4f);
@@ -129,6 +131,52 @@ public class PdfGeneratorExpensa {
         document.add(encabezadoTablaMovimientos);
 
         int numeroTipoEgreso = 1;
+        // TOTAL EGRESOS
+        double totalEgresos = 0;
+        double totalEgresosEfectivo = 0;
+        double totalEgresosBanco = 0;
+
+        // TOTAL GASTOS PARTICULARES
+        double totalGastosEstadoCuenta =
+                expensa.getGp().stream()
+                        .filter(GastoParticularResponseDTO::getPagoConsorcio)
+                        .mapToDouble(GastoParticularResponseDTO::getTotalFinal)
+                        .sum();
+
+        // TOTAL INGRESOS
+        // Pagos expensas
+        double totalPagoExpensas = totalPagosExpensas(expensa.getPagoUf());
+
+        double totalPagoExpensaEfectivo =
+                expensa.getPagoUf().stream()
+                        .filter(p -> p.getFormaPago() == FormaPago.EFECTIVO)
+                        .mapToDouble(PagoUFDTO::getValor)
+                        .sum();
+
+        double totalPagoExpensaBanco =
+                expensa.getPagoUf().stream()
+                        .filter(p -> p.getFormaPago() == FormaPago.BANCO)
+                        .mapToDouble(PagoUFDTO::getValor)
+                        .sum();
+
+        // Ingresos
+        double totalOtrosIngresos =
+                expensa.getIngresos().stream()
+                        .mapToDouble(IngresoResponseDTO::getValor)
+                        .sum();
+        double totalIngresosEfectivo =
+                expensa.getIngresos().stream()
+                        .filter(i -> i.getFormaPago() == FormaPago.EFECTIVO)
+                        .mapToDouble(IngresoResponseDTO::getValor)
+                        .sum();
+        double totalIngresosBanco =
+                expensa.getIngresos().stream()
+                        .filter(i -> i.getFormaPago() == FormaPago.BANCO)
+                        .mapToDouble(IngresoResponseDTO::getValor)
+                        .sum();
+
+        double totalIngresos = totalPagoExpensas+totalOtrosIngresos;
+
         for (TipoEgreso tipo : TipoEgreso.values()) {
             // Encabezado de la tabla
             PdfPTable table = new PdfPTable(7); //
@@ -144,48 +192,97 @@ public class PdfGeneratorExpensa {
 
 
             // Filas de datos
-            List<EgresoResponseDTO> egresos = filtrarPorTipoEgreso(expensa.getEgresos(), tipo);
-            if(!egresos.isEmpty()){
-                double totalRubro = 0;
-                int numEgreso = 1;
+            if(tipo != TipoEgreso.GASTOS_PARTICULARES) {
+                List<EgresoResponseDTO> egresos = filtrarPorTipoEgreso(expensa.getEgresos(), tipo);
+                if (!egresos.isEmpty()) {
+                    double totalRubro = 0;
+                    int numEgreso = 1;
 
-                for (EgresoResponseDTO egreso : egresos) {
-                    Paragraph paragraph = new Paragraph();
-                    paragraph.add(new Chunk(numEgreso+" - "+egreso.getTitulo() + ":", boldFontTitle).setTextRise(4f));
+                    for (EgresoResponseDTO egreso : egresos) {
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.add(new Chunk(numEgreso + " - " + nombreProveedor(egreso.getIdProveedor(), proveedorService) + " - " + egreso.getTitulo() + ":", boldFontTitle).setTextRise(4f));
 
-                    Chunk descripcionChunk = new Chunk(egreso.getDescripcion(), regularFont);
-                    descripcionChunk.setTextRise(-2f);
-                    paragraph.add(Chunk.NEWLINE);
-                    paragraph.add(descripcionChunk);
+                        Chunk descripcionChunk = new Chunk(egreso.getDescripcion(), regularFont);
+                        descripcionChunk.setTextRise(-2f);
+                        paragraph.add(Chunk.NEWLINE);
+                        paragraph.add(descripcionChunk);
 
-                    table.addCell(createCellEgreso(paragraph, Element.ALIGN_LEFT, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.A) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.B) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.C) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.D) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.E) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null,20f));
-                    table.addCell(createCell(formatoMoneda.format(egreso.getTotalFinal()), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, null,20f));
-                    totalRubro += egreso.getTotalFinal();
+                        table.addCell(createCellEgreso(paragraph, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.A) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.B) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.C) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.D) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(egreso.getCategoriaEgreso().equals(CategoriaEgreso.E) ? formatoMoneda.format(egreso.getTotalFinal()) : formatoMoneda.format(0), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                        table.addCell(createCell(formatoMoneda.format(egreso.getTotalFinal()), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+                        totalRubro += egreso.getTotalFinal();
 
-                    numEgreso++;
+                        numEgreso++;
+                        totalEgresos += egreso.getTotalFinal();
+                        if(egreso.getFormaPago() == FormaPago.EFECTIVO){
+                            totalEgresosEfectivo += egreso.getTotalFinal();
+                        } else if(egreso.getFormaPago() == FormaPago.BANCO){
+                            totalEgresosBanco += egreso.getTotalFinal();
+                        }
+                    }
+                    PdfPCell pie = new PdfPCell(createCell("Total del rubro", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground, 23f));
+                    pie.setPadding(5f);
+                    pie.setColspan(6);
+                    table.addCell(pie);
+                    table.addCell(createCell(formatoMoneda.format(totalRubro), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground, 23f)).setPadding(5f);
 
+                    table.setSpacingAfter(10f);
+                    numeroTipoEgreso++;
+
+                    document.add(table);
+                    document.add(Chunk.NEWLINE);
                 }
-                PdfPCell pie = new PdfPCell(createCell("Total del rubro",boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground,23f));
-                pie.setPadding(5f);
-                pie.setColspan(6);
-                table.addCell(pie);
-                table.addCell(createCell(formatoMoneda.format(totalRubro),boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground,23f)).setPadding(5f);
-
-                table.setSpacingAfter(10f);
-                numeroTipoEgreso ++;
-
-                document.add(table);
-                document.add(Chunk.NEWLINE);
             }
+//            else {
+//                List<GastoParticularResponseDTO> gastosParticularesDto = expensa.getGp();
+//                if(!gastosParticularesDto.isEmpty()){
+//                    double totalRubro = 0;
+//                    int numEgreso = 1;
+//
+//                    for (GastoParticularResponseDTO gp : gastosParticularesDto) {
+//                        Paragraph paragraph = new Paragraph();
+//                        paragraph.add(new Chunk(numEgreso + " - " + nombreProveedor(gp.getIdProveedor(), proveedorService) + " - " + gp.getTitulo() + ":", boldFontTitle).setTextRise(4f));
+//
+//                        Chunk descripcionChunk = new Chunk(gp.getDescripcion(), regularFont);
+//                        descripcionChunk.setTextRise(-2f);
+//                        paragraph.add(Chunk.NEWLINE);
+//                        paragraph.add(descripcionChunk);
+//
+//                        table.addCell(createCellEgreso(paragraph, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
+//                        table.addCell(createCell(formatoMoneda.format(gp.getTotalFinal()), regularFont, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+//                        table.addCell(createCell(formatoMoneda.format(gp.getTotalFinal()), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
+//                        totalRubro += gp.getTotalFinal();
+//
+//                        numEgreso++;
+//                        totalEgresos += gp.getTotalFinal();
+//                    }
+//                    PdfPCell pie = new PdfPCell(createCell("Total del rubro", boldFontBigTitle, Element.ALIGN_LEFT, PdfPCell.BOX, grayBackground, 23f));
+//                    pie.setPadding(5f);
+//                    pie.setColspan(6);
+//                    table.addCell(pie);
+//                    table.addCell(createCell(formatoMoneda.format(totalRubro), boldFontSubTitle, Element.ALIGN_RIGHT, PdfPCell.BOX, grayBackground, 23f)).setPadding(5f);
+//
+//                    table.setSpacingAfter(10f);
+//                    numeroTipoEgreso++;
+//
+//                    document.add(table);
+//                    document.add(Chunk.NEWLINE);
+//                }
+//            }
 
             // Pie de la tabla
 
         }
+
+        // Ingresos
+
+
+        // GP
+
 
 //      FIN EGRESOS, GASTOS PARTICULARES E INGRESOS
 
@@ -205,6 +302,105 @@ public class PdfGeneratorExpensa {
         estadoCuentaConsorcio.addCell(ecTituloEstadoCuentaConsorcioCell);
 
         document.add(estadoCuentaConsorcio);
+
+        List<String> keys = new ArrayList<>(Arrays.asList(
+                "Saldo anterior",
+
+                "Ingresos",
+                "Ingreso por expensas",
+                "Ingreso por expensas - Efectivo",
+                "Ingreso por expensas - Banco",
+                "Otros ingresos",
+                "Otros ingresos - Efectivo",
+                "Otros ingresos - Banco",
+
+                "Egresos según liquidación",
+                "Egresos según liquidación - Efectivo",
+                "Egresos según liquidación - Banco",
+                "Egresos por gastos particulares"
+        ));
+        if (mostrarFondoAdm) {
+            keys.add("Fondo de Administración");
+        }
+        keys.add("Saldo al cierre");
+
+        PdfPTable tabla = new PdfPTable(new float[]{3, 1}); // 3:1 ancho relativo (etiqueta:valor)
+        tabla.setWidthPercentage(100);
+
+        Font boldLabelFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.BLACK);
+        Font labelFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, BaseColor.BLACK);
+        Font subLabelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.BLACK);
+
+        Font valueFontBold = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.BLACK);
+        Font valueFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, BaseColor.BLACK);
+        Font subValueFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.BLACK);
+
+
+        for (String key : keys) {
+            // Aquí deberías sustituir estos ejemplos por tus datos reales:
+            String valor = switch (key) {
+                case "Saldo anterior" ->
+                        formatoMoneda.format(consorcio.getEstadoCuentaConsorcioDTO().getTotalAlCierre());
+                case "Ingresos" ->
+                        formatoMoneda.format(totalIngresos);
+                case "Ingreso por expensas" -> formatoMoneda.format(totalPagoExpensas);
+                case "Ingreso por expensas - Efectivo" -> formatoMoneda.format(totalPagoExpensaEfectivo);
+                case "Ingreso por expensas - Banco" -> formatoMoneda.format(totalPagoExpensaBanco);
+
+                case "Otros ingresos" -> formatoMoneda.format(totalOtrosIngresos);
+                case "Otros ingresos - Efectivo" -> formatoMoneda.format(totalIngresosEfectivo);
+                case "Otros ingresos - Banco" -> formatoMoneda.format(totalEgresosBanco);
+
+                case "Egresos según liquidación" -> formatoMoneda.format(totalEgresos);
+                case "Egresos según liquidación - Efectivo" -> formatoMoneda.format(totalEgresosEfectivo);
+                case "Egresos según liquidación - Banco" -> formatoMoneda.format(totalEgresosBanco);
+                case "Egresos por gastos particulares" -> formatoMoneda.format(totalGastosEstadoCuenta);
+
+                case "Fondo de Administración" ->
+                        formatoMoneda.format(consorcio.getEstadoCuentaConsorcioDTO().getFondoAdm());
+                case "Saldo al cierre" -> formatoMoneda.format(consorcio.getEstadoCuentaConsorcioDTO().getTotal());
+                default -> "";
+            };
+
+            boolean isSaldoAnterior = "Saldo anterior".equals(key);
+            boolean isSaldoCierre = "Saldo al cierre".equals(key);
+
+            boolean isIngresos = "Ingresos".equals(key);
+            boolean isEgresos = "Egresos según liquidación".equals(key);
+
+            Font fontKey = isSaldoCierre || isSaldoAnterior ? boldLabelFont : isIngresos || isEgresos ? labelFont : subLabelFont;
+            Font valueKey = isSaldoCierre || isSaldoAnterior ? valueFontBold : isIngresos || isEgresos ? valueFont : subValueFont;
+
+            // Celda de etiqueta
+            PdfPCell cellKey = new PdfPCell(new Phrase(key, fontKey));
+            if (isSaldoAnterior || isSaldoCierre) {
+                cellKey.setBorder(Rectangle.BOX);
+                cellKey.setBackgroundColor(grayBackground);
+            } else if (isIngresos || isEgresos) {
+                cellKey.setBorder(Rectangle.BOX);
+            } else {
+                cellKey.setBorder(Rectangle.LEFT);
+            }
+            cellKey.setPadding(5f);
+            tabla.addCell(cellKey);
+
+            // Celda de valor
+            PdfPCell cellValue = new PdfPCell(new Phrase(valor, valueKey));
+            if (isSaldoAnterior || isSaldoCierre) {
+                cellValue.setBorder(Rectangle.BOX);
+                cellValue.setBackgroundColor(grayBackground);
+            } else if (isIngresos || isEgresos) {
+                cellKey.setBorder(Rectangle.BOX);
+            } else {
+                cellValue.setBorder(Rectangle.RIGHT);
+            }
+            cellValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            cellValue.setPadding(5f);
+            tabla.addCell(cellValue);
+        }
+
+// 5) Añade la tabla al documento
+        document.add(tabla);
 //      FIN ESTADO CUENTA CONSORCIO
 
 //      NOTA Y JUICIOS
@@ -407,8 +603,8 @@ public class PdfGeneratorExpensa {
 
                 // DATOS UF
                 tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getUnidadFuncional()), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
-                tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
-                tablaEstadoCuenta.addCell(createCellEc(uf.getApellidoPropietario()+", "+uf.getNombrePropietario(), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(nombreUf(uf.getApellidoPropietario(), uf.getNombrePropietario()), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
                 // SALDOS UF
                 tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalMesPrevio()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
                 tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalPago), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
@@ -575,11 +771,10 @@ public class PdfGeneratorExpensa {
                 totalGp += totalGastosParticulares;
                 total += estadoCuenta.getTotalExpensa();
 
-                if (estadoCuenta == null) continue;
                 // DATOS UF
                 tablaEstadoCuenta.addCell(createCellEc(String.valueOf(uf.getUnidadFuncional()), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
                 tablaEstadoCuenta.addCell(createCellEc(uf.getTitulo(), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
-                tablaEstadoCuenta.addCell(createCellEc(uf.getApellidoPropietario()+", "+uf.getNombrePropietario(), boldFontSmall, Element.ALIGN_CENTER, PdfPCell.BOX, null, 20f));
+                tablaEstadoCuenta.addCell(createCellEc(nombreUf(uf.getApellidoPropietario(), uf.getNombrePropietario()), boldFontSmall, Element.ALIGN_LEFT, PdfPCell.BOX, null, 20f));
                 // SALDOS UF
                 tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(estadoCuenta.getTotalMesPrevio()), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
                 tablaEstadoCuenta.addCell(createCellEc(formatoMoneda.format(totalPago), smallFont, Element.ALIGN_RIGHT, PdfPCell.BOX, null, 20f));
@@ -743,6 +938,14 @@ public class PdfGeneratorExpensa {
         return suma;
     }
 
+    private static double totalPagosExpensas(List<PagoUFDTO> pagoUf) {
+        double suma = 0.0;
+        for(PagoUFDTO pagoUFDTO : pagoUf){
+            suma += pagoUFDTO.getValor();
+        }
+        return suma;
+    }
+
     public static double totalGastoParticulares(List<GastoParticularResponseDTO> dtos){
         double suma = 0.0;
         for(GastoParticularResponseDTO gP : dtos){
@@ -756,5 +959,14 @@ public class PdfGeneratorExpensa {
         return Math.round(valor * escala) / escala;
     }
 
+    public static String nombreUf(String apellido, String nombre) {
+        return nombre != null && !nombre.trim().isEmpty()
+                ? apellido + ", " +nombre
+                : apellido;
+    }
+
+    public static String nombreProveedor(Long idProveedor, ProveedorService proveedorService) throws Exception {
+        return proveedorService.getProvedorById(idProveedor).getNombre();
+    }
 
 }

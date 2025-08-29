@@ -19,6 +19,8 @@ public class CopiaEstadoCuentaConsorcio {
     private long idCopiaEstadoCuentaConsorcio;
 
     @NotNull
+    private Long idEstadoCuentaConsorcio;
+    @NotNull
     private Long idConsorcio;
     @NotNull
     private YearMonth periodo;
@@ -30,4 +32,5 @@ public class CopiaEstadoCuentaConsorcio {
     private Double fondoAdm;
     @NotNull
     private Double total;
+    private Double totalAlCierre;
 }

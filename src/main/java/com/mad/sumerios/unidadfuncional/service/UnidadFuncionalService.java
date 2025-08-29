@@ -38,13 +38,14 @@ public class UnidadFuncionalService {
 
     //  CREAR UNIDAD FUNCIONAL
     @Transactional
-    public void createUnidadFuncional(UnidadFuncionalCreateDTO dto) throws Exception {
+    public UnidadFuncionalResponseDTO createUnidadFuncional(UnidadFuncionalCreateDTO dto) throws Exception {
         UnidadFuncional uf = mapToUnidadFuncionalEntity(dto);
         unidadFuncionalRepository.save(uf);
 
         EstadoCuentaUfCreateDTO eaDTO = new EstadoCuentaUfCreateDTO(uf.getIdUf(), dto.getPeriodo());
         estadoCuentaUfService.createEstadoCuentaUf(eaDTO);
 
+        return mapToUnidadFuncionalResponseDTO(uf);
     }
 
     @Transactional

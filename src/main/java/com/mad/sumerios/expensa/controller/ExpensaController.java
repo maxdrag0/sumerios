@@ -114,7 +114,8 @@ public class ExpensaController {
                     request.getIdExpensa(),
                     request.getExpensaCreateDTO(),
                     request.getRepetirEgresos(),
-                    request.getSegundoVencimiento()
+                    request.getSegundoVencimiento(),
+                    request.getMostrarFondoAdm()
             );
 
             HttpHeaders headers = new HttpHeaders();
@@ -142,7 +143,8 @@ public class ExpensaController {
                     idConsorcio,
                     request.getIdExpensa(),
                     request.getExpensaCreateDTO(),
-                    request.getSegundoVencimiento());
+                    request.getSegundoVencimiento(),
+                    request.getMostrarFondoAdm());
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);

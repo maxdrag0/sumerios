@@ -11,4 +11,5 @@ public interface IProveedorRepository extends JpaRepository<Proveedor, Long> {
     List<Proveedor> findByIdAdm (long idAdm);
     Proveedor findByCuit (String cuit);
     Proveedor findByTelefono (String telefono);
+    Proveedor findByIdAdmAndIdProveedor(Long idAdm, Long idProveedor);
 }

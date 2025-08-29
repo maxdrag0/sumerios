@@ -49,10 +49,16 @@ public class EgresoService {
     //  CREAR EGRESO
     @Transactional
     public void createEgreso(EgresoCreateDTO dto) throws Exception{
+        validateConsorcio(dto.getIdConsorcio());
+        validateProveedor(dto.getIdProveedor());
+        validateValor(dto.getTotalFinal(), dto.getTipoEgreso());
+
         Egreso egreso = mapToEgresoEntity(dto);
+        Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
-            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
             consorcio.ifPresent(value -> estadoCuentaConsorcioService.restarEgreso(value.getEstadoCuentaConsorcio(), egreso));
+        } else{
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.crearFondoAdm(value.getEstadoCuentaConsorcio(), egreso.getTotalFinal()));
         }
         egresoRepository.save(egreso);
     }
@@ -102,14 +108,16 @@ public class EgresoService {
     public void updateEgreso (Long idIngreso, EgresoUpdateDTO dto) throws Exception{
         validateConsorcio(dto.getIdConsorcio());
         validateProveedor(dto.getIdProveedor());
-        validateValor(dto.getTotalFinal());
+        validateValor(dto.getTotalFinal(), dto.getTipoEgreso());
 
         Egreso egreso = egresoRepository.findById(idIngreso)
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
 
+        Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
-            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
             consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarEgreso(value.getEstadoCuentaConsorcio(), egreso, dto));
+        } else {
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.modificarFondoAdm(value.getEstadoCuentaConsorcio(), egreso.getTotalFinal(), dto.getTotalFinal()));
         }
 
         egreso.setIdConsorcio(dto.getIdConsorcio());
@@ -130,10 +138,13 @@ public class EgresoService {
     public void deleteEgreso(Long id) throws Exception{
         Egreso egreso = egresoRepository.findById(id)
                 .orElseThrow(()-> new Exception("Egreso no encontrado"));
+        Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
         if(egreso.getTipoEgreso() != TipoEgreso.FONDO_ADM) {
-            Optional<Consorcio> consorcio = consorcioRepository.findById(egreso.getIdConsorcio());
             consorcio.ifPresent(value -> estadoCuentaConsorcioService.revertirEgreso(value.getEstadoCuentaConsorcio(), egreso));
+        } else {
+            consorcio.ifPresent(value -> estadoCuentaConsorcioService.eliminarFondoAdm(value.getEstadoCuentaConsorcio(), egreso.getTotalFinal()));
         }
+
         egresoRepository.delete(egreso);
     }
 
@@ -148,8 +159,8 @@ public class EgresoService {
             throw new Exception("Proveedor no encontrado");
         }
     }
-    private void validateValor(Double totalFinal) throws Exception {
-        if (totalFinal < 0){
+    private void validateValor(Double totalFinal, TipoEgreso tipo) throws Exception {
+        if (totalFinal < 0 && tipo != TipoEgreso.FONDO_ADM){
             throw new Exception(
                     "El valor del egreso debe ser mayor de $0");
         }
@@ -165,9 +176,6 @@ public class EgresoService {
 
     //  mapeo DTO a Entity
     private Egreso mapToEgresoEntity(EgresoCreateDTO dto) throws Exception{
-        validateConsorcio(dto.getIdConsorcio());
-        validateProveedor(dto.getIdProveedor());
-        validateValor(dto.getTotalFinal());
         Expensa exp = validateExpensa(dto.getIdExpensa());
         Egreso egreso = new Egreso();
 

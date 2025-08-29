@@ -5,6 +5,7 @@ import com.mad.sumerios.consorcio.dto.ConsorcioResponseDTO;
 import com.mad.sumerios.consorcio.repository.IConsorcioRepository;
 import com.mad.sumerios.consorcio.service.ConsorcioService;
 import com.mad.sumerios.enums.CategoriaEgreso;
+import com.mad.sumerios.estadocuentaconsorcio.dto.EstadoCuentaConsorcioDTO;
 import com.mad.sumerios.estadocuentaconsorcio.service.EstadoCuentaConsorcioService;
 import com.mad.sumerios.estadocuentauf.dto.EstadoCuentaUfDTO;
 import com.mad.sumerios.estadocuentauf.model.EstadoCuentaUf;
@@ -12,6 +13,7 @@ import com.mad.sumerios.estadocuentauf.repository.IEstadoCuentaUfRepository;
 import com.mad.sumerios.estadocuentauf.service.EstadoCuentaUfService;
 import com.mad.sumerios.expensa.dto.ExpensaCreateDTO;
 import com.mad.sumerios.expensa.dto.ExpensaResponseDto;
+import com.mad.sumerios.expensa.dto.RepetirEgresos;
 import com.mad.sumerios.expensa.model.Expensa;
 import com.mad.sumerios.expensa.repository.IExpensaRepository;
 import com.mad.sumerios.intermedioExpensaConsorcio.dto.IntermediaExpensaConsorcioCreateDto;
@@ -32,6 +34,7 @@ import com.mad.sumerios.movimientos.pagouf.dto.PagoUFDTO;
 import com.mad.sumerios.movimientos.pagouf.model.PagoUF;
 import com.mad.sumerios.movimientos.pagouf.service.PagoUFService;
 import com.mad.sumerios.pdf.PdfGeneratorExpensa;
+import com.mad.sumerios.proveedor.service.ProveedorService;
 import com.mad.sumerios.unidadfuncional.dto.UnidadFuncionalResponseDTO;
 import com.mad.sumerios.unidadfuncional.model.UnidadFuncional;
 import com.mad.sumerios.unidadfuncional.repository.IUnidadFuncionalRepository;
@@ -65,6 +68,7 @@ public class ExpensaService {
     private final IngresoService ingresoService;
     private final PagoUFService pagoUFService;
     private final AdministracionService administracionService;
+    private final ProveedorService proveedorService;
 
     @Autowired
     public ExpensaService (IExpensaRepository expensaRepository,
@@ -81,7 +85,8 @@ public class ExpensaService {
                            GastoParticularService gastoParticularService,
                            IngresoService ingresoService,
                            PagoUFService pagoUFService,
-                           AdministracionService administracionService){
+                           AdministracionService administracionService,
+                           ProveedorService proveedorService){
         this.expensaRepository = expensaRepository;
         this.consorcioRepository = consorcioRepository;
         this.consorcioService = consorcioService;
@@ -97,9 +102,10 @@ public class ExpensaService {
         this.ingresoService = ingresoService;
         this.pagoUFService = pagoUFService;
         this.administracionService = administracionService;
+        this.proveedorService = proveedorService;
     }
 
-    public byte[] previsualizarExpensa(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, Boolean segundoVencimiento) throws Exception{
+    public byte[] previsualizarExpensa(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, Boolean segundoVencimiento, Boolean mostrarFondoAdm) throws Exception{
         validateConsorcio(idConsorcio);
         validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
@@ -129,8 +135,9 @@ public class ExpensaService {
 
         aplicarValorTotalAuxiliar(estadosDeCuentaAuxiliares);
 
-
-        calcularSegundoVencimientoAuxiliar(estadosDeCuentaAuxiliares, dto.getPorcentajeSegundoVencimiento(), segundoVencimiento);
+        if(segundoVencimiento != null){
+            calcularSegundoVencimientoAuxiliar(estadosDeCuentaAuxiliares, dto.getPorcentajeSegundoVencimiento(), segundoVencimiento);
+        }
 
         return PdfGeneratorExpensa.crearPdfExpensa(
                 administracionService.getAdministracionById(consorcio.getIdAdm()),
@@ -139,13 +146,15 @@ public class ExpensaService {
                 ufs,
                 estadosDeCuentaAuxiliares,
                 segundoVencimiento,
+                mostrarFondoAdm,
                 dto.getNota(),
-                dto.getJuicios());
+                dto.getJuicios(),
+                proveedorService);
     }
 
 
     @Transactional
-    public byte[] liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, Boolean repetirEgresos, Boolean segundoVencimiento) throws Exception{
+    public byte[] liquidarExpensaMesVencido(Long idConsorcio, Long idExpensa, ExpensaCreateDTO dto, RepetirEgresos repetirEgresos, Boolean segundoVencimiento, Boolean mostrarFondoAdm) throws Exception{
         validateConsorcio(idConsorcio);
         validateUltimoPeriodo(idConsorcio, dto.getPeriodo());
         ExpensaResponseDto expensa = this.getExpensasById(idExpensa);
@@ -153,11 +162,12 @@ public class ExpensaService {
         List<UnidadFuncionalResponseDTO> ufs = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
         List<EstadoCuentaUfDTO> estadosDeCuentaUf = estadoCuentaUfService.getEstadoCuentaUfs(ufs);
 
-        // CREA COPIA DE ECUF ACTUAL
+        // CREA COPIA DE ECCONS Y ECUF ACTUAL
+        createCopiaEstadoCuentaConsorcio(consorcio.getEstadoCuentaConsorcioDTO(), expensa.getPeriodo());
         createCopiasEstadoDeCuentaUf(estadosDeCuentaUf);
 
         // ECUF -> TOMA EL SALDO EXPENSAS Y LO TRANSFORMA EN DEUDA Y CALCULA EL INTERES
-        aplicarDeudaEIntereses(estadosDeCuentaUf, expensa.getPorcentajeIntereses());
+        aplicarDeudaEIntereses(estadosDeCuentaUf, dto.getPorcentajeIntereses());
 
         // Aplicar gastos por categoría
         Map<CategoriaEgreso, Double> totalGastosPorCategoria = Arrays.stream(CategoriaEgreso.values())
@@ -181,23 +191,33 @@ public class ExpensaService {
     // ECUF -> SUMA DEUDA, INTERES, GASTOS PARTICULARES Y TOTALES Y DA EL TOTAL FINAL, APLICA EL SALDO EXPENSA CON LA SUMA DE LOS TOTALES
         aplicarValorTotal(estadosDeCuentaUf);
 
-        // CALCULA SEGUNDO VENCIMIENTO
+        // CALCULA SEGUNDO VENCIMIENTO,
         calcularSegundoVencimiento(estadosDeCuentaUf, dto.getPorcentajeSegundoVencimiento(), segundoVencimiento);
         ajustarInteresesSegundoVencimientoConsorcio(consorcio.getIdConsorcio(), dto.getPorcentajeIntereses(), segundoVencimiento ,dto.getPorcentajeSegundoVencimiento());
 
     // CREA NUEVA EXPENSA  VACIA E INTNERMEDIA
         createExpensa(dto);
 
-        if(repetirEgresos){
+        if(repetirEgresos.getRepetirEgresos()){
             ExpensaResponseDto expNueva = this.getExpensasByConsorcioAndPeriodo(idConsorcio,expensa.getPeriodo().plusMonths(1));
-            egresoService.createEgresosNuevaExpensa(expNueva.getIdExpensa(),expensa.getEgresos());
+            egresoService.createEgresosNuevaExpensa(expNueva.getIdExpensa(),repetirEgresos.getEgresos());
         }
 
         List<UnidadFuncionalResponseDTO> ufsUpdate = unidadFuncionalService.getUnidadesPorConsorcio(idConsorcio);
         List<EstadoCuentaUfDTO> estadosDeCuentaUfUpdate = estadoCuentaUfService.getEstadoCuentaUfs(ufsUpdate);
 
 //      CREO PDF Y LO DEVUELV
-        byte[] pdfBytes = PdfGeneratorExpensa.crearPdfExpensa(administracionService.getAdministracionById(consorcio.getIdAdm()), consorcio, expensa, ufsUpdate, estadosDeCuentaUfUpdate,segundoVencimiento, dto.getNota(), dto.getJuicios());
+        byte[] pdfBytes = PdfGeneratorExpensa.crearPdfExpensa(
+                administracionService.getAdministracionById(consorcio.getIdAdm()),
+                consorcio,
+                expensa,
+                ufsUpdate,
+                estadosDeCuentaUfUpdate,
+                segundoVencimiento,
+                mostrarFondoAdm,
+                dto.getNota(),
+                dto.getJuicios(),
+                proveedorService);
 
         // ACTUALIZO EL TOTAL AL INICIO DEL PERIODO
         estadoCuentaConsorcioService.actualizarTotalAlCierre(consorcio.getEstadoCuentaConsorcioDTO().getIdEstadoCuentaConsorcio(),consorcio.getEstadoCuentaConsorcioDTO().getTotal());
@@ -261,8 +281,11 @@ public class ExpensaService {
                 unidadFuncionalService.getUnidadesPorConsorcio(expensaUltima.getIdConsorcio()));
 
         for (EstadoCuentaUfDTO ecuf : estadosDeCuentaUf){
-            estadoCuentaUfService.restablecerPeriodoPrevio(ecuf.getIdEstadoCuentaUf());
+            estadoCuentaUfService.restablecerPeriodoPrevio(ecuf);
         }
+
+        EstadoCuentaConsorcioDTO estadoCuentaConsorcioDTO = estadoCuentaConsorcioService.getByIdConsorcio(expensaUltima.getIdConsorcio());
+        estadoCuentaConsorcioService.restablecerPeriodoPrevio(estadoCuentaConsorcioDTO, expensaUltima.getPeriodo());
 
         // ACTUALIZA CLASE INTERMEDIA
         IntermediaExpensaConsorcioDto intermedia = intermediaExpensaConsorcioService.getIntermediaByConsorcio(expensaUltima.getIdConsorcio());
@@ -330,6 +353,9 @@ public class ExpensaService {
             estadoCuentaUfService.createCopiaEstadoCuentaUf(estadoActual);
         }
     }
+    private void createCopiaEstadoCuentaConsorcio(EstadoCuentaConsorcioDTO dto, YearMonth periodo) throws Exception {
+        estadoCuentaConsorcioService.crearCopiaEstadoCuenta(dto, periodo);
+    }
     private double totalGastos(List<EgresoResponseDTO> egresos,
                                CategoriaEgreso categoriaEgreso) {
         if (egresos == null || egresos.isEmpty() || categoriaEgreso == null) {
@@ -368,8 +394,7 @@ public class ExpensaService {
         for(EstadoCuentaUfDTO ecAux : estadosDeCuentaAuxiliares){
             ecAux.setTotalMesPrevio(ecAux.getTotalExpensa());
             if(ecAux.getSaldoFinal()>0){
-                double deuda = ecAux.getSaldoExpensa() - ecAux.getSaldoIntereses();
-                double intereses = (deuda * porcentajeIntereses) / 100;
+                double intereses =(ecAux.getSaldoExpensa() * porcentajeIntereses) / 100;
 
                 ecAux.setDeuda(ecAux.getSaldoFinal());
                 ecAux.setIntereses(intereses);
